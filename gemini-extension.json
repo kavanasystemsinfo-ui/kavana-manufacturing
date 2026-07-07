@@ -1,0 +1,6 @@
+{
+  "name": "kavana-v3-ponytail-pro",
+  "version": "1.1.0",
+  "description": "Identidad unificada de Arquitecto Principal para Kavana V3. Fuerza el flujo cerrado de Contexto, Auditoría Inversa y TDD Estricto en Antigravity y Roo Code.",
+  "contextFileName": "KAVANA_RULES.md"
+}

@@ -1,0 +1,19 @@
+version: '3.8'
+
+services:
+  db:
+    image: postgres:16-alpine
+    container_name: kavana_v3_db
+    environment:
+      POSTGRES_USER: kavana
+      POSTGRES_PASSWORD: kavana_v3_password
+      POSTGRES_DB: kavana_v3
+    ports:
+      # Exponemos en el 5433 local para no pisar el contenedor Cleanops que usa el 5432
+      - "5433:5432"
+    volumes:
+      - kavana_v3_pgdata:/var/lib/postgresql/data
+    restart: unless-stopped
+
+volumes:
+  kavana_v3_pgdata:

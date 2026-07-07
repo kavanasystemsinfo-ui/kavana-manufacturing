@@ -1,0 +1,35 @@
+node_modules/
+dist/
+build/
+.env
+.env.*
+!.env.example
+coverage/
+.vscode/
+.idea/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.DS_Store
+backend/test-keys/
+
+# NotebookLM automation outputs must never become NotebookLM sources again.
+# These paths are ignored by Git; Google Drive Desktop must also exclude them
+# if it is configured to sync the whole repository or Desktop.
+tools-ai/notebooklm/outputs/
+tools-ai/notebooklm/.venv/
+tools-ai/notebooklm/chrome_profile/
+docs/ai/outputs/*.md
+docs/ai/outputs/*.json
+!docs/ai/outputs/README.md
+!docs/ai/outputs/.gitkeep
+
+# Graphify
+graphify-out/cost.json
+graphify-out/cache/
+
+# Temp scripts
+backend/*.cjs
+backend/*.mjs
+.graphifyignore
