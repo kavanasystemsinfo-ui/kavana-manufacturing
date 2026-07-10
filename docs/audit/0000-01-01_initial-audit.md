@@ -1,4 +1,4 @@
-# Kavana V3 - Auditoría Inicial del Proyecto
+# Kavana Manufacturing - Auditoría Inicial del Proyecto
 
 ## Estado del documento
 
@@ -7,7 +7,7 @@
 
 ## Alcance
 
-Esta auditoría revisa el estado inicial del proyecto Kavana V3 desde una perspectiva técnica, arquitectónica y documental.
+Esta auditoría revisa el estado inicial del proyecto Kavana Manufacturing desde una perspectiva técnica, arquitectónica y documental.
 
 ## Archivos revisados
 

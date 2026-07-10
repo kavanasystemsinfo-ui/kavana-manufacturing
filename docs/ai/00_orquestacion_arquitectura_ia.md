@@ -11,7 +11,7 @@
 
 Crear el módulo interno `tools-ai/` para orquestar una interconexión bidireccional entre Roo Code y Google NotebookLM mediante Chrome DevTools Protocol (CDP), usando Playwright para controlar un perfil aislado de Chrome en `localhost:9222`.
 
-El objetivo no es automatizar una subida manual de archivos. El objetivo real es convertir NotebookLM en un motor activo de síntesis de contexto, razonamiento de mercado y generación de artefactos profundos para Kavana V3: guías de estudio, tarjetas didácticas, cuestionarios de seguridad, resúmenes ejecutivos y guías de audio personalizadas. Roo Code actuará como piloto local que prepara el contexto, ejecuta interacciones controladas y extrae el conocimiento generado de vuelta al repositorio.
+El objetivo no es automatizar una subida manual de archivos. El objetivo real es convertir NotebookLM en un motor activo de síntesis de contexto, razonamiento de mercado y generación de artefactos profundos para Kavana Manufacturing: guías de estudio, tarjetas didácticas, cuestionarios de seguridad, resúmenes ejecutivos y guías de audio personalizadas. Roo Code actuará como piloto local que prepara el contexto, ejecuta interacciones controladas y extrae el conocimiento generado de vuelta al repositorio.
 
 ## 2. Propósito del módulo `tools-ai/`
 
@@ -19,7 +19,7 @@ El objetivo no es automatizar una subida manual de archivos. El objetivo real es
 
 1. Lanzar un Chrome dedicado con depuración CDP en `localhost:9222`.
 2. Mantener una sesión de Google separada en `tools-ai/notebooklm/chrome_profile/`.
-3. Reutilizar el cuaderno permanente de Kavana V3: `https://notebooklm.google.com/notebook/a8ef67a8-896b-463e-a522-eaae826b3b79`.
+3. Reutilizar el cuaderno permanente de Kavana Manufacturing: `https://notebooklm.google.com/notebook/a8ef67a8-896b-463e-a522-eaae826b3b79`.
 4. Añadir fuentes externas temporales mediante `--add-source-url`.
 5. Usar Fast Research por defecto mediante `--research-mode fast`; Deep Research solo con `--research-mode deep`.
 6. Interactuar con chat o artefactos como Flashcards, Quizzes y Audio Overview.
@@ -46,7 +46,7 @@ flowchart TD
     L --> M[Cuaderno permanente vuelve a estado base]
 ```
 
-## 4. Por qué acelera Kavana V3
+## 4. Por qué acelera Kavana Manufacturing
 
 Esta automatización multiplica la capacidad de decisión fundacional porque reduce el ciclo entre:
 
@@ -115,9 +115,9 @@ El puente solo se conecta a `http://localhost:9222`. No se expone el puerto fuer
 
 **Control:** El script escribe `requires_confirmation_before_code_changes: true` en el Markdown y en el manifiesto. Roo Code debe presentar el plan y esperar un comando explícito del desarrollador, por ejemplo `procede`, antes de modificar código fuente.
 
-## 6. Relación con los principios de Kavana V3
+## 6. Relación con los principios de Kavana Manufacturing
 
-La automatización respeta los principios no negociables de Kavana V3:
+La automatización respeta los principios no negociables de Kavana Manufacturing:
 
 - **Modularidad:** `tools-ai/` vive fuera de backend, frontend y database.
 - **Trazabilidad:** la decisión queda registrada en `docs/ai/` y cada ejecución genera manifiesto.

@@ -1,4 +1,4 @@
-# Skill: Kavana V3 - QA, Seguridad y Revisión de Data Bleeding
+# Skill: Kavana Manufacturing - QA, Seguridad y Revisión de Data Bleeding
 
 ## Propósito
 

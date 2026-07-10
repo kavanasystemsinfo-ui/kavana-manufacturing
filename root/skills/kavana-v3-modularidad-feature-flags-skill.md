@@ -1,4 +1,4 @@
-# Skill: Kavana V3 - Modularidad y Feature Flags JSONB
+# Skill: Kavana Manufacturing - Modularidad y Feature Flags JSONB
 
 ## Propósito
 
@@ -164,4 +164,4 @@ Después de cada cambio de código que pase tests, actualizar documentación:
 
 ## Resultado esperado
 
-Módulos Kavana V3 activables por tenant, seguros, cacheables y sin UI parpadeante.
+Módulos Kavana Manufacturing activables por tenant, seguros, cacheables y sin UI parpadeante.

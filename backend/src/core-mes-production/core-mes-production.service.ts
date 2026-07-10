@@ -67,7 +67,7 @@ export class CoreMesProductionService {
       `SELECT id, code, quantity, produced_quantity, defect_quantity, status, workstation_id, custom_fields, created_at, updated_at
        FROM orders
        WHERE tenant_id = $1 AND id = $2`,
-      [context.tenantId, orderId],
+      [String(context.tenantId), orderId],
     );
     return result.rows[0] ?? null;
   }
@@ -141,7 +141,7 @@ WHERE tenant_id = $1::bigint AND id = $2::uuid
 
   async syncWorkBlock(dto: SyncWorkBlockDto) {
     const context = getTenantContext();
-    const tenantId = context.tenantId;
+    const tenantId = String(context.tenantId);
 
     return withTenantTransaction(async (client) => {
       const order = await this.lockOrder(client, dto.order_id);
@@ -155,7 +155,7 @@ WHERE tenant_id = $1::bigint AND id = $2::uuid
          WHERE operator_id = $1::uuid AND tenant_id = $2::bigint AND id != $3::uuid
            AND (start_time, end_time) OVERLAPS ($4::timestamptz, $5::timestamptz)
          LIMIT 1`,
-        [dto.operator_id, tenantId, dto.id, dto.start_time, dto.end_time]
+        [dto.operator_id, String(tenantId), dto.id, dto.start_time, dto.end_time]
       );
 
       if (overlapCheck.rows.length > 0) {
@@ -169,13 +169,13 @@ WHERE tenant_id = $1::bigint AND id = $2::uuid
         updateResult = await client.query(
           `UPDATE orders
            SET status = CASE WHEN status = 'pending' THEN 'in_progress' ELSE status END,
-               workstation_id = COALESCE($4::uuid, workstation_id),
-               produced_quantity = produced_quantity + COALESCE($5::numeric, 0),
-               defect_quantity = defect_quantity + COALESCE($6::numeric, 0),
+               workstation_id = COALESCE($3::uuid, workstation_id),
+               produced_quantity = produced_quantity + COALESCE($4::numeric, 0),
+               defect_quantity = defect_quantity + COALESCE($5::numeric, 0),
                updated_at = NOW()
            WHERE tenant_id = $1::bigint AND id = $2::uuid
            RETURNING id, code, quantity, produced_quantity, defect_quantity, status, workstation_id, custom_fields, created_at, updated_at`,
-          [tenantId, dto.order_id, dto.workstation_id, dto.workstation_id, dto.produced_quantity ?? 0, dto.defect_quantity ?? 0],
+          [tenantId, dto.order_id, dto.workstation_id, dto.produced_quantity ?? 0, dto.defect_quantity ?? 0],
         );
       } else {
         updateResult = await client.query(
@@ -204,7 +204,7 @@ WHERE tenant_id = $1::bigint AND id = $2::uuid
        FROM production_work_blocks
        WHERE tenant_id = $1::bigint AND order_id = $2::uuid
        ORDER BY start_time ASC`,
-      [context.tenantId, orderId],
+      [String(context.tenantId), orderId],
     );
     return result.rows;
   }
@@ -216,7 +216,7 @@ WHERE tenant_id = $1::bigint AND id = $2::uuid
        FROM orders
        WHERE tenant_id = $1::bigint AND id = $2::uuid
        FOR UPDATE`,
-      [context.tenantId, orderId],
+      [String(context.tenantId), orderId],
     );
     return result.rows[0] ?? null;
   }
@@ -224,36 +224,34 @@ WHERE tenant_id = $1::bigint AND id = $2::uuid
 private async insertWorkBlock(
     client: PoolClient,
     dto: SyncWorkBlockDto,
-    tenantId: bigint,
+    tenantId: string,
   ): Promise<boolean> {
-    const result = await client.query(
-      `INSERT INTO production_work_blocks (
+    const sql = `
+      INSERT INTO production_work_blocks (
         tenant_id, id, order_id, workstation_id, operator_id,
         client_event_id, type, start_time, end_time, downtime_reason,
-        produced_quantity, defect_quantity, is_offline_event, client_device_id
+        produced_quantity, defect_quantity, is_offline_event, client_device_id, version
       )
-      VALUES ($1::bigint, $2::uuid, $3::uuid, $4::uuid, $5::uuid,
-              $6::uuid, $7::varchar, $8::timestamptz, $9::timestamptz,
-              $10::text, $11::numeric, $12::numeric, $13::boolean, $14::text)
-      ON CONFLICT (tenant_id, client_event_id) DO NOTHING
-      RETURNING id`,
-      [
-        String(tenantId),
-        dto.id,
-        dto.order_id,
-        dto.workstation_id,
-        dto.operator_id,
-        dto.id,
-        dto.type,
-        dto.start_time,
-        dto.end_time,
-        dto.type === 'parada' ? (dto.downtime_reason ?? null) : null,
-        dto.type === 'produccion' ? (dto.produced_quantity ?? 0) : 0,
-        dto.type === 'produccion' ? (dto.defect_quantity ?? 0) : 0,
-        dto.is_offline_event ?? false,
-        dto.client_device_id ?? null,
-      ],
-    );
+      VALUES (
+        ${tenantId.toString()},
+        '${dto.id}'::uuid,
+        '${dto.order_id}'::uuid,
+        '${dto.workstation_id}'::uuid,
+        '${dto.operator_id}'::uuid,
+        '${dto.id}'::uuid,
+        '${dto.type}',
+        '${dto.start_time}'::timestamptz,
+        '${dto.end_time}'::timestamptz,
+        ${dto.type === 'parada' ? `'${dto.downtime_reason ?? ''}'` : 'NULL'},
+        ${dto.type === 'produccion' ? (dto.produced_quantity ?? 0) : 0},
+        ${dto.type === 'produccion' ? (dto.defect_quantity ?? 0) : 0},
+        ${dto.is_offline_event ?? false},
+        ${dto.client_device_id ? `'${dto.client_device_id}'` : 'NULL'},
+        ${dto.version ?? 1}
+      )
+      RETURNING id
+    `;
+    const result = await client.query(sql);
     return result.rowCount !== null && result.rowCount > 0;
   }
 }

@@ -1,4 +1,4 @@
-# Decisions Log — Kavana V3
+# Decisions Log — Kavana Manufacturing
 
 Este registro documenta las decisiones técnicas clave del proyecto, mostrando la evolución del conocimiento y las lecciones aprendidas.
 

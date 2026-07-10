@@ -1,8 +1,8 @@
-# Skill: Kavana V3 - Arquitectura General
+# Skill: Kavana Manufacturing - Arquitectura General
 
 ## Propósito
 
-Usa esta skill como punto de entrada para cualquier tarea de Kavana V3 cuando no exista una skill más específica. Define el marco arquitectónico obligatorio para producto, backend, frontend, datos y seguridad. Incluye soporte para sistema de temas dual (Clásico ERP + Moderno Kavana).
+Usa esta skill como punto de entrada para cualquier tarea de Kavana Manufacturing cuando no exista una skill más específica. Define el marco arquitectónico obligatorio para producto, backend, frontend, datos y seguridad. Incluye soporte para sistema de temas dual (Clásico ERP + Moderno Kavana).
 
 ## Fuentes maestras
 
@@ -81,4 +81,4 @@ Después de cada cambio de código que pase tests, actualizar documentación en 
 
 ## Resultado esperado
 
-Cualquier salida de esta skill debe producir código, arquitectura o recomendaciones alineadas con Kavana V3: multi-tenant hermético, modularidad JSONB, HMI industrial Offline-First y seguridad Fail-Closed.
+Cualquier salida de esta skill debe producir código, arquitectura o recomendaciones alineadas con Kavana Manufacturing: multi-tenant hermético, modularidad JSONB, HMI industrial Offline-First y seguridad Fail-Closed.

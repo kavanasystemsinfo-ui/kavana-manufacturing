@@ -1,8 +1,8 @@
 {
-  "name": "@kavana-v3/backend",
-  "version": "3.0.0-alpha",
+  "name": "@kavana-manufacturing/backend",
+  "version": "1.0.0",
   "private": true,
-  "description": "Kavana V3 backend API with tenant-safe transactions.",
+  "description": "Kavana Manufacturing backend API with tenant-safe transactions.",
   "type": "module",
   "scripts": {
     "dev": "tsx watch src/main.ts",

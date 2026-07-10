@@ -1,4 +1,4 @@
-# NotebookLM Context Index - Kavana V3
+# NotebookLM Context Index - Kavana Manufacturing
 
 ## Estado del documento
 

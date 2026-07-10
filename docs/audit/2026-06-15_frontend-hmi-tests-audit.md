@@ -1,4 +1,4 @@
-# Kavana V3 - Auditoría 2026-06-15: Fase 4 y tests iniciales
+# Kavana Manufacturing - Auditoría 2026-06-15: Fase 4 y tests iniciales
 
 ## Estado del documento
 

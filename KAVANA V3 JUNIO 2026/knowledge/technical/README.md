@@ -1,6 +1,6 @@
 # Documentación técnica adicional
 
-Guarda aquí documentación técnica que no venga de NotebookLM pero que sea relevante para KAVANA V3.
+Guarda aquí documentación técnica que no venga de NotebookLM pero que sea relevante para KAVANA MANUFACTURING.
 
 ## Ejemplos
 

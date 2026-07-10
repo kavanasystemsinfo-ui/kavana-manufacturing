@@ -1,12 +1,12 @@
 # ESPECIFICACIÓN TÉCNICA: GOBERNANZA JSONB, PANEL DE ADMINISTRACIÓN Y VALIDACIÓN DINÁMICA DE CAMPOS PERSONALIZADOS (CUSTOM FIELDS)
 
-Esta especificación técnica define los mecanismos de gobernanza para la configuración de inquilinos y la validación en caliente de esquemas dinámicos (*Custom Fields*) en Kavana V3. El sistema aprovecha las capacidades semánticas de `JSONB` en PostgreSQL para ofrecer una arquitectura *Cross-Sector* polimórfica sin incurrir en alteración de esquemas relacionales ni penalizaciones por re-lecturas persistentes.
+Esta especificación técnica define los mecanismos de gobernanza para la configuración de inquilinos y la validación en caliente de esquemas dinámicos (*Custom Fields*) en Kavana Manufacturing. El sistema aprovecha las capacidades semánticas de `JSONB` en PostgreSQL para ofrecer una arquitectura *Cross-Sector* polimórfica sin incurrir en alteración de esquemas relacionales ni penalizaciones por re-lecturas persistentes.
 
 ---
 
 ## 1. ARQUITECTURA DE EXTENSIBILIDAD NO-DDL (CROSS-SECTOR)
 
-Para evitar la "degradación por catálogo" y la ejecución riesgosa de migraciones concurrentes en un entorno SaaS masivo, Kavana V3 utiliza un enfoque híbrido:
+Para evitar la "degradación por catálogo" y la ejecución riesgosa de migraciones concurrentes en un entorno SaaS masivo, Kavana Manufacturing utiliza un enfoque híbrido:
 1. **Esquema Rígido para Métricas Universales:** Columnas nativas de tipo numérico e indexadas para valores deterministas (`target_quantity`, `produced_quantity`, `status`).
 2. **Esquema Maleable para Variables del Sector:** Almacenamiento semiestructurado mediante la columna `custom_fields` (`JSONB`) en la tabla `production_orders`.
 

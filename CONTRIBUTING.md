@@ -1,4 +1,4 @@
-# Contributing a Kavana V3
+# Contributing a Kavana Manufacturing
 
 Guía para contribuidores al proyecto Kavana MES SaaS.
 

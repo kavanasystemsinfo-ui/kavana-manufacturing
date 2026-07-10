@@ -1,4 +1,4 @@
-# Skill: Kavana V3 - Core MES, Producción y Máquina de Estados
+# Skill: Kavana Manufacturing - Core MES, Producción y Máquina de Estados
 
 ## Propósito
 

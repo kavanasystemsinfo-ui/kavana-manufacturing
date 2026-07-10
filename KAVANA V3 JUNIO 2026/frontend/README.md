@@ -1,4 +1,4 @@
-# Frontend KAVANA V3
+# Frontend KAVANA MANUFACTURING
 
 Frontend React + Vite + TailwindCSS para KAVANA Systems V3.
 

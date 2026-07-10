@@ -1,4 +1,4 @@
-# DECISIONES ESTRATÉGICAS - KAVANA V3
+# DECISIONES ESTRATÉGICAS - KAVANA MANUFACTURING
 
 ## 2026-06-24: Refactorización a Bloques de Trabajo Retrospectivos
 
@@ -21,7 +21,7 @@ Para mantener la integridad, el backend aplica una validación estricta de solap
 **Impacto:**
 - Simplifica la base de datos (desaparece `production_time_logs` y nace `production_work_blocks`).
 - Simplifica la máquina de estados del backend (solo gestionamos `pendiente`, `en_produccion`, `completada`).
-- Prepara Kavana V3 para su integración futura con ERPs y PLCs que vuelcan datos en bloque.
+- Prepara Kavana Manufacturing para su integración futura con ERPs y PLCs que vuelcan datos en bloque.
 
 ## 2026-06-25: Renderizado Dinámico de Custom Fields — Separación de Responsabilidades
 

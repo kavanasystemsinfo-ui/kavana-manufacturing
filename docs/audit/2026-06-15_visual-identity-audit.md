@@ -1,4 +1,4 @@
-# Kavana V3 - Auditoría 2026-06-15: Identidad visual corporativa
+# Kavana Manufacturing - Auditoría 2026-06-15: Identidad visual corporativa
 
 ## Estado del documento
 

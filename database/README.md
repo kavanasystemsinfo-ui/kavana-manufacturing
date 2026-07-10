@@ -1,6 +1,6 @@
-# Kavana V3 - Database
+# Kavana Manufacturing - Database
 
-Este directorio contiene las migraciones PostgreSQL que construyen el núcleo seguro de Kavana V3.
+Este directorio contiene las migraciones PostgreSQL que construyen el núcleo seguro de Kavana Manufacturing.
 
 ## Estado del documento
 

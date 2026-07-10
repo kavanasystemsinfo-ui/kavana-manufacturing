@@ -1,4 +1,4 @@
-# Backend KAVANA V3
+# Backend KAVANA MANUFACTURING
 
 Backend modular para KAVANA Systems V3.
 

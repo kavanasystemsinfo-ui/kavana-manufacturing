@@ -9,7 +9,7 @@
 
 ## Contexto
 
-Kavana V3 es un **SaaS de pago por uso**. Cada cliente tiene licencia para módulos específicos:
+Kavana Manufacturing es un **SaaS de pago por uso**. Cada cliente tiene licencia para módulos específicos:
 - **Módulo Operador** (HMI): Obligatorio para todos
 - **Módulo MES**: Planificación, reports, OEE avanzado
 - **Módulo Dashboard**: Analytics e indicadores

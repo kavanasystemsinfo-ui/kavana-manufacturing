@@ -1,4 +1,4 @@
-# Kavana V3 - Caso de Estudio Profesional
+# Kavana Manufacturing - Caso de Estudio Profesional
 
 ## Estado del documento
 
@@ -7,7 +7,7 @@
 
 ## Título
 
-Kavana V3: Plataforma MES SaaS Multi-Tenant, Offline-First y Modular para Producción Industrial.
+Kavana Manufacturing: Plataforma MES SaaS Multi-Tenant, Offline-First y Modular para Producción Industrial.
 
 ## Contexto
 
@@ -35,7 +35,7 @@ El proyecto debe resolver problemas complejos:
 
 ## Solución propuesta
 
-Kavana V3 se diseña sobre ocho pilares:
+Kavana Manufacturing se diseña sobre ocho pilares:
 
 - PostgreSQL con RLS y `tenant_id`.
 - Backend seguro con JWT y contexto transaccional.

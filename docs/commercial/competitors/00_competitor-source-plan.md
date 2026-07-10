@@ -24,7 +24,7 @@ Cada fuente debe incluir:
 - Versión o fecha del manual si está disponible.
 - Cita breve.
 - Dolor del usuario.
-- Implicación para Kavana V3.
+- Implicación para Kavana Manufacturing.
 
 ## Prohibido
 
