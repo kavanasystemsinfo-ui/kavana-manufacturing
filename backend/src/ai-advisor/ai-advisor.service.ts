@@ -2,6 +2,7 @@ import { Injectable, Logger } from '@nestjs/common';
 import { getTenantContext } from '../auth/tenant-context.storage.js';
 import { postgresPool } from '../db/postgres.provider.js';
 import { tenantQuery } from '../db/tenant-query.js';
+import { tracePrompt } from '../telemetry/metrics.js';
 
 interface ContextBundle {
   orders: string;
@@ -183,19 +184,42 @@ export class AiAdvisorService {
       throw new Error(`API key no configurada para provider "${provider}". Configura ${provider.toUpperCase()}_API_KEY en .env`);
     }
 
-    const { default: openai } = await import('openai');
-    const client = new openai.OpenAI({ apiKey, baseUrl });
-
-    const response = await client.chat.completions.create({
+    // ── OpenTelemetry: trace + métricas de este prompt ──
+    const ctx = getTenantContext();
+    const ctxChunks = (prompt.match(/\n--- /g) || []).length;
+    const tp = tracePrompt({
+      provider,
       model,
-      messages: [
-        { role: 'system', content: prompt.split('=== PREGUNTA DEL OPERARIO ===')[0] },
-        { role: 'user', content: prompt.split('=== PREGUNTA DEL OPERARIO ===')[1] || prompt },
-      ],
-      temperature: 0.2,
-      max_tokens: 800,
+      question: prompt.split('=== PREGUNTA DEL OPERARIO ===')[1]?.trim() || prompt.slice(0, 200),
+      context_chunks: ctxChunks,
+      tenant_id: ctx.tenantId,
     });
 
-    return response.choices[0]?.message?.content || 'No se pudo generar una respuesta.';
+    try {
+      const { default: openai } = await import('openai');
+      const client = new openai.OpenAI({ apiKey, baseUrl });
+
+      const response = await client.chat.completions.create({
+        model,
+        messages: [
+          { role: 'system', content: prompt.split('=== PREGUNTA DEL OPERARIO ===')[0] },
+          { role: 'user', content: prompt.split('=== PREGUNTA DEL OPERARIO ===')[1] || prompt },
+        ],
+        temperature: 0.2,
+        max_tokens: 800,
+      });
+
+      const answer = response.choices[0]?.message?.content || 'No se pudo generar una respuesta.';
+
+      tp.ok({
+        tokensIn: response.usage?.prompt_tokens ?? 0,
+        tokensOut: response.usage?.completion_tokens ?? 0,
+      });
+
+      return answer;
+    } catch (err) {
+      tp.error(err);
+      throw err;
+    }
   }
 }
