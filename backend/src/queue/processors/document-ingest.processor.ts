@@ -29,9 +29,28 @@ interface IngestDocumentJob {
 @Processor('document-ingest')
 export class DocumentIngestProcessor extends WorkerHost {
   private readonly logger = new Logger(DocumentIngestProcessor.name);
+  private readonly MAX_CONTENT_BYTES = 10 * 1024 * 1024; // 10 MB
+  private readonly ALLOWED_DOC_TYPES = ['manual', 'spec', 'procedure', 'raw'];
 
   async process(job: Job<IngestDocumentJob>): Promise<{ chunks: number; indexed: number }> {
     const { tenantId, docType, title, content, tags } = job.data;
+
+    // ── Input validation ──
+    if (!tenantId || typeof tenantId !== 'string' || tenantId.length < 10) {
+      throw new Error(`Invalid tenantId: ${tenantId}`);
+    }
+    if (!this.ALLOWED_DOC_TYPES.includes(docType)) {
+      throw new Error(`Invalid docType: ${docType}. Allowed: ${this.ALLOWED_DOC_TYPES.join(', ')}`);
+    }
+    if (!title || typeof title !== 'string' || title.length > 500) {
+      throw new Error(`Invalid title: must be 1-500 chars`);
+    }
+    if (!content || typeof content !== 'string') {
+      throw new Error('content is required and must be a string');
+    }
+    if (Buffer.byteLength(content, 'utf8') > this.MAX_CONTENT_BYTES) {
+      throw new Error(`content exceeds ${this.MAX_CONTENT_BYTES / (1024 * 1024)} MB limit`);
+    }
 
     this.logger.log(`Ingest: ${docType} "${title.slice(0, 50)}..." (${content.length} chars), tenant=${tenantId}`);
 
