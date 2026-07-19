@@ -12,11 +12,12 @@ import { QualityModule } from './quality/quality.module.js';
 import { CostModule } from './cost/cost.module.js';
 import { GlobalAdminModule } from './global-admin/global-admin.module.js';
 import { AuthLoginModule } from './auth-login/auth-login.module.js';
+import { AiAdvisorModule } from './ai-advisor/ai-advisor.module.js';
 
 import { JwtServiceWrapper } from './auth/jwt.service.js';
 
 @Module({
-  imports: [TenantCapabilitiesModule, CoreMesProductionModule, UsersModule, WorkstationsModule, ManufacturingModelsModule, OrdersModule, OeeModule, QualityModule, CostModule, GlobalAdminModule, AuthLoginModule],
+  imports: [TenantCapabilitiesModule, CoreMesProductionModule, UsersModule, WorkstationsModule, ManufacturingModelsModule, OrdersModule, OeeModule, QualityModule, CostModule, GlobalAdminModule, AuthLoginModule, AiAdvisorModule],
   controllers: [HealthController],
   providers: [JwtServiceWrapper],
 })
@@ -32,6 +33,7 @@ export class AppModule implements NestModule {
       'costs',
       'tenant',
       'production',
+      'ai-advisor',
     );
   }
 }
