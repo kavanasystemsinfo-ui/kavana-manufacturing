@@ -162,19 +162,21 @@ export class AiAdvisorService {
   }
 
   private async callLLM(prompt: string): Promise<string> {
-    // Provider selection: nvidia, openrouter, or openai
+    // Provider selection: ollama, nvidia, openrouter, or openai
     const provider = (process.env.LLM_PROVIDER || 'openrouter').toLowerCase();
-    const apiKey = process.env[provider === 'nvidia' ? 'NVIDIA_API_KEY' : provider === 'openai' ? 'OPENAI_API_KEY' : 'OPENROUTER_API_KEY']
+    const apiKey = provider === 'ollama' ? 'ollama' : process.env[provider === 'nvidia' ? 'NVIDIA_API_KEY' : provider === 'openai' ? 'OPENAI_API_KEY' : 'OPENROUTER_API_KEY']
       || process.env.OPENROUTER_API_KEY
       || process.env.OPENAI_API_KEY;
 
     const baseUrl = process.env.LLM_BASE_URL || {
+      ollama: 'http://localhost:11434/v1',
       nvidia: 'https://integrate.api.nvidia.com/v1',
       openrouter: 'https://openrouter.ai/api/v1',
       openai: 'https://api.openai.com/v1',
     }[provider] || 'https://openrouter.ai/api/v1';
 
     const model = process.env.LLM_MODEL || {
+      ollama: 'llama3.1:8b',
       nvidia: 'meta/llama-3.1-8b-instruct',
       openrouter: 'gpt-4o-mini',
       openai: 'gpt-4o-mini',
