@@ -28,7 +28,7 @@ Kavana V2 operaba con base de datos compartida sin aislamiento real entre client
 
 ## Decisión
 
-**Shared Schema + Row-Level Security (RLS) en PostgreSQL 18**
+**Shared Schema + Row-Level Security (RLS) en PostgreSQL 16**
 
 ### Justificación Técnica
 
@@ -41,7 +41,7 @@ Kavana V2 operaba con base de datos compartida sin aislamiento real entre client
    - Sin riesgo de olvidar un schema en un tenant
    - Rollbacks simples y consistentes
 
-3. **Performance** — PostgreSQL 18 optimiza RLS con índices parciales
+3. **Performance** — PostgreSQL 16 optimiza RLS con índices parciales
    - `WHERE tenant_id = current_setting('app.current_tenant')::uuid` permite índices eficientes
    - Sin overhead de JOINs cross-schema
 

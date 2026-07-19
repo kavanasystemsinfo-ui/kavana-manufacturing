@@ -1,4 +1,4 @@
-Este manual técnico constituye la especificación de ingeniería definitiva para el motor de aislamiento de Kavana Manufacturing, fundamentado en el análisis exhaustivo de las fuentes técnicas y la documentación interna del motor PostgreSQL 18.
+Este manual técnico constituye la especificación de ingeniería definitiva para el motor de aislamiento de Kavana Manufacturing, fundamentado en el análisis exhaustivo de las fuentes técnicas y la documentación interna del motor PostgreSQL 16.
 1. ARQUITECTURA DE ESQUEMA COMPARTIDO (SHARED-SCHEMA)
 La arquitectura de esquema compartido es el modelo de multi-tenencia donde todos los inquilinos coexisten en una única base de datos lógica, compartiendo tablas y relaciones, diferenciados únicamente por una columna de aislamiento, típicamente tenant_id.
 
