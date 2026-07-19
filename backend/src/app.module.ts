@@ -13,11 +13,12 @@ import { CostModule } from './cost/cost.module.js';
 import { GlobalAdminModule } from './global-admin/global-admin.module.js';
 import { AuthLoginModule } from './auth-login/auth-login.module.js';
 import { AiAdvisorModule } from './ai-advisor/ai-advisor.module.js';
+import { QueueModule } from './queue/queue.module.js';
 
 import { JwtServiceWrapper } from './auth/jwt.service.js';
 
 @Module({
-  imports: [TenantCapabilitiesModule, CoreMesProductionModule, UsersModule, WorkstationsModule, ManufacturingModelsModule, OrdersModule, OeeModule, QualityModule, CostModule, GlobalAdminModule, AuthLoginModule, AiAdvisorModule],
+  imports: [TenantCapabilitiesModule, CoreMesProductionModule, UsersModule, WorkstationsModule, ManufacturingModelsModule, OrdersModule, OeeModule, QualityModule, CostModule, GlobalAdminModule, AuthLoginModule, AiAdvisorModule, QueueModule],
   controllers: [HealthController],
   providers: [JwtServiceWrapper],
 })

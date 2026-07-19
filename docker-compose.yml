@@ -1,0 +1,91 @@
+# =============================================================================
+# Kavana Manufacturing v3 — Stack completo
+#
+# Servicios:
+#   db        → PostgreSQL 16 (datos de producción, multi-tenant con RLS)
+#   redis     → Redis 7 (colas BullMQ para jobs asíncronos)
+#   backend   → API NestJS (:3001)
+#   worker    → Procesador BullMQ (oee-recalc, report-export)
+#
+# Observabilidad (opcional):
+#   docker compose -f docker-compose.yml -f docker-compose.observability.yml up -d
+# =============================================================================
+
+version: '3.8'
+
+services:
+  db:
+    image: postgres:16-alpine
+    container_name: kavana-v3-db
+    environment:
+      POSTGRES_USER: kavana
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-kavana_v3_password}
+      POSTGRES_DB: kavana_v3
+    ports:
+      - '5433:5432'
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+      - ./database/migrations:/docker-entrypoint-initdb.d:ro
+    restart: unless-stopped
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U kavana -d kavana_v3']
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  redis:
+    image: redis:7-alpine
+    container_name: kavana-v3-redis
+    ports:
+      - '6379:6379'
+    volumes:
+      - redis_data:/data
+    restart: unless-stopped
+    healthcheck:
+      test: ['CMD', 'redis-cli', 'ping']
+      interval: 10s
+      timeout: 3s
+      retries: 5
+
+  backend:
+    build: ./backend
+    container_name: kavana-v3-backend
+    ports:
+      - '3001:3001'
+    environment:
+      PORT: '3001'
+      DATABASE_URL: postgresql://kavana:${DB_PASSWORD:-kavana_v3_password}@db:5432/kavana_v3
+      REDIS_HOST: redis
+      REDIS_PORT: '6379'
+      METRICS_PORT: '9464'
+      JWT_SECRET: ${JWT_SECRET:-dev-secret-change-in-production}
+      ALLOW_MOCK_AUTH: ${ALLOW_MOCK_AUTH:-false}
+      LLM_PROVIDER: ${LLM_PROVIDER:-nvidia}
+      NVIDIA_API_KEY: ${NVIDIA_API_KEY}
+      OPENROUTER_API_KEY: ${OPENROUTER_API_KEY}
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    restart: unless-stopped
+
+  worker:
+    build: ./backend
+    container_name: kavana-v3-worker
+    command: ['npx', 'tsx', 'src/worker.ts']
+    environment:
+      DATABASE_URL: postgresql://kavana:${DB_PASSWORD:-kavana_v3_password}@db:5432/kavana_v3
+      REDIS_HOST: redis
+      REDIS_PORT: '6379'
+      JWT_SECRET: ${JWT_SECRET:-dev-secret-change-in-production}
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    restart: unless-stopped
+
+volumes:
+  pgdata:
+  redis_data:
