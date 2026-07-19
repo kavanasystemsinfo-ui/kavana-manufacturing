@@ -3,6 +3,7 @@ import { BullModule } from '@nestjs/bullmq';
 import { QueueService } from './queue.service.js';
 import { OeeRecalcProcessor } from './processors/oee-recalc.processor.js';
 import { ReportExportProcessor } from './processors/report-export.processor.js';
+import { DocumentIngestProcessor } from './processors/document-ingest.processor.js';
 
 const redisHost = process.env.REDIS_HOST || 'localhost';
 const redisPort = parseInt(process.env.REDIS_PORT || '6379', 10);
@@ -22,9 +23,10 @@ const redisPort = parseInt(process.env.REDIS_PORT || '6379', 10);
     BullModule.registerQueue(
       { name: 'oee-recalc' },
       { name: 'report-export' },
+      { name: 'document-ingest' },
     ),
   ],
-  providers: [QueueService, OeeRecalcProcessor, ReportExportProcessor],
+  providers: [QueueService, OeeRecalcProcessor, ReportExportProcessor, DocumentIngestProcessor],
   exports: [QueueService],
 })
 export class QueueModule {}

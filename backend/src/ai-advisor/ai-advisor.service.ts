@@ -3,6 +3,8 @@ import { getTenantContext } from '../auth/tenant-context.storage.js';
 import { postgresPool } from '../db/postgres.provider.js';
 import { tenantQuery } from '../db/tenant-query.js';
 import { tracePrompt } from '../telemetry/metrics.js';
+import { versionContext, ContextVersion } from './context-version.js';
+import { estimateCostCents, formatCost } from './cost-tracking.js';
 
 interface ContextBundle {
   orders: string;
@@ -16,27 +18,43 @@ interface ContextBundle {
 export class AiAdvisorService {
   private readonly logger = new Logger(AiAdvisorService.name);
 
-  async ask(question: string, contextFilter?: { order_id?: string; workstation_id?: string; model_id?: string }): Promise<{ answer: string; engine: string }> {
-    const context = getTenantContext();
+  async ask(question: string, contextFilter?: { order_id?: string; workstation_id?: string; model_id?: string }): Promise<{ answer: string; engine: string; contextVersion: ContextVersion }> {
+    const ctx = getTenantContext();
     const startTime = Date.now();
 
     // 1. Gather context from manufacturing data
-    const bundle = await this.gatherContext(context.tenantId, contextFilter);
+    const bundle = await this.gatherContext(ctx.tenantId, contextFilter);
 
-    // 2. Build prompt with grounded context
+    // 2. Versionar el contexto para trazabilidad
+    const contextJSON = JSON.stringify(bundle);
+    const ordersParsed = JSON.parse(bundle.orders);
+    const oeeParsed = JSON.parse(bundle.oee);
+    const qualityParsed = JSON.parse(bundle.quality);
+    const wbParsed = JSON.parse(bundle.workblocks);
+    const cv = versionContext(
+      ctx.tenantId,
+      contextJSON,
+      Array.isArray(ordersParsed) ? ordersParsed.length : 0,
+      Array.isArray(oeeParsed) ? oeeParsed.length : 0,
+      Array.isArray(qualityParsed) ? qualityParsed.length : 0,
+      Array.isArray(wbParsed) ? wbParsed.length : 0,
+    );
+
+    // 3. Build prompt with grounded context
     const prompt = this.buildPrompt(question, bundle);
 
-    // 3. Call LLM
+    // 4. Call LLM
     try {
-      const answer = await this.callLLM(prompt);
+      const answer = await this.callLLM(prompt, cv);
       const latency = Date.now() - startTime;
-      this.logger.log(`AI advisor: ${question.slice(0, 50)}... (${latency}ms, tenant ${context.tenantId})`);
-      return { answer, engine: 'openrouter' };
+      this.logger.log(`AI advisor: ${question.slice(0, 50)}... (${latency}ms, ctx=${cv.hash}, tenant ${ctx.tenantId})`);
+      return { answer, engine: 'openrouter', contextVersion: cv };
     } catch (err) {
       this.logger.warn(`AI advisor fallback (LLM error): ${err instanceof Error ? err.message : String(err)}`);
       return {
-        answer: 'No pude consultar el asistente IA en este momento. Verifica la conexión con OpenRouter e inténtalo de nuevo.',
+        answer: 'No pude consultar el asistente IA en este momento. Verifica la conexión e inténtalo de nuevo.',
         engine: 'offline',
+        contextVersion: cv,
       };
     }
   }
@@ -161,15 +179,16 @@ export class AiAdvisorService {
     ].join('\n');
   }
 
-  private async callLLM(prompt: string): Promise<string> {
+  private async callLLM(prompt: string, cv?: ContextVersion): Promise<string> {
     // Provider selection: ollama, nvidia, openrouter, or openai
     const provider = (process.env.LLM_PROVIDER || 'openrouter').toLowerCase();
-    const apiKey = provider === 'ollama' ? 'ollama' : process.env[provider === 'nvidia' ? 'NVIDIA_API_KEY' : provider === 'openai' ? 'OPENAI_API_KEY' : 'OPENROUTER_API_KEY']
+    const apiKey = provider === 'ollama' || provider === 'vllm' ? 'ollama' : process.env[provider === 'nvidia' ? 'NVIDIA_API_KEY' : provider === 'openai' ? 'OPENAI_API_KEY' : 'OPENROUTER_API_KEY']
       || process.env.OPENROUTER_API_KEY
       || process.env.OPENAI_API_KEY;
 
     const baseUrl = process.env.LLM_BASE_URL || {
       ollama: 'http://localhost:11434/v1',
+      vllm: 'http://localhost:8000/v1',
       nvidia: 'https://integrate.api.nvidia.com/v1',
       openrouter: 'https://openrouter.ai/api/v1',
       openai: 'https://api.openai.com/v1',
@@ -177,6 +196,7 @@ export class AiAdvisorService {
 
     const model = process.env.LLM_MODEL || {
       ollama: 'llama3.1:8b',
+      vllm: 'mistralai/Mistral-7B-Instruct-v0.3',
       nvidia: 'meta/llama-3.1-8b-instruct',
       openrouter: 'gpt-4o-mini',
       openai: 'gpt-4o-mini',
@@ -195,6 +215,7 @@ export class AiAdvisorService {
       question: prompt.split('=== PREGUNTA DEL OPERARIO ===')[1]?.trim() || prompt.slice(0, 200),
       context_chunks: ctxChunks,
       tenant_id: ctx.tenantId,
+      context_version: cv?.hash,
     });
 
     try {
@@ -212,12 +233,17 @@ export class AiAdvisorService {
       });
 
       const answer = response.choices[0]?.message?.content || 'No se pudo generar una respuesta.';
+      const tokensIn = response.usage?.prompt_tokens ?? 0;
+      const tokensOut = response.usage?.completion_tokens ?? 0;
+      const costCents = estimateCostCents(model, Number(tokensIn), Number(tokensOut));
 
       tp.ok({
-        tokensIn: response.usage?.prompt_tokens ?? 0,
-        tokensOut: response.usage?.completion_tokens ?? 0,
+        tokensIn: Number(tokensIn),
+        tokensOut: Number(tokensOut),
+        costCents,
       });
 
+      this.logger.log(`LLM call: provider=${provider}, tokens=${tokensIn}/${tokensOut}, cost=${formatCost(costCents)}`);
       return answer;
     } catch (err) {
       tp.error(err);

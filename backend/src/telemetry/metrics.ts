@@ -32,6 +32,7 @@ export interface TracePromptCtx {
   question: string;
   context_chunks: number;
   tenant_id?: string;
+  context_version?: string;
 }
 
 export interface PromptMetrics {
@@ -55,7 +56,7 @@ export function tracePrompt(ctx: TracePromptCtx) {
     'tenant.id': ctx.tenant_id ?? 'unknown',
     'prompt.seq': seq,
   };
-
+  if (ctx.context_version) attrs['llm.context_version'] = ctx.context_version;
   const span = tracer.startSpan('llm.prompt', { attributes: attrs });
 
   /**
