@@ -8,7 +8,7 @@ import type { ExceptionFilter, ArgumentsHost } from '@nestjs/common';
 
 async function bootstrap(): Promise<void> {
   // ── Telemetría ANTES de NestJS ──
-  const otelSdk = await initOtelSDK();
+  const otel = await initOtelSDK();
 
   const app = await NestFactory.create(AppModule);
   app.enableCors({ origin: process.env.FRONTEND_ORIGIN ?? 'http://localhost:5173' });
@@ -25,12 +25,17 @@ async function bootstrap(): Promise<void> {
   };
   app.useGlobalFilters(errorFilter);
 
-  await app.listen(Number(process.env.PORT ?? 3001));
+  const port = Number(process.env.PORT ?? 3001);
+  await app.listen(port);
+  console.log(`[backend] Kavana Manufacturing API en :${port}`);
+  if (otel.mode !== 'off') {
+    console.log(`[backend] Telemetría: ${otel.mode}`);
+  }
 
   // ── Graceful shutdown ──
   const graceful = async () => {
     await app.close();
-    if (otelSdk) await otelSdk.shutdown();
+    if (otel.sdk) await otel.sdk.shutdown();
     process.exit(0);
   };
   process.on('SIGTERM', graceful);
