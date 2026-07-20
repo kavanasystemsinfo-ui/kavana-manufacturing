@@ -3,12 +3,12 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Kavana Manufacturing — Software MES offline-first para fábricas</title>
-  <meta name="description" content="Sistema MES multiempresa para fábricas: registro de producción en planta, OEE, calidad y costes por orden. Funciona sin conexión y aisla los datos de cada cliente." />
-  <meta name="keywords" content="MES, produccion, fabrica, OEE, calidad, offline-first, multiempresa" />
+  <title>Kavana Manufacturing — Cómo resuelvo un problema industrial con software</title>
+  <meta name="description" content="Proyecto de demostración: un MES offline-first para fábrica, construido desde el problema real de producción. Arquitectura, decisiones y código." />
+  <meta name="keywords" content="MES, produccion, fabrica, OEE, calidad, offline-first, multiempresa, AI builder, optimizacion de procesos" />
 
-  <meta property="og:title" content="Kavana Manufacturing — Software MES para fábricas" />
-  <meta property="og:description" content="El operario nunca deja de trabajar porque falle el software. MES offline-first para planta: órdenes, OEE, calidad y costes por orden." />
+  <meta property="og:title" content="Kavana Manufacturing — Proyecto de demostración" />
+  <meta property="og:description" content="Cómo resuelvo un problema industrial real con software: MES offline-first, arquitectura y decisiones documentadas." />
   <meta property="og:type" content="website" />
   <meta property="og:url" content="https://www.kavanasystems.com/manufacturing/" />
 
@@ -17,10 +17,10 @@
   <script type="application/ld+json">
   {
     "@context": "https://schema.org",
-    "@type": "Product",
+    "@type": "Project",
     "name": "Kavana Manufacturing",
-    "description": "Sistema MES multiempresa para fábricas: registro de producción en planta, OEE, calidad y costes por orden, con modo offline-first y aislamiento de datos por cliente.",
-    "brand": { "@type": "Brand", "name": "Kavana Systems" },
+    "description": "Proyecto de demostración: un sistema MES offline-first para fábrica, construido desde el problema real de producción.",
+    "creator": { "@type": "Person", "name": "Jorge Adán", "jobTitle": "AI Builder / Optimizador de procesos", "url": "https://www.linkedin.com/in/kavanasystems/" },
     "url": "https://www.kavanasystems.com/manufacturing/"
   }
   </script>
@@ -50,7 +50,7 @@
     .nav .container { height: 64px; display: flex; align-items: center; justify-content: space-between; }
     .nav .brand { font-family: 'Montserrat', sans-serif; font-weight: 900; color: #fff; text-decoration: none; letter-spacing: 1px; font-size: 1.05rem; display: flex; align-items: center; gap: 10px; }
     .brand .dot { width: 10px; height: 10px; background: var(--primary); border-radius: 50%; display: inline-block; }
-    .nav .links { display: flex; gap: 22px; }
+    .nav .links { display: flex; gap: 20px; }
     .nav .links a { color: var(--muted); text-decoration: none; font-size: 0.9rem; font-weight: 500; transition: color .2s; }
     .nav .links a:hover { color: var(--primary); }
 
@@ -79,7 +79,6 @@
     .prose { font-size: 1.08rem; color: #cbd5e1; max-width: 720px; }
     .prose p { margin-bottom: 18px; }
     .prose em { color: var(--primary); font-style: normal; font-weight: 600; }
-    blockquote { border-left: 3px solid var(--primary); padding: 4px 0 4px 22px; margin: 26px 0; font-size: 1.18rem; color: #fff; font-weight: 500; }
 
     /* STATEMENT (idea central) */
     .statement { padding: 96px 0; text-align: center; background: linear-gradient(180deg, #0c0c0c, #111); }
@@ -101,11 +100,18 @@
     .benefit h3 { font-size: 1.1rem; color: #fff; margin-bottom: 8px; }
     .benefit p { font-size: 0.95rem; color: var(--muted); }
 
-    .steps { display: grid; grid-template-columns: repeat(3, 1fr); gap: 22px; margin-top: 12px; }
-    .step { background: var(--panel); border: 1px solid rgba(255,255,255,0.06); border-radius: 12px; padding: 28px; }
-    .step .n { font-family: 'Montserrat', sans-serif; font-weight: 900; font-size: 1.5rem; color: var(--primary); margin-bottom: 8px; }
-    .step h3 { font-size: 1.12rem; color: #fff; margin-bottom: 8px; }
-    .step p { font-size: 0.95rem; color: var(--muted); }
+    .industries { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 12px; }
+    .industries .chip { background: var(--panel); border: 1px solid rgba(255,255,255,0.08); border-radius: 30px; padding: 10px 20px; font-size: 0.98rem; color: #cbd5e1; }
+
+    /* CÓMO LO CONSTRUÍ (bloque fuerte) */
+    .build { background: #0d0d0d; }
+    .timeline { display: grid; grid-template-columns: repeat(3, 1fr); gap: 22px; margin-top: 12px; }
+    .tl { background: var(--panel); border: 1px solid rgba(255,255,255,0.06); border-radius: 12px; padding: 26px; border-top: 3px solid var(--primary); }
+    .tl .n { font-family: 'Montserrat',sans-serif; font-weight: 900; font-size: 1.4rem; color: var(--primary); margin-bottom: 6px; }
+    .tl h3 { font-size: 1.08rem; color: #fff; margin-bottom: 8px; }
+    .tl p { font-size: 0.94rem; color: var(--muted); }
+    .stack { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 24px; }
+    .stack .s { background: var(--primary-soft); border: 1px solid var(--border); color: var(--primary); border-radius: 8px; padding: 8px 16px; font-size: 0.9rem; font-weight: 600; }
 
     .trust { background: #0d0d0d; }
     .trust-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 48px; align-items: center; }
@@ -115,18 +121,15 @@
     .trust .badge-soft { background: var(--panel); border: 1px solid var(--border); border-radius: 12px; padding: 26px; }
     .trust .badge-soft h3 { color: #fff; margin-bottom: 10px; font-size: 1.15rem; }
 
-    /* Industrias */
-    .industries { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 12px; }
-    .industries .chip { background: var(--panel); border: 1px solid rgba(255,255,255,0.08); border-radius: 30px; padding: 10px 20px; font-size: 0.98rem; color: #cbd5e1; }
-
-    /* Galería visual (marcada como vista previa) */
     .gallery .note { font-size: 0.85rem; color: var(--muted-2); margin-bottom: 16px; font-style: italic; }
     .shots { display: grid; grid-template-columns: repeat(2, 1fr); gap: 18px; }
     .shot { border: 2px dashed #3a3a3a; border-radius: 10px; height: 200px; display: flex; align-items: center; justify-content: center; color: #6b7280; font-size: 0.9rem; text-align: center; background: #0e0e0e; padding: 10px; }
     .shot b { color: var(--primary); display: block; margin-bottom: 4px; }
 
     .close { text-align: center; padding: 100px 0; }
-    .close h2 { font-size: 2rem; font-weight: 900; color: #fff; max-width: 640px; margin: 0 auto 28px; line-height: 1.3; }
+    .close .open-badge { display:inline-block; background: var(--primary-soft); border:1px solid var(--border); color: var(--primary); border-radius: 20px; padding: 6px 18px; font-weight: 700; font-size: 0.9rem; margin-bottom: 20px; }
+    .close h2 { font-size: 2rem; font-weight: 900; color: #fff; max-width: 640px; margin: 0 auto 20px; line-height: 1.3; }
+    .close p.value { color: var(--primary); font-weight: 600; font-size: 1.1rem; max-width: 640px; margin: 0 auto 26px; }
     .socials { display: flex; gap: 14px; justify-content: center; flex-wrap: wrap; }
     .socials a { text-decoration: none; }
     .socials .btn { background: var(--panel); border: 1px solid rgba(255,255,255,0.08); color: #fff; }
@@ -136,7 +139,7 @@
     footer a { color: var(--muted); text-decoration: none; }
 
     @media (max-width: 860px) {
-      .hero-grid, .pains, .benefits, .steps, .trust-grid, .shots { grid-template-columns: 1fr; gap: 24px; }
+      .hero-grid, .pains, .benefits, .timeline, .trust-grid, .shots { grid-template-columns: 1fr; gap: 24px; }
       .hero h1 { font-size: 2.1rem; }
       .nav .links { display: none; }
       .statement h2, .close h2 { font-size: 1.6rem; }
@@ -152,12 +155,11 @@
       <a href="https://www.kavanasystems.com/" class="brand"><span class="dot"></span> KAVANA <span style="color:var(--primary)">MANUFACTURING</span></a>
       <div class="links">
         <a href="#problema">El problema</a>
-        <a href="#beneficios">Qué hace</a>
+        <a href="#beneficios">El producto</a>
         <a href="#industrias">Para quién</a>
-        <a href="#como">Cómo funciona</a>
-        <a href="#confianza">Por qué confiar</a>
+        <a href="#construi">Cómo lo construí</a>
         <a href="#demuestra">Para contratar</a>
-        <a href="#precios">Planes</a>
+        <a href="#galeria">Vista previa</a>
       </div>
     </div>
   </nav>
@@ -169,10 +171,10 @@
         <div>
           <span class="badge">● Nacido desde la planta, no desde una oficina</span>
           <h1>Deja de gestionar tu fábrica con <span class="mark">papel y datos incompletos</span>.</h1>
-          <p class="lead">Kavana Manufacturing ejecuta las órdenes de producción desde la propia planta, registra cada operación en tiempo real y sigue funcionando aunque falle la conexión.</p>
+          <p class="lead">Este es un proyecto con el que demuestro cómo resuelvo un problema industrial real: un sistema MES offline-first que ejecuta órdenes de producción desde la planta y sigue funcionando aunque falle la conexión.</p>
           <div class="cta">
-            <a href="#" class="btn btn-primary" onclick="return false;">Solicitar diagnóstico</a>
-            <a href="#como" class="btn btn-outline">Ver cómo funciona</a>
+            <a href="#construi" class="btn btn-primary">Ver cómo lo construí</a>
+            <a href="#problema" class="btn btn-outline">El problema que resuelve</a>
           </div>
         </div>
         <div class="hero-card">
@@ -197,10 +199,10 @@
     </div>
   </section>
 
-  <!-- PROBLEMA (reordenado: primero "la producción no puede parar") -->
+  <!-- PROBLEMA -->
   <section id="problema">
     <div class="container">
-      <span class="section-label">El problema que resolvemos</span>
+      <span class="section-label">El problema que resuelvo</span>
       <h2 class="section-title">La producción no puede parar. Tu software tampoco.</h2>
       <div class="pains">
         <div class="pain">
@@ -231,10 +233,10 @@
     </div>
   </section>
 
-  <!-- BENEFICIOS (solo lo real) -->
+  <!-- BENEFICIOS (el producto, sin precios) -->
   <section id="beneficios">
     <div class="container">
-      <span class="section-label">Qué hace el producto</span>
+      <span class="section-label">El producto (evidencia)</span>
       <h2 class="section-title">Pensado para planta, no para oficina</h2>
       <div class="benefits">
         <div class="benefit">
@@ -291,51 +293,52 @@
     </div>
   </section>
 
-  <!-- CÓMO FUNCIONA -->
-  <section id="como">
+  <!-- CÓMO LO CONSTRUÍ (bloque fuerte) -->
+  <section id="construi" class="build">
     <div class="container">
-      <span class="section-label">Cómo funciona</span>
-      <h2 class="section-title">Listo sin proyectos eternos de implantación</h2>
-      <div class="prose" style="margin-bottom:8px;">Empieza desde el navegador y escala cuando tu planta lo necesite. Sin conocimientos técnicos.</div>
-      <div class="steps">
-        <div class="step">
+      <span class="section-label">Cómo lo construí</span>
+      <h2 class="section-title">Del problema a un sistema funcional</h2>
+      <div class="prose" style="margin-bottom:8px; max-width:none;">No es un ejercicio de código. Es el recorrido completo de un problema real a una herramienta en planta:</div>
+      <div class="timeline">
+        <div class="tl">
           <div class="n">01</div>
-          <h3>Creas tu planta</h3>
-          <p>Te registras en Kavana Manufacturing. Añades tus líneas, máquinas y productos. Todo desde el navegador o la tablet de planta.</p>
+          <h3>Detectar el problema</h3>
+          <p>Identifiqué por qué la producción pierde tiempo y visibilidad: papel, redes inestables y datos que llegan tarde.</p>
         </div>
-        <div class="step">
+        <div class="tl">
           <div class="n">02</div>
-          <h3>Das acceso a tu equipo</h3>
-          <p>Invitas a supervisores y operarios. Ellos ejecutan las órdenes y registran producción desde su puesto, sin cuentas complejas.</p>
+          <h3>Diseñar la arquitectura</h3>
+          <p>Separé interfaz y servidor para que, si el servidor cae, el operario siga registrando. Decidí offline-first como base, no como parche.</p>
         </div>
-        <div class="step">
+        <div class="tl">
           <div class="n">03</div>
-          <h3>Controlas la fábrica</h3>
-          <p>Ves cuadros de mando, OEE y costes en tiempo real. Cierras el mes con datos reales, no con conjeturas.</p>
+          <h3>Construir el MVP</h3>
+          <p>Frontend en React para pantallas táctiles y backend en NestJS, con base de datos aislada por cliente y cola para sincronizar.</p>
+        </div>
+        <div class="tl">
+          <div class="n">04</div>
+          <h3>Pensar en implantación</h3>
+          <p>Multi-empresa desde el día uno: cada cliente ve solo sus datos. Listo para crecer sin reescribir.</p>
+        </div>
+        <div class="tl">
+          <div class="n">05</div>
+          <h3>Documentar decisiones</h3>
+          <p>Cada decisión técnica queda justificada: por qué offline-first, por qué aislamiento, por qué esa UX. Para que otro equipo entienda el "por qué".</p>
+        </div>
+        <div class="tl">
+          <div class="n">06</div>
+          <h3>Aplicar IA con cabeza</h3>
+          <p>Un asistente que responde solo con los datos del cliente, para consultar producción en lenguaje natural. IA al servicio del problema, no al revés.</p>
         </div>
       </div>
-    </div>
-  </section>
-
-  <!-- CONFIANZA -->
-  <section id="confianza" class="trust">
-    <div class="container">
-      <span class="section-label">Por qué confiar</span>
-      <h2 class="section-title">Nacido desde la planta</h2>
-      <div class="trust-grid">
-        <div class="prose" style="max-width:none;">
-          <p>Kavana Manufacturing no nació en una oficina de software. Nació después de ver, durante años, cómo fábricas reales perdían tiempo con papel, Excel y herramientas desconectadas.</p>
-          <p>Por eso la interfaz se diseñó pensando en el operario, no en el informático. Por eso funciona sin conexión. <em>Cada decisión técnica tiene una consecuencia de negocio: que el trabajo no se detenga.</em></p>
-        </div>
-        <div class="badge-soft">
-          <h3>Señales de confianza</h3>
-          <ul>
-            <li><b>Multi-empresa con aislamiento</b> — cada cliente ve solo sus datos, listo para SaaS.</li>
-            <li><b>Pruebas automatizadas</b> — permisos, aislamiento entre clientes y cálculos de producción verificados.</li>
-            <li><b>Offline-first real</b> — la producción se registra aunque falle la red.</li>
-            <li><b>Sin proyectos eternos</b> — empiezas desde el navegador y escalas cuando tu planta lo necesite.</li>
-          </ul>
-        </div>
+      <div class="stack">
+        <span class="s">React 19 + Vite</span>
+        <span class="s">NestJS 11</span>
+        <span class="s">PostgreSQL 16 + RLS</span>
+        <span class="s">Redis (BullMQ)</span>
+        <span class="s">Dexie / IndexedDB (offline)</span>
+        <span class="s">Pruebas automatizadas</span>
+        <span class="s">Multi-tenant aislado</span>
       </div>
     </div>
   </section>
@@ -379,66 +382,25 @@
     </div>
   </section>
 
-  <!-- PRECIOS -->
-  <section id="precios">
-    <div class="container">
-      <span class="section-label">Planes</span>
-      <h2 class="section-title">Sin letra pequeña. Sin permanencia.</h2>
-      <div class="prose" style="margin-bottom:8px;">Diagnóstico inicial gratis. Cancela cuando quieras.</div>
-      <div class="plans" style="display:grid; grid-template-columns:repeat(2,1fr); gap:24px; margin-top:12px; max-width:760px;">
-        <div class="plan" style="background:var(--panel); border:1px solid rgba(255,255,255,0.07); border-radius:14px; padding:30px;">
-          <div class="name" style="font-family:'Montserrat',sans-serif; font-weight:800; color:#fff; font-size:1.25rem;">Taller</div>
-          <div class="price" style="font-family:'Montserrat',sans-serif; font-weight:900; color:var(--primary); font-size:2.4rem; margin:8px 0 2px;">150€<span style="font-size:1rem;color:var(--muted-2);">/mes</span></div>
-          <div class="per" style="color:var(--muted-2); font-size:0.9rem; margin-bottom:18px;">Para talleres y fábricas pequeñas que empiezan a controlar su producción.</div>
-          <ul style="list-style:none; margin:0 0 22px;">
-            <li style="padding:7px 0; color:#cbd5e1; font-size:0.95rem;">Hasta 5 operarios</li>
-            <li style="padding:7px 0; color:#cbd5e1; font-size:0.95rem;">Hasta 3 líneas</li>
-            <li style="padding:7px 0; color:#cbd5e1; font-size:0.95rem;">Órdenes de producción en planta</li>
-            <li style="padding:7px 0; color:#cbd5e1; font-size:0.95rem;">OEE y calidad</li>
-            <li style="padding:7px 0; color:#cbd5e1; font-size:0.95rem;">Costes por orden</li>
-            <li style="padding:7px 0; color:#cbd5e1; font-size:0.95rem;">Soporte por email</li>
-            <li style="padding:7px 0; color:#cbd5e1; font-size:0.95rem;">Consulta tus datos de producción en lenguaje natural</li>
-          </ul>
-          <a href="#" class="btn btn-outline" onclick="return false;">Solicitar diagnóstico</a>
-        </div>
-        <div class="plan" style="background:var(--panel); border:1px solid var(--border); box-shadow:0 0 0 1px var(--primary); border-radius:14px; padding:30px;">
-          <div class="name" style="font-family:'Montserrat',sans-serif; font-weight:800; color:#fff; font-size:1.25rem;">Fábrica</div>
-          <div class="price" style="font-family:'Montserrat',sans-serif; font-weight:900; color:var(--primary); font-size:2.4rem; margin:8px 0 2px;">325€<span style="font-size:1rem;color:var(--muted-2);">/mes</span></div>
-          <div class="per" style="color:var(--muted-2); font-size:0.9rem; margin-bottom:18px;">Para fábricas que quieren control total sin límites.</div>
-          <ul style="list-style:none; margin:0 0 22px;">
-            <li style="padding:7px 0; color:#cbd5e1; font-size:0.95rem;">Operarios ilimitados</li>
-            <li style="padding:7px 0; color:#cbd5e1; font-size:0.95rem;">Líneas ilimitadas</li>
-            <li style="padding:7px 0; color:#cbd5e1; font-size:0.95rem;">Órdenes de producción en planta</li>
-            <li style="padding:7px 0; color:#cbd5e1; font-size:0.95rem;">OEE y calidad</li>
-            <li style="padding:7px 0; color:#cbd5e1; font-size:0.95rem;">Costes por orden</li>
-            <li style="padding:7px 0; color:#cbd5e1; font-size:0.95rem;">Soporte por WhatsApp</li>
-            <li style="padding:7px 0; color:#cbd5e1; font-size:0.95rem;">Consulta tus datos de producción en lenguaje natural</li>
-            <li style="padding:7px 0; color:#cbd5e1; font-size:0.95rem;">Te lo configuro yo</li>
-          </ul>
-          <a href="#" class="btn btn-primary" onclick="return false;">Solicitar diagnóstico</a>
-        </div>
-      </div>
-      <p class="prose" style="margin-top:24px; font-style:normal;">¿Listo para dejar de reconstruir la fábrica a final de mes? <b style="color:var(--primary);">Diagnóstico inicial gratis, sin tarjeta, sin compromiso.</b> En minutos puedes empezar a registrar producción.</p>
-    </div>
-  </section>
-
-  <!-- CIERRE / CONTACTO -->
+  <!-- CIERRE / CTA EMPLEO -->
   <section class="close">
     <div class="container">
-      <h2>¿Hablamos de tu fábrica?</h2>
-      <p class="prose" style="margin:0 auto 28px; max-width:620px;">Cuéntame tu caso y te propongo un diagnóstico inicial gratis. Sin presión, sin ventas agresivas.</p>
+      <div class="open-badge">● Abierto a oportunidades</div>
+      <h2>AI Builder · Optimizador de procesos · Solution / Product Engineer</h2>
+      <p class="value">Si buscas a alguien capaz de convertir un problema de negocio en un producto funcional y justificar cada decisión desde el usuario, la arquitectura y el impacto operativo, hablemos.</p>
       <div class="socials">
-        <a href="mailto:kavanasystems.info@gmail.com"><span class="btn">✉️ Email</span></a>
         <a href="https://www.linkedin.com/in/kavanasystems/" target="_blank" rel="noopener"><span class="btn">💼 LinkedIn</span></a>
+        <a href="https://github.com/kavanasystemsinfo-ui" target="_blank" rel="noopener"><span class="btn">💻 GitHub / código</span></a>
+        <a href="mailto:kavanasystems.info@gmail.com"><span class="btn">✉️ Email</span></a>
         <a href="https://www.kavanasystems.com/" target="_blank" rel="noopener"><span class="btn">🏠 Volver al inicio</span></a>
       </div>
-      <p style="margin-top:30px; color:var(--muted-2); font-size:1.05rem; line-height:1.7;">Ubicación: Valencia, España · Respuesta en menos de 24 horas laborables<br><b style="color:var(--primary); font-family:'Montserrat',sans-serif; font-size:1.1rem; margin-top:10px; display:inline-block;">— Jorge, Kavana Systems</b></p>
+      <p style="margin-top:30px; color:var(--muted-2); font-size:1.05rem; line-height:1.7;">Ubicación: Valencia, España · Respuesta en menos de 24 horas laborables<br><b style="color:var(--primary); font-family:'Montserrat',sans-serif; font-size:1.1rem; margin-top:10px; display:inline-block;">— Jorge Adán, Kavana Systems</b></p>
     </div>
   </section>
 
   <footer>
     <div class="container">
-      Kavana Manufacturing — Software MES nacido de la fábrica ·
+      Kavana Manufacturing — Proyecto de demostración ·
       <a href="mailto:kavanasystems.info@gmail.com">kavanasystems.info@gmail.com</a>
     </div>
   </footer>
