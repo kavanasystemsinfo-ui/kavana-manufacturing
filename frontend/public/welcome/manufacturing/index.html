@@ -159,7 +159,15 @@
   .mock .cap{ padding:8px 14px; color:var(--muted-2); font-size:0.78rem; font-style:italic; border-top:1px solid rgba(255,255,255,0.06); }
 
   @media (max-width:820px){ .flow .arrow{ transform:rotate(90deg); } .mockups{ grid-template-columns:1fr; } }
-  </style>
+  /* ESTADO */
+  .status-grid { display:grid; grid-template-columns:1fr 1fr; gap:18px; margin-top:14px; }
+  .status-col { background: var(--panel); border:1px solid var(--border); border-radius:10px; padding:16px 18px; }
+  .status-col h3 { margin:0 0 10px; font-size:1rem; color:#fff; }
+  .status-col ul { list-style:none; }
+  .status-col li { padding:5px 0 5px 26px; position:relative; font-size:0.92rem; color:var(--muted); }
+  .status-col.done li::before { content:"✔"; position:absolute; left:0; color:#22c55e; font-weight:700; }
+  .status-col.todo li::before { content:"🚧"; position:absolute; left:0; font-size:0.85rem; }
+  @media (max-width:820px){ .status-grid{ grid-template-columns:1fr; } }
 </head>
 <body>
 
@@ -173,6 +181,7 @@
         <a href="#software">El software</a>
         <a href="#porque">Por qué cada función</a>
         <a href="#arquitectura">Arquitectura</a>
+        <a href="#estado">Estado</a>
         <a href="#flujo">Cómo fluye</a>
         <a href="#evidencia">Evidencia</a>
         <a href="#contratar">Para contratar</a>
@@ -384,6 +393,38 @@
           <div class="socials" style="justify-content:flex-start; margin-top:16px;">
             <a href="https://github.com/kavanasystemsinfo-ui" target="_blank" rel="noopener"><span class="btn">💻 GitHub</span></a>
           </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ESTADO DEL PROYECTO -->
+  <section id="estado" class="evidence">
+    <div class="container">
+      <span class="section-label">Estado del proyecto</span>
+      <h2 class="section-title">Lo que está hecho y lo que falta</h2>
+      <p class="prose">Transparencia: cada punto se puede verificar en el repositorio público. El producto aún no tiene clientes en producción.</p>
+      <div class="status-grid">
+        <div class="status-col done">
+          <h3>✔ Implementado y verificable</h3>
+          <ul>
+            <li>Arquitectura multi-tenant con aislamiento por RLS</li>
+            <li>Backend NestJS (13 módulos) con auth y contexto de tenant</li>
+            <li>Offline-first operativo (Dexie/IndexedDB + sync)</li>
+            <li>Pruebas automatizadas (~208 tests en backend)</li>
+            <li>ADRs documentados con alternativas evaluadas</li>
+            <li>Colas BullMQ + Redis y observabilidad (OTel/Prometheus)</li>
+            <li>Manifiestos de Kubernetes en el repo</li>
+          </ul>
+        </div>
+        <div class="status-col todo">
+          <h3>🚧 En desarrollo / pendiente</h3>
+          <ul>
+            <li>Integración con PLC / OPC-UA / Modbus (aún sin maquinaria real)</li>
+            <li>Implantación en producción piloto</li>
+            <li>Capturas reales de la interfaz (los mockups son diseño)</li>
+            <li>Trazabilidad documental certificada (ISO 9001 / GMP)</li>
+          </ul>
         </div>
       </div>
     </div>
