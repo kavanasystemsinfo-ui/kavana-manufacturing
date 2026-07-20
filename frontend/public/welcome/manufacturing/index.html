@@ -133,6 +133,32 @@
       .nav .links { display: none; }
       .section-title { font-size: 1.5rem; }
     }
+  /* FLUJO + MOCKUPS */
+  .flow { display:flex; flex-wrap:wrap; align-items:stretch; justify-content:center; gap:6px; margin:26px 0; }
+  .flow .node { background: var(--panel); border:1px solid var(--border); border-radius:10px; padding:14px 18px; min-width:120px; text-align:center; }
+  .flow .node .t { color:#fff; font-weight:700; font-size:0.95rem; }
+  .flow .node .d { color:var(--muted); font-size:0.78rem; margin-top:3px; }
+  .flow .arrow { display:flex; align-items:center; color:var(--primary); font-size:1.6rem; font-weight:700; padding:0 2px; }
+
+  .mockups { display:grid; grid-template-columns:repeat(2,1fr); gap:18px; margin-top:10px; }
+  .mock { background:#0e0e0e; border:1px solid rgba(255,255,255,0.08); border-radius:10px; overflow:hidden; }
+  .mock-h { background:var(--primary); color:#fff; padding:8px 14px; font-size:0.9rem; font-weight:600; }
+  .mock-body { padding:14px; }
+  .big-btn { display:inline-flex; align-items:center; justify-content:center; min-height:54px; padding:0 20px; border-radius:8px; font-weight:800; font-size:1rem; color:#fff; margin:4px; }
+  .big-btn.start{ background:#16a34a; } .big-btn.pause{ background:#d97706; } .big-btn.stop{ background:#dc2626; }
+  .mock-row{ color:var(--muted); font-size:0.85rem; margin-top:10px; }
+  .gauge{ display:inline-flex; flex-direction:column; align-items:center; justify-content:center; width:92px; height:92px; border-radius:50%; border:8px solid var(--primary); color:#fff; font-weight:800; font-size:1.1rem; }
+  .gauge label{ font-size:0.7rem; color:var(--muted); font-weight:500; }
+  .bars{ margin-top:12px; }
+  .bar{ display:flex; align-items:center; gap:8px; margin:6px 0; font-size:0.82rem; color:var(--muted); }
+  .bar .track{ flex:1; height:10px; background:#222; border-radius:6px; overflow:hidden; }
+  .bar .fill{ height:100%; background:var(--primary); display:block; }
+  .cost-tbl{ width:100%; border-collapse:collapse; font-size:0.82rem; }
+  .cost-tbl td{ padding:6px 4px; border-bottom:1px solid #222; color:#cbd5e1; }
+  .cost-tbl td:last-child{ color:#fff; text-align:right; font-weight:600; }
+  .mock .cap{ padding:8px 14px; color:var(--muted-2); font-size:0.78rem; font-style:italic; border-top:1px solid rgba(255,255,255,0.06); }
+
+  @media (max-width:820px){ .flow .arrow{ transform:rotate(90deg); } .mockups{ grid-template-columns:1fr; } }
   </style>
 </head>
 <body>
@@ -147,6 +173,7 @@
         <a href="#software">El software</a>
         <a href="#porque">Por qué cada función</a>
         <a href="#arquitectura">Arquitectura</a>
+        <a href="#flujo">Cómo fluye</a>
         <a href="#evidencia">Evidencia</a>
         <a href="#contratar">Para contratar</a>
       </div>
@@ -318,7 +345,7 @@
         </div>
         <div class="card">
           <h3>Multi-empresa con aislamiento</h3>
-          <p>Cada cliente ve solo sus datos desde el inicio. <b>Es lo que hace que sea un producto SaaS real</b>, no una demo de una fábrica.</p>
+          <p>Cada cliente ve solo sus datos desde el inicio. <b>Arquitectura multiempresa con aislamiento desde el diseño.</b></p>
         </div>
         <div class="card">
           <h3>UX de 64px para guantes</h3>
@@ -344,12 +371,12 @@
       <h2 class="section-title">No es solo la idea: el código existe</h2>
       <div class="ev-grid">
         <ul class="ev-list">
-          <li><b>31 archivos de especificación</b> verificables en el repositorio.</li>
-          <li><b>Aislamiento entre clientes</b> cubierto por pruebas automatizadas.</li>
-          <li><b>Permisos y roles</b> verificados por tests.</li>
-          <li><b>Cálculos de producción y OEE</b> con pruebas.</li>
+          <li><b>Especificaciones funcionales</b> del producto y los flujos de planta.</li>
+          <li><b>Decisiones de arquitectura (ADR)</b> documentadas y justificadas.</li>
+          <li><b>Pruebas automatizadas</b> de permisos, aislamiento y cálculos.</li>
+          <li><b>Documentación técnica</b> del sistema y los módulos.</li>
           <li><b>Arquitectura offline-first</b> real, no declarada.</li>
-          <li><b>Decisiones documentadas</b> (ADRs y case study).</li>
+          <li><b>Aislamiento entre clientes</b> verificado por tests.</li>
         </ul>
         <div class="ev-box">
           <h3>Ver el código</h3>
@@ -362,17 +389,85 @@
     </div>
   </section>
 
-  <!-- GALERÍA -->
+  <!-- FLUJO / DIAGRAMA -->
+  <section id="flujo">
+    <div class="container">
+      <span class="section-label">Cómo fluye el dato</span>
+      <h2 class="section-title">El sistema, en veinte segundos</h2>
+      <p class="prose">El operario registra en planta. Si no hay conexión, los datos se guardan localmente y se sincronizan cuando vuelve la red. Nada se pierde y el trabajo no se detiene.</p>
+      <div class="flow">
+        <div class="node"><div class="t">Operario</div><div class="d">en planta</div></div>
+        <div class="arrow">→</div>
+        <div class="node"><div class="t">Pantalla táctil</div><div class="d">HMI 64px</div></div>
+        <div class="arrow">→</div>
+        <div class="node"><div class="t">IndexedDB</div><div class="d">offline</div></div>
+        <div class="arrow">→</div>
+        <div class="node"><div class="t">Sync</div><div class="d">cola</div></div>
+        <div class="arrow">→</div>
+        <div class="node"><div class="t">NestJS</div><div class="d">API</div></div>
+        <div class="arrow">→</div>
+        <div class="node"><div class="t">PostgreSQL</div><div class="d">+ RLS</div></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- MOCKUPS -->
   <section id="galeria" class="gallery">
     <div class="container">
       <span class="section-label">El producto en planta</span>
       <h2 class="section-title">Así se ve en el suelo de fábrica</h2>
-      <p class="note">Vista previa del diseño de interfaz. Próximamente: capturas reales del producto en funcionamiento.</p>
-      <div class="shots">
-        <div class="shot"><b>Pantalla del operario</b>Registro de orden en HMI táctil (botones 64px)</div>
-        <div class="shot"><b>Dashboard del supervisor</b>OEE y estado de líneas en tiempo real</div>
-        <div class="shot"><b>Orden de producción</b>Iniciar / pausar / parar desde la máquina</div>
-        <div class="shot"><b>Costes por orden</b>Resumen de material, mano de obra y energía</div>
+      <p class="note">Vista previa de diseño (mockups). Capturas reales del producto próximamente.</p>
+      <div class="mockups">
+
+        <div class="mock">
+          <div class="mock-h">🏭 Pantalla del operario · Orden #1024</div>
+          <div class="mock-body">
+            <div class="big-btn start">INICIAR</div>
+            <div class="big-btn pause">PAUSAR</div>
+            <div class="big-btn stop">PARAR</div>
+            <div class="mock-row">Línea A · Registrado: 142 ud. · 09:42</div>
+          </div>
+          <div class="cap">Botones grandes para manos con guantes</div>
+        </div>
+
+        <div class="mock">
+          <div class="mock-h">📊 Dashboard del supervisor</div>
+          <div class="mock-body">
+            <div class="gauge">78%<label>OEE turno</label></div>
+            <div class="bars">
+              <div class="bar">Línea A <span class="track"><span class="fill" style="width:82%"></span></span></div>
+              <div class="bar">Línea B <span class="track"><span class="fill" style="width:64%"></span></span></div>
+              <div class="bar">Línea C <span class="track"><span class="fill" style="width:91%"></span></span></div>
+            </div>
+          </div>
+          <div class="cap">OEE y estado de líneas en tiempo real</div>
+        </div>
+
+        <div class="mock">
+          <div class="mock-h">📋 Orden de producción</div>
+          <div class="mock-body">
+            <table class="cost-tbl">
+              <tr><td>#1024 · Montaje</td><td>En curso</td></tr>
+              <tr><td>#1023 · Corte</td><td>Parada</td></tr>
+              <tr><td>#1022 · Soldadura</td><td>Terminada</td></tr>
+            </table>
+          </div>
+          <div class="cap">Iniciar / pausar / parar desde la máquina</div>
+        </div>
+
+        <div class="mock">
+          <div class="mock-h">💶 Costes por orden #1024</div>
+          <div class="mock-body">
+            <table class="cost-tbl">
+              <tr><td>Material</td><td>312 €</td></tr>
+              <tr><td>Mano de obra</td><td>188 €</td></tr>
+              <tr><td>Energía</td><td>44 €</td></tr>
+              <tr><td>Total</td><td>544 €</td></tr>
+            </table>
+          </div>
+          <div class="cap">Resumen por material, labor y energía</div>
+        </div>
+
       </div>
     </div>
   </section>
@@ -382,7 +477,7 @@
     <div class="container">
       <div class="open-badge">● Abierto a oportunidades</div>
       <h2>AI Builder · Optimizador de procesos · Solution / Product Engineer</h2>
-      <p class="value">Si buscas a alguien capaz de convertir un problema de negocio en un producto funcional y justificar cada decisión desde el usuario, la arquitectura y el impacto operativo, hablemos.</p>
+      <p class="value">Busco incorporarme a un equipo donde pueda seguir construyendo software útil para problemas reales. Si valoras a alguien que entiende tanto el contexto operativo como el producto, estaré encantado de hablar contigo.</p>
       <div class="socials">
         <a href="https://www.linkedin.com/in/kavanasystems/" target="_blank" rel="noopener"><span class="btn">💼 LinkedIn</span></a>
         <a href="https://github.com/kavanasystemsinfo-ui" target="_blank" rel="noopener"><span class="btn">💻 GitHub / código</span></a>
