@@ -1,0 +1,302 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Kavana Systems — Jorge | Software nacido de la fábrica</title>
+  <meta name="description" content="No aprendí software en una universidad. Lo aprendí intentando resolver los problemas que vivía cada día en una fábrica. Hoy sigo haciendo exactamente lo mismo." />
+  <meta name="keywords" content="software industrial, fabrica, trazabilidad, produccion, Jorge, Kavana" />
+
+  <meta property="og:title" content="Kavana Systems — Jorge" />
+  <meta property="og:description" content="Construyo el software que siempre eché de menos cuando trabajaba en producción." />
+  <meta property="og:type" content="website" />
+
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Montserrat:wght@700;800;900&display=swap" rel="stylesheet" />
+
+  <style>
+    *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body { font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif; color: #e5e7eb; background: #0a0a0a; line-height: 1.7; -webkit-font-smoothing: antialiased; }
+    :root {
+      --primary: #ff7020;
+      --primary-dark: #cc5210;
+      --primary-soft: rgba(255,112,32,0.12);
+      --border: rgba(255,112,32,0.22);
+      --panel: #141414;
+      --muted: #9ca3af;
+      --muted-2: #6b7280;
+    }
+    .container { max-width: 1200px; margin: 0 auto; padding: 0 40px; }
+    h1, h2, h3 { font-family: 'Montserrat', sans-serif; letter-spacing: -0.5px; }
+    a { color: inherit; }
+
+    /* NAV */
+    .nav { position: fixed; top: 0; left: 0; right: 0; z-index: 100; background: rgba(10,10,10,0.82); backdrop-filter: blur(10px); border-bottom: 1px solid rgba(255,255,255,0.06); }
+    .nav .container { height: 64px; display: flex; align-items: center; justify-content: space-between; }
+    .nav .brand { font-family: 'Montserrat', sans-serif; font-weight: 900; color: #fff; text-decoration: none; letter-spacing: 1px; font-size: 1.05rem; display: flex; align-items: center; gap: 10px; }
+    .brand .dot { width: 10px; height: 10px; background: var(--primary); border-radius: 50%; display: inline-block; }
+    .nav .links { display: flex; gap: 22px; }
+    .nav .links a { color: var(--muted); text-decoration: none; font-size: 0.9rem; font-weight: 500; transition: color .2s; }
+    .nav .links a:hover { color: var(--primary); }
+
+    /* HERO */
+    .hero { padding: 150px 0 90px; }
+    .hero-grid { display: grid; grid-template-columns: 1fr 480px; gap: 72px; align-items: center; }
+    .badge { display: inline-flex; align-items: center; gap: 8px; background: var(--primary-soft); border: 1px solid var(--border); color: var(--primary); border-radius: 20px; padding: 6px 16px; font-size: 0.8rem; font-weight: 600; margin-bottom: 22px; }
+    .hero h1 { font-size: 3.2rem; font-weight: 900; line-height: 1.15; color: #fff; margin-bottom: 22px; }
+    .hero h1 .mark { color: var(--primary); }
+    .hero .lead { font-size: 1.12rem; color: var(--muted); margin-bottom: 28px; }
+    .hero .cta { display: flex; gap: 14px; flex-wrap: wrap; }
+    .btn { display: inline-flex; align-items: center; gap: 9px; padding: 12px 26px; border-radius: 8px; font-weight: 600; font-size: 0.95rem; text-decoration: none; transition: all .22s; cursor: pointer; border: none; }
+    .btn-primary { background: var(--primary); color: #fff; }
+    .btn-primary:hover { background: var(--primary-dark); transform: translateY(-1px); }
+    .btn-outline { border: 2px solid var(--border); color: var(--primary); background: transparent; }
+    .btn-outline:hover { background: var(--primary-soft); }
+    .portrait { aspect-ratio: 1/1.1; border-radius: 14px; background: linear-gradient(160deg, #1c1c1c, #0f0f0f); border: 1px solid rgba(255,255,255,0.08); display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; color: var(--muted-2); padding: 20px; }
+    .portrait .face { font-size: 3.4rem; margin-bottom: 14px; }
+    .portrait .hint { font-size: 0.78rem; line-height: 1.5; }
+    .portrait-caption { margin-top: 14px; text-align: center; font-family: 'Montserrat', sans-serif; font-weight: 700; font-size: 0.95rem; letter-spacing: 0.5px; color: var(--primary); }
+
+    /* SECTIONS */
+    section { padding: 84px 0; border-bottom: 1px solid rgba(255,255,255,0.04); }
+    .section-label { display: inline-block; font-size: 0.78rem; font-weight: 700; text-transform: uppercase; letter-spacing: 2px; color: var(--primary); margin-bottom: 14px; }
+    .section-title { font-size: 1.9rem; font-weight: 900; color: #fff; margin-bottom: 20px; line-height: 1.25; }
+    .prose { font-size: 1.08rem; color: #cbd5e1; max-width: 720px; }
+    .prose p { margin-bottom: 18px; }
+    .prose em { color: var(--primary); font-style: normal; font-weight: 600; }
+    blockquote { border-left: 3px solid var(--primary); padding: 4px 0 4px 22px; margin: 26px 0; font-size: 1.18rem; color: #fff; font-weight: 500; }
+
+    /* PRINCIPIOS */
+    .principles { display: grid; grid-template-columns: repeat(2, 1fr); gap: 22px; margin-top: 12px; }
+    .principle { background: var(--panel); border: 1px solid rgba(255,255,255,0.06); border-radius: 12px; padding: 28px; }
+    .principle .n { font-family: 'Montserrat', sans-serif; font-weight: 900; font-size: 1.4rem; color: var(--primary); margin-bottom: 8px; }
+    .principle h3 { font-size: 1.15rem; color: #fff; margin-bottom: 8px; }
+    .principle p { font-size: 0.95rem; color: var(--muted); }
+
+    /* PRODUCTOS */
+    .products { display: grid; grid-template-columns: repeat(2, 1fr); gap: 24px; margin-top: 10px; }
+    .product { display: block; text-decoration: none; background: var(--panel); border: 1px solid rgba(255,255,255,0.06); border-radius: 12px; padding: 26px; transition: all .25s; }
+    .product:hover { border-color: var(--border); transform: translateY(-3px); }
+    .product .tag { font-size: 0.72rem; text-transform: uppercase; letter-spacing: 1.5px; color: var(--primary); font-weight: 700; }
+    .product h3 { font-family: 'Montserrat', sans-serif; font-size: 1.25rem; color: #fff; margin: 8px 0 10px; }
+    .product p { font-size: 0.95rem; color: var(--muted); }
+    .product .arrow { margin-top: 14px; color: var(--primary); font-size: 0.9rem; font-weight: 600; }
+
+    /* BIG STATEMENT */
+    .statement { padding: 110px 0; text-align: center; }
+    .statement .factory { font-size: 3rem; margin-bottom: 26px; opacity: 0.9; }
+    .statement h2 { font-size: 2.3rem; font-weight: 900; color: #fff; line-height: 1.3; max-width: 760px; margin: 0 auto 14px; }
+    .statement h2 .mark { color: var(--primary); }
+
+    /* CREDO */
+    .credo { background: #0d0d0d; }
+    .credo .item { display: flex; gap: 16px; padding: 16px 0; border-bottom: 1px solid rgba(255,255,255,0.04); align-items: flex-start; }
+    .credo .item:last-child { border-bottom: none; }
+    .credo .item .ic { color: var(--primary); font-weight: 800; flex-shrink: 0; margin-top: 2px; }
+    .credo .item p { font-size: 1.05rem; color: #cbd5e1; }
+    .credo .item p b { color: #fff; }
+
+    /* ABOUT */
+    .about-grid { display: grid; grid-template-columns: 1fr 560px; gap: 72px; align-items: center; }
+    .about .portrait { aspect-ratio: 1/1.15; }
+
+    /* CONTACT / CLOSE */
+    .close { text-align: center; padding: 100px 0; }
+    .close h2 { font-size: 2rem; font-weight: 900; color: #fff; max-width: 640px; margin: 0 auto 28px; line-height: 1.3; }
+    .socials { display: flex; gap: 14px; justify-content: center; flex-wrap: wrap; }
+    .socials a { text-decoration: none; }
+    .socials .btn { background: var(--panel); border: 1px solid rgba(255,255,255,0.08); color: #fff; }
+    .socials .btn:hover { border-color: var(--border); color: var(--primary); }
+
+    footer { background: #070707; padding: 36px 0; color: var(--muted-2); font-size: 0.82rem; text-align: center; }
+    footer a { color: var(--muted); text-decoration: none; }
+
+    @media (max-width: 760px) {
+      .hero-grid, .about-grid { grid-template-columns: 1fr; gap: 36px; }
+      .hero .portrait, .about .portrait { max-width: 260px; margin: 0 auto; }
+      .hero h1 { font-size: 2.1rem; }
+      .principles, .products { grid-template-columns: 1fr; }
+      .nav .links { display: none; }
+      .statement h2, .close h2 { font-size: 1.6rem; }
+      .section-title { font-size: 1.6rem; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- NAV -->
+  <nav class="nav">
+    <div class="container">
+      <a href="#top" class="brand"><span class="dot"></span> KAVANA <span style="color:var(--primary)">SYSTEMS</span></a>
+      <div class="links">
+        <a href="#historia">Historia</a>
+        <a href="#metodo">Mi forma de trabajar</a>
+        <a href="#productos">Proyectos</a>
+        <a href="#credo">Principios</a>
+        <a href="#yo">Sobre mí</a>
+      </div>
+    </div>
+  </nav>
+
+  <!-- HERO -->
+  <header id="top" class="hero">
+    <div class="container">
+      <div class="hero-grid">
+        <div>
+          <span class="badge">● He estado donde estás tú</span>
+          <h1>Construyo el software que siempre eché de menos cuando trabajaba en <span class="mark">producción</span>.</h1>
+          <p class="lead">Durante más de siete años estuve en entornos industriales. Vi cómo personas excelentes perdían tiempo con herramientas lentas, complejas o pensadas por quienes nunca habían pisado una planta. Hoy diseño productos digitales que nacen exactamente de esos problemas.</p>
+          <div class="cta">
+            <a href="#productos" class="btn btn-primary">Conoce mis proyectos</a>
+            <a href="#historia" class="btn btn-outline">Mi historia</a>
+          </div>
+        </div>
+        <div class="portrait" aria-label="Fotografía de Jorge" style="background:transparent; border:none;">
+          <img src="jorge-portrait.png" alt="Jorge" style="width:100%; height:auto; max-height:720px; object-fit:contain; border-radius:14px;" />
+          <p class="portrait-caption">Dos roles, misma identidad</p>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- SECCIÓN 2: ¿POR QUÉ EXISTE KAVANA? -->
+  <section id="historia">
+    <div class="container">
+      <span class="section-label">Por qué existe Kavana</span>
+      <h2 class="section-title">Empezó con una frustración, no con un plan de negocio</h2>
+      <div class="prose">
+        <p>Hace años terminaba un turno de noche y llegaba a casa con la cabeza llena de ideas. Mientras otros veían procesos normales, yo veía <em>tiempo perdido</em>.</p>
+        <p>Veía operarios haciendo el mismo trabajo dos veces. Veía hojas en papel. Veía Excel infinitos. Veía decisiones que podían automatizarse y nadie las tocaba.</p>
+        <p>Esperé durante mucho tiempo a que alguien construyera mejores herramientas. Al final decidí intentarlo yo.</p>
+        <blockquote>Así nació Kavana. No como una empresa, sino como una forma de convertir problemas reales en productos digitales. Empecé a diseñar la solución trabajando a doble jornada: en la fábrica, con turnos rotativos, y luego en casa, construyendo el software por las noches.</blockquote>
+      </div>
+    </div>
+  </section>
+
+  <!-- SECCIÓN 3: MI FORMA DE TRABAJAR -->
+  <section id="metodo">
+    <div class="container">
+      <span class="section-label">Mi forma de trabajar</span>
+      <h2 class="section-title">No vendo tecnología. Sigo principios</h2>
+      <div class="principles">
+        <div class="principle">
+          <div class="n">01</div>
+          <h3>Observo</h3>
+          <p>Antes de diseñar nada, intento entender cómo trabaja realmente la gente. Sin eso, cualquier solución es un tiro en la oscuridad.</p>
+        </div>
+        <div class="principle">
+          <div class="n">02</div>
+          <h3>Simplifico</h3>
+          <p>La mejor herramienta no es la que tiene más funciones. Es la que resuelve el problema con menos fricción.</p>
+        </div>
+        <div class="principle">
+          <div class="n">03</div>
+          <h3>Construyo</h3>
+          <p>Utilizo software moderno e inteligencia artificial para convertir ideas en productos utilizables, no en maquetas.</p>
+        </div>
+        <div class="principle">
+          <div class="n">04</div>
+          <h3>Aprendo</h3>
+          <p>Cada proyecto cambia mi manera de entender el siguiente. Por eso cada herramienta sale mejor que la anterior.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- SECCIÓN 4: LOS PRODUCTOS -->
+  <section id="productos">
+    <div class="container">
+      <span class="section-label">Los productos</span>
+      <h2 class="section-title">Puertas, no catálogos</h2>
+      <div class="products">
+        <a class="product" href="http://localhost:5173/manufacturing" target="_blank" rel="noopener">
+          <span class="tag">Industria</span>
+          <h3>Kavana Manufacturing</h3>
+          <p>Reinventando el software de fabricación para la era de la IA: trazabilidad, tiempos de máquina y control de planta que funciona aunque se caiga el Wi-Fi.</p>
+          <div class="arrow">Ver proyecto →</div>
+        </a>
+        <a class="product" href="https://cleanstock.kavanasystems.com/welcome/" target="_blank" rel="noopener">
+          <span class="tag">Servicios</span>
+          <h3>CleanStock</h3>
+          <p>Gestión de stock sencilla para equipos de limpieza. Menos papel, menos olvidos, más control del material en cada turno.</p>
+          <div class="arrow">Ver proyecto →</div>
+        </a>
+        <a class="product" href="https://kavanasystems.com/calculator" target="_blank" rel="noopener">
+          <span class="tag">Calculadora</span>
+          <h3>Calculadora Kavana</h3>
+          <p>Una herramienta para calcular la eficiencia de producción industrial, pensada para el suelo de fábrica.</p>
+          <div class="arrow">Ver proyecto →</div>
+        </a>
+        <a class="product" href="#contacto">
+          <span class="tag">Próximamente</span>
+          <h3>El siguiente</h3>
+          <p>Siempre hay un problema real esperando una herramienta. Si el tuyo encaja, puede ser el próximo.</p>
+          <div class="arrow">Hablémoslo →</div>
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <!-- SECCIÓN 5: GRAN FRASE -->
+  <section class="statement">
+    <div class="container">
+      <div class="factory">🏭</div>
+      <h2>No construyo software para <span class="mark">empresas</span>.<br>Construyo herramientas para las personas que hacen que esas empresas funcionen.</h2>
+    </div>
+  </section>
+
+  <!-- SECCIÓN 6: PRINCIPIOS / CREDO -->
+  <section id="credo" class="credo">
+    <div class="container">
+      <span class="section-label">Lo que defiendo</span>
+      <h2 class="section-title">Mis principios</h2>
+      <div class="item"><span class="ic">→</span><p>No persigo la tecnología más nueva. <b>Persigo la solución más sencilla.</b></p></div>
+      <div class="item"><span class="ic">→</span><p>No diseño para impresionar. <b>Diseño para reducir trabajo innecesario.</b></p></div>
+      <div class="item"><span class="ic">→</span><p>La IA no sustituye a las personas. <b>Las ayuda a tomar mejores decisiones.</b></p></div>
+      <div class="item"><span class="ic">→</span><p>La mejor interfaz es la que <b>apenas necesita explicarse.</b></p></div>
+    </div>
+  </section>
+
+  <!-- SECCIÓN 7: SOBRE MÍ -->
+  <section id="yo">
+    <div class="container">
+      <div class="about-grid">
+        <div class="about prose">
+          <span class="section-label">Sobre mí</span>
+          <h2 class="section-title">Soy Jorge</h2>
+          <p>Durante años, hasta julio de 2026, trabajé en producción industrial. No estudié informática. Aprendí construyendo.</p>
+          <p>Empecé con WordPress. También trabajé en ecommerce, tanto haciendo dropshipping como creando mi propia marca de ropa mediante print on demand. Creé apps nativas para Android, tarjetas digitales para empresas, autónomos y freelances, y pequeñas aplicaciones con App Inventor. Hoy utilizo la inteligencia artificial como una herramienta más para diseñar productos digitales.</p>
+          <p>No pretendo ser el mejor programador. Mi objetivo siempre ha sido otro: <em>entender cómo trabajan las personas y construir herramientas que realmente les faciliten el día</em>.</p>
+          <p>Eso tiene muchísimo más valor que llamarse "Digital Solutions Architect".</p>
+        </div>
+        <div class="portrait" aria-label="Fotografía de Jorge" style="background:transparent; border:none;">
+          <img src="jorge-about.png" alt="Jorge" style="width:100%; height:auto; max-height:820px; object-fit:contain; border-radius:14px;" />
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- CIERRE / CONTACTO -->
+  <section id="contacto" class="close">
+    <div class="container">
+      <h2>Si compartes esta forma de entender el software, me encantará hablar contigo.</h2>
+      <div class="socials">
+        <a href="https://www.linkedin.com/" target="_blank" rel="noopener"><span class="btn">💼 LinkedIn</span></a>
+        <a href="https://github.com/" target="_blank" rel="noopener"><span class="btn">🐙 GitHub</span></a>
+        <a href="mailto:kavanasystems.info@gmail.com"><span class="btn">✉️ Email</span></a>
+      </div>
+      <p style="margin-top:30px; color:var(--muted-2); font-size:0.9rem;">No aprendí software en una universidad. Lo aprendí intentando resolver los problemas que vivía cada día en una fábrica. Hoy sigo haciendo exactamente lo mismo. Solo han cambiado las herramientas.</p>
+    </div>
+  </section>
+
+  <footer>
+    <div class="container">
+      Kavana Systems — Jorge · Software nacido de la fábrica ·
+      <a href="mailto:kavanasystems.info@gmail.com">kavanasystems.info@gmail.com</a>
+    </div>
+  </footer>
+
+</body>
+</html>
