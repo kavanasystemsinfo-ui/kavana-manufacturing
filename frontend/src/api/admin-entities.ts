@@ -321,3 +321,167 @@ export async function toggleTenantModule(tenantId: string, moduleKey: string, en
     body: JSON.stringify({ enabled }),
   });
 }
+
+// ──── Toolings ────
+export interface Tooling {
+  id: string;
+  code: string;
+  name: string;
+  type: string;
+  location: string | null;
+  status: 'activo' | 'mantenimiento' | 'retirado';
+  current_cycles: number;
+  max_cycles: number;
+  warning_pct: number;
+  cycles_per_piece: number;
+  estimated_pieces: number | null;
+  notes: string | null;
+  tenant_id: string;
+  created_at: string;
+  updated_at: string;
+}
+
+export async function listToolings(): Promise<Tooling[]> {
+  return callApiWithTimeout<Tooling[]>(`${API_BASE}/toolings`);
+}
+
+export async function createTooling(data: {
+  code: string;
+  name: string;
+  type?: string;
+  location?: string;
+  max_cycles?: number;
+  warning_pct?: number;
+  cycles_per_piece?: number;
+  notes?: string;
+}): Promise<Tooling> {
+  return callApiWithTimeout<Tooling>(`${API_BASE}/toolings`, {
+    method: 'POST',
+    body: JSON.stringify(data),
+  });
+}
+
+export async function updateTooling(id: string, data: {
+  code?: string;
+  name?: string;
+  type?: string;
+  location?: string;
+  status?: 'activo' | 'mantenimiento' | 'retirado';
+  max_cycles?: number;
+  warning_pct?: number;
+  cycles_per_piece?: number;
+  notes?: string;
+}): Promise<Tooling> {
+  return callApiWithTimeout<Tooling>(`${API_BASE}/toolings/${id}`, {
+    method: 'PUT',
+    body: JSON.stringify(data),
+  });
+}
+
+export async function deleteTooling(id: string): Promise<void> {
+  await callApiWithTimeout<void>(`${API_BASE}/toolings/${id}`, {
+    method: 'DELETE',
+  });
+}
+
+export async function incrementToolingCycles(id: string, amount: number): Promise<Tooling> {
+  return callApiWithTimeout<Tooling>(`${API_BASE}/toolings/${id}/cycles`, {
+    method: 'POST',
+    body: JSON.stringify({ amount }),
+  });
+}
+
+export async function incrementToolingByPieces(id: string, pieces: number): Promise<Tooling> {
+  return callApiWithTimeout<Tooling>(`${API_BASE}/toolings/${id}/produce`, {
+    method: 'POST',
+    body: JSON.stringify({ pieces }),
+  });
+}
+
+export async function getToolingAlerts(): Promise<Tooling[]> {
+  return callApiWithTimeout<Tooling[]>(`${API_BASE}/toolings/alerts`);
+}
+
+// ──── Tenant Tooling Types ────
+export async function fetchToolingTypes(): Promise<string[]> {
+  return callApiWithTimeout<string[]>(`${API_BASE}/tenant/tooling-types`);
+}
+
+export async function saveToolingTypes(types: string[]): Promise<void> {
+  await callApiWithTimeout<void>(`${API_BASE}/tenant/tooling-types`, {
+    method: 'PATCH',
+    body: JSON.stringify({ types }),
+  });
+}
+
+// ──── Incidencias ────
+export interface Incidencia {
+  id: string;
+  tenant_id: number;
+  workstation_id: string | null;
+  order_id: string | null;
+  reported_by: string;
+  type: 'calidad' | 'seguridad' | 'mantenimiento' | 'produccion' | 'otro';
+  severity: 'baja' | 'media' | 'alta' | 'critica';
+  title: string;
+  description: string | null;
+  status: 'abierto' | 'en_progreso' | 'resuelto' | 'cerrado';
+  assigned_to: string | null;
+  resolved_at: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface IncidenciaStats {
+  total: number;
+  abiertas: number;
+  en_progreso: number;
+  resueltas: number;
+  cerradas: number;
+  criticas: number;
+  altas: number;
+}
+
+export async function listIncidencias(): Promise<Incidencia[]> {
+  return callApiWithTimeout<Incidencia[]>(`${API_BASE}/incidencias`);
+}
+
+export async function createIncidencia(data: {
+  reported_by: string;
+  workstation_id?: string;
+  order_id?: string;
+  type?: string;
+  severity?: string;
+  title: string;
+  description?: string;
+  assigned_to?: string;
+}): Promise<Incidencia> {
+  return callApiWithTimeout<Incidencia>(`${API_BASE}/incidencias`, {
+    method: 'POST',
+    body: JSON.stringify(data),
+  });
+}
+
+export async function updateIncidencia(id: string, data: {
+  type?: string;
+  severity?: string;
+  title?: string;
+  description?: string;
+  status?: string;
+  assigned_to?: string;
+}): Promise<Incidencia> {
+  return callApiWithTimeout<Incidencia>(`${API_BASE}/incidencias/${id}`, {
+    method: 'PUT',
+    body: JSON.stringify(data),
+  });
+}
+
+export async function deleteIncidencia(id: string): Promise<void> {
+  await callApiWithTimeout<void>(`${API_BASE}/incidencias/${id}`, {
+    method: 'DELETE',
+  });
+}
+
+export async function getIncidenciaStats(): Promise<IncidenciaStats> {
+  return callApiWithTimeout<IncidenciaStats>(`${API_BASE}/incidencias/stats`);
+}

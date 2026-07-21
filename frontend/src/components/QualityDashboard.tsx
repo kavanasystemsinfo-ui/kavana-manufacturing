@@ -94,14 +94,24 @@ export function QualityDashboard() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <h2 className={`text-lg font-semibold ${isClassic ? 'text-gray-800' : 'text-white'}`}>Control de Calidad</h2>
-        <button
-          onClick={() => { setShowCreate(!showCreate); setForm({ ...form, order_id: selectedOrder ?? '' }); }}
-          className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
-            isClassic ? 'bg-blue-600 text-white hover:bg-blue-700' : 'bg-indigo-600 text-white hover:bg-indigo-700'
-          }`}
-        >
-          + Nuevo Check
-        </button>
+        <div className="flex gap-2">
+          <button
+            onClick={() => { void loadData(); if (selectedOrder) void loadOrderData(selectedOrder); }}
+            className={`px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
+              isClassic ? 'bg-gray-200 text-gray-700 hover:bg-gray-300' : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
+            }`}
+          >
+            🔄 Actualizar
+          </button>
+          <button
+            onClick={() => { setShowCreate(!showCreate); setForm({ ...form, order_id: selectedOrder ?? '' }); }}
+            className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+              isClassic ? 'bg-blue-600 text-white hover:bg-blue-700' : 'bg-indigo-600 text-white hover:bg-indigo-700'
+            }`}
+          >
+            + Nuevo Check
+          </button>
+        </div>
       </div>
 
       {error && (
@@ -179,6 +189,17 @@ export function QualityDashboard() {
                 <div className={`text-xs ${isClassic ? 'text-gray-500' : 'text-gray-400'}`}>Pass Rate</div>
               </div>
             </div>
+            <div className={`mt-3 h-2 rounded-full overflow-hidden ${isClassic ? 'bg-gray-100' : 'bg-gray-700'}`}>
+              <div
+                className={`h-full rounded-full transition-all ${summary.pass_rate >= 80 ? 'bg-green-500' : summary.pass_rate >= 60 ? 'bg-amber-500' : 'bg-red-500'}`}
+                style={{ width: `${Math.min(summary.pass_rate, 100)}%` }}
+              />
+            </div>
+            {summary.total_defects > 0 && (
+              <div className={`mt-2 text-xs ${isClassic ? 'text-gray-500' : 'text-gray-400'}`}>
+                {summary.total_defects} defecto{summary.total_defects !== 1 ? 's' : ''} registrado{summary.total_defects !== 1 ? 's' : ''}
+              </div>
+            )}
           </div>
         )}
       </div>
