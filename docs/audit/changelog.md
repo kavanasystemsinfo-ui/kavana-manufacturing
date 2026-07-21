@@ -1,5 +1,51 @@
 # Kavana Manufacturing - Changelog Documental
 
+## 2026-07-21 — Módulo Utillajes + Tipos configurables
+
+### Added: Toolings Module (Backend)
+- **Problema:** No existía control de vida útil de troqueles, moldes y herramientas.
+- **Solución:** NestJS module completo con CRUD + estimación preventiva.
+- **Archivos:** `backend/src/toolings/` (controller.ts, service.ts, module.ts, dto.ts)
+- **Endpoints:** GET/POST/PUT/DELETE /toolings, POST /:id/cycles, POST /:id/produce, GET /workstation/:id
+
+### Added: Toolings Estimation (DB)
+- **Problema:** No existía forma de estimar el desgaste de utillajes.
+- **Solución:** Migración 026: `cycles_per_piece NUMERIC`, `estimated_pieces INTEGER`, `workstations.tooling_id UUID`.
+- **Archivos:** `database/migrations/025_create_toolings.sql`, `026_toolings_estimation.sql`
+
+### Added: ToolingsTab en AdminPanel (Frontend)
+- **Problema:** No existía UI para gestionar utillajes.
+- **Solución:** Tab con cards, barra de progreso, estimación en vivo, configuración de tipos.
+- **UX:** Banner azul "herramienta de estimación preventiva", campo ciclos/pieza con help text, estimación "~200,000 piezas aprox."
+- **Archivos:** `frontend/src/AdminPanel.tsx` (ToolingsTab), `frontend/src/api/admin-entities.ts`
+
+### Added: Configuración de tipos de utillaje por tenant
+- **Problema:** Los tipos de utillaje eran un enum fijo (troquel, molde, etc.) — inflexible.
+- **Solución:** Tipos almacenados en `tenants.feature_matrix -> tooling.types`, configurables via UI.
+- **Endpoints:** GET/PATCH /tenant/tooling-types
+- **Archivos:** `backend/src/tenant-capabilities/tenant-capabilities.controller.ts`, `frontend/src/AdminPanel.tsx`
+
+### Added: Workstation ↔ Tooling link
+- **Problema:** No existía relación entre estaciones de trabajo y utillajes.
+- **Solución:** `workstations.tooling_id UUID` con FK a toolings. Endpoint GET /toolings/workstation/:id.
+- **Archivos:** `backend/src/workstations/workstations.service.ts`, `backend/src/workstations/dto.ts`
+
+### Fixed: @Inject(ToolingsService) obligatorio
+- **Problema:** `this.service` era `undefined` en ToolingsController bajo tsx watch.
+- **Solución:** Añadido `@Inject(ToolingsService)` explícito. Tercera vez que aparece este patrón.
+- **Lección:** tsx watch NO emite emitDecoratorMetadata. @Inject() es obligatorio en TODOS los controladores.
+
+### Fixed: DB migration — columnas no creadas
+- **Problema:** Migración 026 no se ejecutó correctamente (PowerShell heredoc no funcionó).
+- **Solución:** Ejecución manual vía Node.js + pg driver. Verificación de columnas.
+- **Lección:** Usar Node.js directo para migraciones en Windows, no PowerShell heredocs.
+
+### Tests
+- TypeScript compila limpio (frontend + backend)
+- Backend: ~208 tests passing
+
+---
+
 ## 2026-07-07 — Diagnóstico, hardening y herramientas
 
 ### Fixed: Type casting en syncWorkBlock + tsx watch reload
@@ -1030,6 +1076,43 @@ El riesgo crítico persistente de no poder verificar migración, smoke test ni g
 ### Propósito
 
 El comando `$d` queda preparado para activar documentación, auditoría continua y revisión del roadmap en futuras iteraciones.
+
+## 2026-07-21 — AI Config por tenant + Chat IA en Supervisor
+
+### Añadido
+
+- `database/migrations/024_add_tenant_ai_config.sql` — columna `ai_config JSONB` para config de IA por tenant
+- `backend/src/ai-advisor/ai-config.service.ts` — encriptación AES-256-GCM de API keys, CRUD
+- Endpoints `GET/PATCH /tenant/ai-config` en `tenant-capabilities.controller.ts`
+- `frontend/src/components/AiAdvisorChat.tsx` — chat IA integrado en panel Supervisor (pestaña "Asistente IA")
+- Pestaña "IA" en AdminPanel.tsx y ClassicAdminPanel.tsx para configurar proveedor, key y modelo
+- Actualización de `ai-advisor.service.ts` para leer config del tenant primero, fallback a env vars
+- Protección contra overwrite de API key: si la key empieza con `••••`, se preserva la existente
+
+### Modificado
+
+- `README.md` — sección AI actualizada, estado del proyecto
+- `DECISIONES_ARQUITECTURA.md` — nueva decisión 11 sobre AI config por tenant
+- `ROADMAP.md` — añadida Fase 14 completada
+- `docs/decisions-log.md` — entrada del 2026-07-21
+- `frontend/vite.config.ts` — proxy `/ai-advisor` añadido
+
+## 2026-07-21 — Refactor UX Operario: formulario simplificado, tema Kavana, limpieza
+
+### Modificado
+- Eliminados botones Producción/Parada del panel operario — ahora solo formulario con hora inicio, hora fin, piezas producidas, mermas
+- Eliminado campo "Motivo de Parada" y toda la lógica conditional de blockType
+- Eliminado botón ⚙️ Admin del panel operario moderno
+- Eliminados ThemeToggle flotantes duplicados de App.tsx (cada panel ya tiene su toggle en el header)
+- Renombrado tema "Moderno" → "Kavana" con colores naranja `kavana-orange` en el toggle
+- Eliminada sección editable de Campos Personalizados en panel operario (ahora solo lectura)
+- Header del tema Clásico ahora usa fondo oscuro `bg-kavana-dark` como el moderno
+- Paneles de operario ampliados a `w-[90%]` con borde `border-2 border-kavana-orange`
+- Guía de ayuda del operario actualizada (eliminadas referencias a Iniciar/Pausar/Parada)
+- HelpModal ampliado (`max-w-2xl`, `max-h-[90vh]`) y textos de índigo a naranja
+- Toggle de temas ahora usa `bg-kavana-dark` con borde `border-kavana-orange`
+- `docs/audit/changelog.md` — entrada del 2026-07-21 (refactor UX)
+- `docs/decisions-log.md` — entrada del 2026-07-21 (refactor UX)
 
 ## 2026-06-14 - Auditoría inicial
 
