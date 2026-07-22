@@ -1,6 +1,11 @@
 import { Injectable, ForbiddenException } from '@nestjs/common';
 import { postgresPool } from '../db/postgres.provider.js';
 import { tenantQuery } from '../db/tenant-query.js';
+import type { z } from 'zod';
+import type { createToolingSchema, updateToolingSchema } from './dto.js';
+
+type CreateToolingInput = z.infer<typeof createToolingSchema>;
+type UpdateToolingInput = z.infer<typeof updateToolingSchema>;
 
 @Injectable()
 export class ToolingsService {
@@ -19,7 +24,7 @@ export class ToolingsService {
     return result.rows[0];
   }
 
-  async create(tenantId: bigint, data: any) {
+  async create(tenantId: bigint, data: CreateToolingInput) {
     const result = await tenantQuery(postgresPool,
       `INSERT INTO toolings (tenant_id, code, name, type, location, current_cycles, max_cycles, warning_pct, cycles_per_piece, notes)
        VALUES (get_current_tenant(), $1::varchar, $2::varchar, $3::varchar, $4::varchar, $5::int, $6::int, $7::int, $8::numeric, $9::text)
@@ -28,9 +33,9 @@ export class ToolingsService {
     return result.rows[0];
   }
 
-  async update(tenantId: bigint, id: string, data: any) {
+  async update(tenantId: bigint, id: string, data: UpdateToolingInput) {
     const fields: string[] = [];
-    const values: any[] = [];
+    const values: (string | number | undefined)[] = [];
     let paramIdx = 1;
 
     const numericFields = ['current_cycles', 'max_cycles', 'warning_pct', 'cycles_per_piece'];
