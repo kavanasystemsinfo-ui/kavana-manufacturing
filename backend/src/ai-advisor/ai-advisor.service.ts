@@ -23,7 +23,7 @@ export class AiAdvisorService {
     const startTime = Date.now();
 
     // 1. Gather context from manufacturing data
-    const bundle = await this.gatherContext(ctx.tenantId, contextFilter);
+    const bundle = await this.gatherContext(String(ctx.tenantId), contextFilter);
 
     // 2. Versionar el contexto para trazabilidad
     const contextJSON = JSON.stringify(bundle);
@@ -32,7 +32,7 @@ export class AiAdvisorService {
     const qualityParsed = JSON.parse(bundle.quality);
     const wbParsed = JSON.parse(bundle.workblocks);
     const cv = versionContext(
-      ctx.tenantId,
+      String(ctx.tenantId),
       contextJSON,
       Array.isArray(ordersParsed) ? ordersParsed.length : 0,
       Array.isArray(oeeParsed) ? oeeParsed.length : 0,
@@ -224,13 +224,13 @@ export class AiAdvisorService {
       model,
       question: prompt.split('=== PREGUNTA DEL OPERARIO ===')[1]?.trim() || prompt.slice(0, 200),
       context_chunks: ctxChunks,
-      tenant_id: ctx.tenantId,
+      tenant_id: String(ctx.tenantId),
       context_version: cv?.hash,
     });
 
     try {
       const { default: openai } = await import('openai');
-      const client = new openai.OpenAI({ apiKey, baseUrl });
+      const client = new openai.OpenAI({ apiKey, baseURL: baseUrl });
 
       const response = await client.chat.completions.create({
         model,

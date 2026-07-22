@@ -35,6 +35,7 @@ export interface DowntimeBreakdown {
 
 interface DowntimeRow {
   downtime_reason: string | null;
+  reason?: string;
   count: string;
   total_ms: string;
 }
@@ -182,7 +183,7 @@ export class OeeService {
     );
 
     return result.rows.map((row: DowntimeRow) => ({
-      reason: row.downtime_reason ?? row.reason,
+      reason: row.downtime_reason ?? row.reason ?? 'Unknown',
       count: Number(row.count),
       total_ms: Number(row.total_ms),
       percentage:

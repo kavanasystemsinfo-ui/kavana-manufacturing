@@ -173,7 +173,7 @@ export class TenantCapabilitiesService {
 
     // 2. Enforce limits and quotas (using active quotas in feature_matrix)
     const capabilities = await this.getCapabilities(tenantId);
-    const maxCustomFields = Number(capabilities.quotas?.entities?.max_custom_fields ?? 5);
+    const maxCustomFields = Number((capabilities.quotas as Record<string, any>)?.entities?.max_custom_fields ?? 5);
 
     if (validatedSchema.fields.length > maxCustomFields) {
       throw new ForbiddenException('Quota Exceeded: Maximum custom fields limit reached.');

@@ -1,17 +1,19 @@
 # =============================================================================
-# Kavana Manufacturing v3 — Stack completo
+# Kavana Manufacturing v3 — Stack completo (producción local)
 #
 # Servicios:
-#   db        → PostgreSQL 16 (datos de producción, multi-tenant con RLS)
-#   redis     → Redis 7 (colas BullMQ para jobs asíncronos)
+#   db        → PostgreSQL 16 (datos multi-tenant con RLS)
+#   redis     → Redis 7 (colas BullMQ)
 #   backend   → API NestJS (:3001)
 #   worker    → Procesador BullMQ (oee-recalc, report-export)
+#   frontend  → Nginx sirviendo React SPA (:80)
+#
+# Iniciar:
+#   docker compose up -d
 #
 # Observabilidad (opcional):
 #   docker compose -f docker-compose.yml -f docker-compose.observability.yml up -d
 # =============================================================================
-
-version: '3.8'
 
 services:
   db:
@@ -48,21 +50,23 @@ services:
       retries: 5
 
   backend:
-    build: ./backend
+    build:
+      context: .
+      dockerfile: backend/Dockerfile
     container_name: kavana-v3-backend
     ports:
       - '3001:3001'
     environment:
       PORT: '3001'
-      DATABASE_URL: postgresql://kavana:${DB_PASSWORD:-kavana_v3_password}@db:5432/kavana_v3
+      DATABASE_URL: postgresql://kavana:***@db:5432/kavana_v3
       REDIS_HOST: redis
       REDIS_PORT: '6379'
       METRICS_PORT: '9464'
       JWT_SECRET: ${JWT_SECRET:-dev-secret-change-in-production}
-      ALLOW_MOCK_AUTH: ${ALLOW_MOCK_AUTH:-false}
-      LLM_PROVIDER: ${LLM_PROVIDER:-nvidia}
-      NVIDIA_API_KEY: ${NVIDIA_API_KEY}
-      OPENROUTER_API_KEY: ${OPENROUTER_API_KEY}
+      ALLOW_MOCK_AUTH: ${ALLOW_MOCK_AUTH:-true}
+      LLM_PROVIDER: ${LLM_PROVIDER:-openrouter}
+      OPENROUTER_API_KEY: ${OPENROUTER_API_KEY:-}
+      NVIDIA_API_KEY: ${NVIDIA_API_KEY:-}
     depends_on:
       db:
         condition: service_healthy
@@ -71,11 +75,13 @@ services:
     restart: unless-stopped
 
   worker:
-    build: ./backend
+    build:
+      context: .
+      dockerfile: backend/Dockerfile
     container_name: kavana-v3-worker
-    command: ['npx', 'tsx', 'src/worker.ts']
+    command: ['node', 'dist/worker.js']
     environment:
-      DATABASE_URL: postgresql://kavana:${DB_PASSWORD:-kavana_v3_password}@db:5432/kavana_v3
+      DATABASE_URL: postgresql://kavana:***@db:5432/kavana_v3
       REDIS_HOST: redis
       REDIS_PORT: '6379'
       JWT_SECRET: ${JWT_SECRET:-dev-secret-change-in-production}
@@ -84,6 +90,17 @@ services:
         condition: service_healthy
       redis:
         condition: service_healthy
+    restart: unless-stopped
+
+  frontend:
+    build:
+      context: .
+      dockerfile: frontend/Dockerfile
+    container_name: kavana-v3-frontend
+    ports:
+      - '80:80'
+    depends_on:
+      - backend
     restart: unless-stopped
 
 volumes:

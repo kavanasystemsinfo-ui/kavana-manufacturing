@@ -10,12 +10,13 @@ WORKDIR /app
 
 COPY package.json package-lock.json ./
 COPY frontend/package.json ./frontend/
+COPY logo.png ./
 RUN npm ci --workspace=frontend --include-workspace-root --omit=dev=false
 
 COPY frontend/ ./frontend/
 COPY tsconfig*.json ./
 
-RUN npm run build --workspace=frontend
+RUN cd frontend && npx vite build 2>&1
 
 # ---- Stage 2: Nginx ----
 FROM nginx:stable-alpine AS production
