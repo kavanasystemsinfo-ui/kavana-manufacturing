@@ -175,7 +175,7 @@ export function ClassicOperatorPanel() {
 
   if (!orderId) {
     return (
-      <div className="min-h-screen bg-slate-50 text-slate-900">
+      <div className="min-h-screen bg-kavana-dark text-slate-100">
         <header className="border-b border-slate-200 bg-white shadow-sm">
           <div className="mx-auto max-w-4xl px-4 py-3 sm:px-6 lg:px-8">
             <div className="flex items-center gap-3">
@@ -251,7 +251,7 @@ export function ClassicOperatorPanel() {
   }
 
   return (
-    <div className="min-h-screen bg-slate-50 text-slate-900">
+    <div className="min-h-screen bg-kavana-dark text-slate-100">
       {/* Header */}
       <header className="border-b border-slate-200 bg-white shadow-sm">
         <div className="mx-auto max-w-7xl px-4 py-3 sm:px-6 lg:px-8">
@@ -410,61 +410,21 @@ export function ClassicOperatorPanel() {
         </div>
 
         {/* Custom Fields */}
-        {customFields.length > 0 && (
-          <div className="mt-6 rounded-lg border border-slate-200 bg-white shadow-sm">
-            <div className="border-b border-slate-200 bg-slate-50 px-4 py-3">
-              <h2 className="text-sm font-semibold text-slate-900">Campos Personalizados</h2>
-            </div>
-            <div className="p-4">
-              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-                {customFields.map((field, idx) => (
-                  <div key={idx}>
-                    <label className="block text-sm font-medium text-slate-700">{field.label}</label>
-                    {field.type === 'boolean' ? (
-                      <button
-                        type="button"
-                        onClick={() => setEditingCustomFields(prev => ({ ...prev, [field.key]: !prev[field.key] }))}
-                        className="mt-1 flex items-center gap-2"
-                      >
-                        {editingCustomFields[field.key] ? (
-                          <span className="inline-flex items-center rounded-full bg-green-100 px-2 py-1 text-xs font-medium text-green-700">Sí</span>
-                        ) : (
-                          <span className="inline-flex items-center rounded-full bg-red-100 px-2 py-1 text-xs font-medium text-red-700">No</span>
-                        )}
-                      </button>
-                    ) : field.type === 'number' ? (
-                      <input
-                        type="number"
-                        value={editingCustomFields[field.key] ?? ''}
-                        onChange={(e) => setEditingCustomFields(prev => ({ ...prev, [field.key]: Number(e.target.value) }))}
-                        className="mt-1 block w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm shadow-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
-                      />
-                    ) : (
-                      <input
-                        type="text"
-                        value={editingCustomFields[field.key] ?? ''}
-                        onChange={(e) => setEditingCustomFields(prev => ({ ...prev, [field.key]: e.target.value }))}
-                        className="mt-1 block w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm shadow-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
-                      />
-                    )}
+                      {customFields.length > 0 && (
+                <div className="mt-6 rounded-lg border border-slate-200 bg-white shadow-sm">
+                  <div className="border-b border-slate-200 bg-slate-50 px-4 py-3">
+                    <h2 className="text-sm font-semibold text-slate-900">Campos Personalizados</h2>
                   </div>
-                ))}
-              </div>
-              <div className="mt-4 flex justify-end">
-                <button
-                  type="button"
-                  onClick={handleSaveCustomFields}
-                  disabled={isSavingCustomFields || !isOnline}
-                  className="inline-flex items-center gap-2 rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-50"
-                >
-                  {isSavingCustomFields ? 'Guardando...' : 'Guardar Campos'}
-                </button>
-              </div>
-            </div>
-          </div>
-        )}
-      </main>
-
+                  <div className="p-4 grid grid-cols-1 gap-4 sm:grid-cols-2">
+                    {customFields.map((field) => (
+                      <div key={field.key}>
+                        <p className="text-xs text-slate-400 capitalize">{field.label}</p>
+                        <p className="text-sm font-medium text-slate-900">{String(activeOrderCustomFields?.[field.key] ?? '\u2014')}</p>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
       <FailedEventsModal
         isOpen={isFailedLogsModalOpen}
         onClose={() => setIsFailedLogsModalOpen(false)}

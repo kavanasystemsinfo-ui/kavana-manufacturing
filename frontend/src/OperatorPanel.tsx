@@ -181,7 +181,7 @@ export function OperatorPanel() {
   if (!orderId) {
     return (
       <main className="min-h-screen bg-kavana-dark text-slate-100 p-4 md:p-8">
-        <section className="mx-auto max-w-4xl rounded-[2rem] border border-kavana-steel/30 bg-kavana-panel/90 p-6 shadow-kavana-glow md:p-8">
+        <section className="mx-auto w-[90%] rounded-[2rem] border-2 border-kavana-orange/30 bg-kavana-panel/90 p-6 shadow-kavana-glow md:p-8">
           <header className="mb-6 flex items-center gap-4 border-b border-kavana-steel/30 pb-6">
             <img src={logo} alt="Logo Kavana" className="h-14 w-14 rounded-2xl bg-kavana-surface object-cover p-2 ring-1 ring-kavana-orange/40" />
             <div>
@@ -259,7 +259,7 @@ export function OperatorPanel() {
 
   return (
     <main className="min-h-screen bg-kavana-dark text-slate-100 p-4 md:p-8">
-      <section className="mx-auto max-w-5xl rounded-[2rem] border border-kavana-steel/30 bg-kavana-panel/90 p-4 shadow-kavana-glow md:p-8">
+      <section className="mx-auto w-[90%] rounded-[2rem] border-2 border-kavana-orange/30 bg-kavana-panel/90 p-4 shadow-kavana-glow md:p-8">
         <header className="mb-8 flex flex-col gap-5 border-b border-kavana-steel/30 pb-6 md:flex-row md:items-center md:justify-between">
           <div className="flex items-center gap-4">
             <img
@@ -290,12 +290,6 @@ export function OperatorPanel() {
             >
               Fallos: {failedCount}
             </button>
-            <a
-              href="/admin"
-              className="rounded-full bg-kavana-orange/10 px-4 py-3 text-sm font-bold text-kavana-orange hover:bg-kavana-orange/20 ring-1 ring-kavana-orange/40 transition"
-            >
-              ⚙️ Admin
-            </a>
             <HelpModal {...OPERATOR_HELP} />
             <ThemeToggle />
           </div>
@@ -328,174 +322,20 @@ export function OperatorPanel() {
                 </div>
               )}
 
-              {customFields.length > 0 && (
+                            {customFields.length > 0 && (
                 <div className="mt-6 grid grid-cols-2 gap-4">
                   {customFields.map((field) => (
                     <div key={field.key} className="rounded-xl border border-kavana-steel/20 bg-kavana-surface p-4">
                       <label className="text-xs font-bold uppercase tracking-wider text-kavana-steel mb-1 block">{field.label}</label>
-                      {field.type === 'boolean' ? (
-                        <button
-                          type="button"
-                          onClick={() => setEditingCustomFields(prev => ({ ...prev, [field.key]: !prev[field.key] }))}
-                          className="flex items-center gap-2 mt-1"
-                        >
-                          {editingCustomFields[field.key] ? (
-                            <span className="flex h-6 w-6 items-center justify-center rounded-full bg-emerald-500/20 text-emerald-400 ring-1 ring-emerald-500/40">✓</span>
-                          ) : (
-                            <span className="flex h-6 w-6 items-center justify-center rounded-full bg-rose-500/20 text-rose-400 ring-1 ring-rose-500/40">✗</span>
-                          )}
-                          <span className="text-sm font-medium text-white">{editingCustomFields[field.key] ? 'Sí' : 'No'}</span>
-                        </button>
-                      ) : field.type === 'number' ? (
-                        <input
-                          type="number"
-                          value={editingCustomFields[field.key] ?? ''}
-                          onChange={(e) => setEditingCustomFields(prev => ({ ...prev, [field.key]: Number(e.target.value) }))}
-                          className="w-full rounded-lg border-none bg-kavana-dark p-2 text-white text-sm font-medium ring-1 ring-kavana-steel/30 focus:ring-kavana-orange"
-                        />
-                      ) : (
-                        <input
-                          type="text"
-                          value={editingCustomFields[field.key] ?? ''}
-                          onChange={(e) => setEditingCustomFields(prev => ({ ...prev, [field.key]: e.target.value }))}
-                          className="w-full rounded-lg border-none bg-kavana-dark p-2 text-white text-sm font-medium ring-1 ring-kavana-steel/30 focus:ring-kavana-orange"
-                        />
-                      )}
+                      <p className="mt-1 text-sm font-medium text-white">
+                        {String(activeOrderCustomFields?.[field.key] ?? '\u2014')}
+                      </p>
                     </div>
                   ))}
-                  <div className="col-span-2 flex justify-end">
-                    <button
-                      type="button"
-                      onClick={handleSaveCustomFields}
-                      disabled={isSavingCustomFields || !isOnline}
-                      className="rounded-lg bg-kavana-orange/20 px-4 py-2 text-xs font-bold uppercase tracking-wider text-kavana-orange ring-1 ring-kavana-orange/30 transition hover:bg-kavana-orange/30 disabled:opacity-50"
-                    >
-                      {isSavingCustomFields ? 'Guardando...' : 'Guardar Campos'}
-                    </button>
-                  </div>
                 </div>
               )}
-            </div>
-
-            <div className="mt-8 rounded-2xl border border-kavana-orange/20 bg-gradient-to-br from-kavana-orange/20 to-kavana-orange-light/10 p-6">
-              <p className="text-sm font-bold uppercase tracking-[0.24em] text-kavana-orange-light">Estado Global</p>
-              <p className="mt-2 text-5xl font-black text-white md:text-6xl">{statusLabel[currentStatus] || currentStatus}</p>
-            </div>
-          </div>
-
-          <div className="rounded-2xl border border-kavana-steel/30 bg-kavana-surface p-5 shadow-lg">
-            <h3 className="text-xl font-black uppercase text-white mb-6">Registrar Parte de Trabajo</h3>
-            
-            <form onSubmit={handleRegisterBlock} className="space-y-5">
-              <div className="flex gap-2">
-                <button
-                  type="button"
-                  onClick={() => setBlockType('produccion')}
-                  className={`flex-1 rounded-xl py-3 text-sm font-bold uppercase transition ${blockType === 'produccion' ? 'bg-kavana-orange text-kavana-dark' : 'bg-kavana-dark text-kavana-steel border border-kavana-steel/30'}`}
-                >
-                  Producción
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setBlockType('parada')}
-                  className={`flex-1 rounded-xl py-3 text-sm font-bold uppercase transition ${blockType === 'parada' ? 'bg-rose-500 text-white' : 'bg-kavana-dark text-kavana-steel border border-kavana-steel/30'}`}
-                >
-                  Parada
-                </button>
-              </div>
-
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-xs font-bold uppercase tracking-wider text-kavana-steel mb-2">
-                    Inicio <span className="lowercase text-slate-500 tracking-normal ml-1">({dateLabel})</span>
-                  </label>
-                  <input
-                    type="text"
-                    placeholder="08:00"
-                    value={startTime}
-                    onChange={(e) => handleTimeChange(e.target.value, setStartTime)}
-                    className="w-full rounded-xl border-none bg-kavana-dark p-3 text-white text-xl font-bold ring-1 ring-kavana-steel/40 focus:ring-kavana-orange"
-                  />
-                </div>
-                <div>
-                  <label className="block text-xs font-bold uppercase tracking-wider text-kavana-steel mb-2">
-                    Fin <span className="lowercase text-slate-500 tracking-normal ml-1">({dateLabel})</span>
-                  </label>
-                  <input
-                    type="text"
-                    placeholder="14:00"
-                    value={endTime}
-                    onChange={(e) => handleTimeChange(e.target.value, setEndTime)}
-                    className="w-full rounded-xl border-none bg-kavana-dark p-3 text-white text-xl font-bold ring-1 ring-kavana-steel/40 focus:ring-kavana-orange"
-                  />
-                </div>
-              </div>
-
-              {blockType === 'produccion' ? (
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-xs font-bold uppercase tracking-wider text-kavana-steel mb-2">Piezas Producidas</label>
-                    <input
-                      type="number"
-                      min="0"
-                      value={producedQuantity}
-                      onChange={(e) => setProducedQuantity(e.target.value)}
-                      placeholder="0"
-                      className="w-full rounded-xl border-none bg-kavana-dark p-3 text-white text-xl font-bold ring-1 ring-kavana-steel/40 focus:ring-kavana-orange"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-xs font-bold uppercase tracking-wider text-kavana-steel mb-2">Mermas (Defectos)</label>
-                    <input
-                      type="number"
-                      min="0"
-                      value={defectQuantity}
-                      onChange={(e) => setDefectQuantity(e.target.value)}
-                      placeholder="0"
-                      className="w-full rounded-xl border-none bg-kavana-dark p-3 text-white text-xl font-bold ring-1 ring-kavana-steel/40 focus:ring-kavana-orange"
-                    />
-                  </div>
-                </div>
-              ) : (
-                <div>
-                  <label className="block text-xs font-bold uppercase tracking-wider text-kavana-steel mb-2">Motivo de Parada</label>
-                  <input
-                    type="text"
-                    value={downtimeReason}
-                    onChange={(e) => setDowntimeReason(e.target.value)}
-                    placeholder="Ej. Avería máquina, Cambio utillaje..."
-                    className="w-full rounded-xl border-none bg-kavana-dark p-3 text-white ring-1 ring-kavana-steel/40 focus:ring-kavana-orange"
-                  />
-                </div>
-              )}
-
-              {errorMsg && (
-                <p className="rounded-lg bg-rose-500/20 p-3 text-sm text-rose-300 ring-1 ring-rose-500/30">
-                  {errorMsg}
-                </p>
-              )}
-
-              <button
-                type="submit"
-                disabled={isMutating || isSyncing || !orderId || !workstationId || !operatorId}
-                className="w-full rounded-xl bg-kavana-orange-light py-4 text-lg font-black uppercase text-kavana-dark shadow-lg transition hover:bg-orange-300 active:scale-[0.98] disabled:opacity-50"
-              >
-                {isMutating ? 'Guardando...' : !orderId ? 'Cargando contexto...' : 'Guardar Parte'}
-              </button>
-            </form>
-
-            <div className="mt-6 rounded-xl border border-kavana-steel/20 bg-kavana-dark/40 p-4">
-              <p className="text-xs font-bold uppercase tracking-[0.1em] text-kavana-steel">Resiliencia offline</p>
-              <p className="mt-2 text-xs text-slate-400">
-                El parte se guardará de forma segura en tu dispositivo si no hay conexión a internet y se enviará en cuanto la recuperes.
-              </p>
-            </div>
-          </div>
-        </section>
-      </section>
-
-      <FailedEventsModal
-        isOpen={isFailedLogsModalOpen}
+      
+      {isFailedLogsModalOpen}
         onClose={() => setIsFailedLogsModalOpen(false)}
         onClearAll={() => {
            useHmiStore.getState().setFailedCount(0);
