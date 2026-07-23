@@ -18,7 +18,7 @@ import { QualityDashboard } from './components/QualityDashboard.js';
 import { CostDashboard } from './components/CostDashboard.js';
 import { USERS_HELP, WORKSTATIONS_HELP, MODELS_HELP, ORDERS_HELP, MODULES_HELP, CUSTOM_FIELDS_HELP } from './help-content.js';
 
-type Tab = 'users' | 'workstations' | 'models' | 'orders' | 'modules' | 'custom-fields' | 'oee' | 'quality' | 'cost' | 'toolings' | 'incidencias';
+type Tab = 'users' | 'workstations' | 'models' | 'orders' | 'modules' | 'custom-fields' | 'oee' | 'quality' | 'cost' | 'toolings' | 'incidencias' | 'materials';
 
 interface EditableField {
   key: string;
@@ -49,6 +49,7 @@ export function ClassicAdminPanel() {
     { key: 'oee', label: 'OEE', module: 'oee_monitoring' },
     { key: 'quality', label: 'Calidad', module: 'quality_assurance' },
     { key: 'cost', label: 'Costes', module: 'cost_management' },
+    { key: 'materials', label: 'Materias Primas', module: 'materials_management' },
   ];
 
   const tabs = allTabs.filter((t) => !t.module || isModuleEnabled(t.module));
@@ -91,6 +92,7 @@ export function ClassicAdminPanel() {
         {tab === 'oee' && <OeeDashboard />}
         {tab === 'quality' && <QualityDashboard />}
         {tab === 'cost' && <CostDashboard />}
+        {tab === 'materials' && <MaterialsTab />}
       </main>
     </div>
   );

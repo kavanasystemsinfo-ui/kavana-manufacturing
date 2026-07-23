@@ -485,3 +485,69 @@ export async function deleteIncidencia(id: string): Promise<void> {
 export async function getIncidenciaStats(): Promise<IncidenciaStats> {
   return callApiWithTimeout<IncidenciaStats>(`${API_BASE}/incidencias/stats`);
 }
+
+// ──── Raw Materials ────
+export interface RawMaterial {
+  id: string;
+  code: string;
+  name: string;
+  description: string;
+  unit: string;
+  unit_cost: number;
+  category: string;
+  supplier: string;
+  min_stock: number;
+  is_active: boolean;
+  created_at: string;
+}
+
+export interface BomItem {
+  id: string;
+  model_id: string;
+  material_id: string;
+  quantity: number;
+  waste_percent: number;
+  notes: string;
+  material_code: string;
+  material_name: string;
+  unit: string;
+  category: string;
+  model_name?: string;
+}
+
+export async function listMaterials(): Promise<RawMaterial[]> {
+  return callApiWithTimeout<RawMaterial[]>(`${API_BASE}/materials`);
+}
+
+export async function createMaterial(data: Partial<RawMaterial>): Promise<RawMaterial> {
+  return callApiWithTimeout<RawMaterial>(`${API_BASE}/materials`, {
+    method: 'POST',
+    body: JSON.stringify(data),
+  });
+}
+
+export async function updateMaterial(id: string, data: Partial<RawMaterial>): Promise<RawMaterial> {
+  return callApiWithTimeout<RawMaterial>(`${API_BASE}/materials/${id}`, {
+    method: 'PATCH',
+    body: JSON.stringify(data),
+  });
+}
+
+export async function deleteMaterial(id: string): Promise<void> {
+  await callApiWithTimeout<void>(`${API_BASE}/materials/${id}`, { method: 'DELETE' });
+}
+
+export async function getBomForModel(modelId: string): Promise<BomItem[]> {
+  return callApiWithTimeout<BomItem[]>(`${API_BASE}/materials/bom/${modelId}`);
+}
+
+export async function upsertBomItem(data: { model_id: string; material_id: string; quantity: number; waste_percent?: number }): Promise<BomItem> {
+  return callApiWithTimeout<BomItem>(`${API_BASE}/materials/bom`, {
+    method: 'POST',
+    body: JSON.stringify(data),
+  });
+}
+
+export async function deleteBomItem(id: string): Promise<void> {
+  await callApiWithTimeout<void>(`${API_BASE}/materials/bom/${id}`, { method: 'DELETE' });
+}
