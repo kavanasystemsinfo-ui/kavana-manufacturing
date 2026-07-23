@@ -322,6 +322,7 @@ export function OperatorPanel() {
                 </div>
               )}
 
+            </div>
                             {customFields.length > 0 && (
                 <div className="mt-6 grid grid-cols-2 gap-4">
                   {customFields.map((field) => (
@@ -335,18 +336,24 @@ export function OperatorPanel() {
                 </div>
               )}
       
-      {isFailedLogsModalOpen}
-        onClose={() => setIsFailedLogsModalOpen(false)}
-        onClearAll={() => {
-           useHmiStore.getState().setFailedCount(0);
-        }}
-      />
+      {isFailedLogsModalOpen && (
+        <FailedLogsModal
+          onClose={() => setIsFailedLogsModalOpen(false)}
+          onClearAll={() => {
+             useHmiStore.getState().setFailedCount(0);
+          }}
+        />
+      )}
+    </div>
+    </section>
+    </section>
     </main>
   );
 }
 
-function onlineBadgeClass(isOnline: boolean) {
-  return isOnline
+const onlineBadgeClass = (isOnline: boolean) => (
+  isOnline
     ? 'rounded-full bg-emerald-500/20 px-4 py-3 text-sm font-black text-emerald-200 ring-1 ring-emerald-400/40'
-    : 'rounded-full bg-kavana-orange/20 px-4 py-3 text-sm font-black text-kavana-orange-light ring-1 ring-kavana-orange/40';
-}
+    : 'rounded-full bg-kavana-orange/20 px-4 py-3 text-sm font-black text-kavana-orange ring-1 ring-kavana-orange/40'
+);
+

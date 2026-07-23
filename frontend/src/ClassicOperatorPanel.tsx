@@ -425,13 +425,16 @@ export function ClassicOperatorPanel() {
                   </div>
                 </div>
               )}
-      <FailedEventsModal
-        isOpen={isFailedLogsModalOpen}
-        onClose={() => setIsFailedLogsModalOpen(false)}
-        onClearAll={() => {
-          useHmiStore.getState().setFailedCount(0);
-        }}
-      />
-    </div>
+      {isFailedLogsModalOpen && (
+        <FailedEventsModal
+          isOpen={isFailedLogsModalOpen}
+          onClose={() => setIsFailedLogsModalOpen(false)}
+          onClearAll={() => {
+            useHmiStore.getState().setFailedCount(0);
+          }}
+        />
+      )}
+    </main>
+</div>
   );
 }

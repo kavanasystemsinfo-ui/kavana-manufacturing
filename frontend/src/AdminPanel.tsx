@@ -93,7 +93,7 @@ export function AdminPanel() {
         {tab === 'quality' && <QualityDashboard />}
         {tab === 'cost' && <CostDashboard />}
         {tab === 'materials' && <MaterialsTab />}
-      </section>
+      </main>
     </div>
   );
 }
@@ -1512,8 +1512,7 @@ function MaterialsTab() {
     if (!bomForm.model_id || !bomForm.material_id) return;
     try {
       await (await import('./api/admin-entities.js')).upsertBomItem(bomForm);
-      const bom = await (await import('./api/admin-entities.js')).getBomForModel(bomForm.model_id);
-      setBom(bom);
+      setBom(await (await import('./api/admin-entities.js')).getBomForModel(bomForm.model_id));
       setBomForm({ model_id: bomForm.model_id, material_id: '', quantity: 1, waste_percent: 0 });
     } catch (e: any) { setError(e.message); }
   }
@@ -1574,7 +1573,7 @@ function MaterialsTab() {
           </div>
           <button onClick={saveMat}
             className="mt-4 rounded-lg bg-indigo-600 px-4 py-2 text-sm font-bold text-white hover:bg-indigo-500">
-            {editMat ? 'Actualizar' : 'Crear'}
+            {editMat ? 'Actualizar' : 'Crear'} Materia Prima
           </button>
         </div>
       )}
@@ -1594,10 +1593,10 @@ function MaterialsTab() {
                 </div>
                 {mat.supplier && <p className="mt-1 text-xs text-gray-500">{mat.supplier}</p>}
                 <div className="mt-3 flex gap-2">
-                  <button onClick={() => { setEditMat(mat); setForm({code:mat.code,name:mat.name,unit:mat.unit,unit_cost:mat.unit_cost,category:mat.category||'',supplier:mat.supplier||''}); setShowForm(true); }}
-                    className="rounded bg-blue-600/20 px-2 py-1 text-xs text-blue-400">Editar</button>
-                  <button onClick={async () => { if (confirm('Eliminar?')) { (await import('./api/admin-entities.js')).deleteMaterial(mat.id); void load(); } }}
-                    className="rounded bg-red-600/20 px-2 py-1 text-xs text-red-400">Eliminar</button>
+                  <button onClick={() => { setEditMat(mat); setForm({ code: mat.code, name: mat.name, unit: mat.unit, unit_cost: mat.unit_cost, category: mat.category || '', supplier: mat.supplier || '' }); setShowForm(true); }}
+                    className="rounded bg-blue-600/20 px-2 py-1 text-xs text-blue-400 hover:bg-blue-600/30">Editar</button>
+                  <button onClick={async () => { if (confirm('Eliminar?')) { await (await import('./api/admin-entities.js')).deleteMaterial(mat.id); void load(); } }}
+                    className="rounded bg-red-600/20 px-2 py-1 text-xs text-red-400 hover:bg-red-600/30">Eliminar</button>
                 </div>
               </div>
             ))}
@@ -1617,6 +1616,7 @@ function MaterialsTab() {
             {models.map(m => <option key={m.id} value={m.id}>{m.name}</option>)}
           </select>
         </div>
+
         {bomModel && (
           <>
             <div className="mb-4 flex gap-2">
@@ -1627,14 +1627,19 @@ function MaterialsTab() {
               </select>
               <input type="number" placeholder="Cant" value={bomForm.quantity} onChange={e => setBomForm({...bomForm, quantity: Number(e.target.value)})}
                 className="w-20 rounded border border-gray-700 bg-gray-900 p-2 text-sm text-white" />
+              <input type="number" placeholder="% desp" value={bomForm.waste_percent} onChange={e => setBomForm({...bomForm, waste_percent: Number(e.target.value)})}
+                className="w-20 rounded border border-gray-700 bg-gray-900 p-2 text-sm text-white" />
               <button onClick={addBom}
                 className="rounded-lg bg-green-600 px-4 py-2 text-sm font-bold text-white hover:bg-green-500">+</button>
             </div>
+
             <table className="w-full text-sm">
-              <thead><tr className="border-b border-gray-700 text-left text-gray-400">
-                <th className="pb-2 pr-3">Código</th><th className="pb-2 pr-3">Material</th>
-                <th className="pb-2 pr-3">Cant</th><th className="pb-2 pr-3">Ud</th><th className="pb-2"></th>
-              </tr></thead>
+              <thead>
+                <tr className="border-b border-gray-700 text-left text-gray-400">
+                  <th className="pb-2 pr-3">Código</th><th className="pb-2 pr-3">Material</th>
+                  <th className="pb-2 pr-3">Cant</th><th className="pb-2 pr-3">Ud</th><th className="pb-2"></th>
+                </tr>
+              </thead>
               <tbody>
                 {bom.map(b => (
                   <tr key={b.id} className="border-b border-gray-800 text-white">
@@ -1644,7 +1649,7 @@ function MaterialsTab() {
                     <td className="py-2 pr-3 text-gray-400">{b.unit}</td>
                     <td className="py-2">
                       <button onClick={async () => { await (await import('./api/admin-entities.js')).deleteBomItem(b.id); setBom(bom.filter(x => x.id !== b.id)); }}
-                        className="text-xs text-red-400">Eliminar</button>
+                        className="text-xs text-red-400 hover:text-red-300">Eliminar</button>
                     </td>
                   </tr>
                 ))}
@@ -1657,3 +1662,4 @@ function MaterialsTab() {
     </div>
   );
 }
+
