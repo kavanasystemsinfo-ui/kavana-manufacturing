@@ -1,0 +1,14 @@
+{
+  "rewrites": [
+    { "source": "/api/(.*)", "destination": "https://RENDER_BACKEND_URL/$1" },
+    { "source": "/production/(.*)", "destination": "https://RENDER_BACKEND_URL/production/$1" },
+    { "source": "/tenant/(.*)", "destination": "https://RENDER_BACKEND_URL/tenant/$1" },
+    { "source": "/oee/(.*)", "destination": "https://RENDER_BACKEND_URL/oee/$1" },
+    { "source": "/quality/(.*)", "destination": "https://RENDER_BACKEND_URL/quality/$1" },
+    { "source": "/cost/(.*)", "destination": "https://RENDER_BACKEND_URL/costs/$1" },
+    { "source": "/health", "destination": "https://RENDER_BACKEND_URL/health" },
+    { "source": "/ai-advisor/(.*)", "destination": "https://RENDER_BACKEND_URL/ai-advisor/$1" },
+    { "source": "/global-admin/(.*)", "destination": "https://RENDER_BACKEND_URL/global-admin/$1" },
+    { "source": "/(.*)", "destination": "/index.html" }
+  ]
+}
