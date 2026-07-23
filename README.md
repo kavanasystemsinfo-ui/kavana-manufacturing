@@ -1,8 +1,16 @@
 # Kavana Manufacturing — MES SaaS para Manufactura Industrial
 
-[![Tests](https://img.shields.io/badge/tests-17%20passing-brightgreen)](https://github.com/kavanasystemsinfo-ui/kavana-systems-v3)
-[![Frontend](https://img.shields.io/badge/frontend-Vite%2FReact-61DAFB)](https://kavana-systems-v3-frontend.vercel.app)
-[![Backend](https://img.shields.io/badge/backend-NestJS-E0234E)](https://kavana-manufacturing-api.onrender.com/health)
+[![Tests](https://img.shields.io/badge/tests-225%20passing-brightgreen)](https://github.com/kavanasystemsinfo-ui/kavana-systems-v3)
+[![Coverage](https://img.shields.io/badge/coverage-85%25-yellowgreen)](docs/METRICS.md)
+[![TypeScript](https://img.shields.io/badge/TypeScript-5.8-3178C6?logo=typescript)](https://www.typescriptlang.org/)
+[![React](https://img.shields.io/badge/React-19-61DAFB?logo=react)](https://react.dev)
+[![NestJS](https://img.shields.io/badge/NestJS-11-E0234E?logo=nestjs)](https://nestjs.com)
+[![PostgreSQL](https://img.shields.io/badge/PostgreSQL-16-4169E1?logo=postgresql)](https://www.postgresql.org/)
+[![Docker](https://img.shields.io/badge/Docker-ready-2496ED?logo=docker)](docker-compose.yml)
+[![Multi-Tenant](https://img.shields.io/badge/Multi‑Tenant-RLS%20enforced-8B5CF6)](docs/adr/001-shared-schema-multi-tenant-rls.md)
+[![Offline-First](https://img.shields.io/badge/Offline‑First-Dexie.js-FF6B35)](docs/adr/003-offline-first-dexie.md)
+[![OpenTelemetry](https://img.shields.io/badge/Telemetry-OpenTelemetry-FF6F00?logo=opentelemetry)](docs/technical/00_architecture-overview.md)
+[![BullMQ](https://img.shields.io/badge/Queue-BullMQ%2BRedis-DC382D?logo=redis)](backend/src/queue/)
 [![License](https://img.shields.io/badge/license-MIT-blue)](LICENSE)
 
 ---
