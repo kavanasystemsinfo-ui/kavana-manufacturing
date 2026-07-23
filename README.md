@@ -19,7 +19,19 @@
 
 **Stack:** React + Tailwind · NestJS · PostgreSQL 16 · Zustand + Dexie.js · Vitest (TDD)
 
-**Nota sobre el proceso de desarrollo:** Este proyecto fue diseñado y dirigido por un arquitecto de software. Las decisiones arquitectónicas, el modelado del dominio y la estructura del código responden a criterio técnico propio. La implementación se realizó con asistencia de herramientas de IA, actuando estas como un par de programación que ejecuta las decisiones del arquitecto. Cada línea de código, cada ADR y cada prueba refleja una decisión humana justificada.
+**Nota sobre el proceso de desarrollo:** Este proyecto fue **diseñado y dirigido por un arquitecto de software**. La siguiente tabla resume quién hizo qué:
+
+| Decisión / Trabajo | Responsable |
+|-------------------|-------------|
+| **Arquitectura del sistema** (RLS vs schema-per-tenant, offline-first, feature flags) | 👤 Arquitecto (Jorge) |
+| **Modelado del dominio** (work blocks, BOM, órdenes, multi-tenancy) | 👤 Arquitecto (Jorge) |
+| **Selección del stack** (NestJS, React, PostgreSQL, Dexie, BullMQ) | 👤 Arquitecto (Jorge) — cada elección justificada en ADRs |
+| **Estructura de módulos y responsabilidades** | 👤 Arquitecto (Jorge) |
+| **Código (implementación)** | 🤖 IA como par de programación, siguiendo las directrices del arquitecto |
+| **Tests** (qué cubrir y qué priorizar) | 👤 Arquitecto (Jorge) — redacción: IA |
+| **ADRs y documentación técnica** | 👤 Arquitecto (Jorge) — estructura y conclusiones |
+
+**En resumen:** las decisiones son humanas. La IA actuó como un par de programación que ejecuta, no como un arquitecto que diseña. El repositorio contiene el código; el criterio es de Jorge.
 
 **[🎯 Live Demo →](https://kavana-systems-v3-frontend.vercel.app)** — Tenant: `demo`, Usuario: `admin`, Contraseña: `admin123`
 
