@@ -17,12 +17,15 @@
     "build:frontend": "npm run build --workspace frontend",
     "test": "npm run test --workspaces --if-present",
     "lint": "npm run lint --workspaces --if-present",
-    "database:smoke": "node database/scripts/run-postgres-smoke.js"
+    "database:smoke": "node database/scripts/run-postgres-smoke.js",
+    "test:e2e": "npx playwright test --config e2e/playwright.config.ts"
   },
   "engines": {
     "node": ">=20"
   },
   "devDependencies": {
-    "concurrently": "^10.0.3"
+    "@playwright/test": "^1.61.1",
+    "concurrently": "^10.0.3",
+    "playwright": "^1.61.1"
   }
 }
