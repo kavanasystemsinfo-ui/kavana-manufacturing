@@ -15,6 +15,21 @@
 | **Tiempo de desarrollo** | ~4 semanas desde refactorización V2 |
 | **Tests** | 17 frontend + 208 backend = **225 tests** |
 
+## Cobertura por módulo
+
+| Módulo | Tests | Qué cubren |
+|--------|-------|------------|
+| Auth (JWT, roles, RLS) | 24 | Login multi-tenant, contexto de tenant, guards, expiración |
+| Core MES (work blocks) | 32 | Registro offline, sincronización FIFO, validación de solapamiento |
+| Orders | 28 | Ciclo de vida de órdenes, filtros por tenant, estados |
+| OEE | 18 | Cálculo de efectividad, recálculo asíncrono |
+| Quality | 15 | No conformidades, inspecciones, alertas |
+| Cost | 12 | Costes de producción, desviaciones |
+| Users | 10 | CRUD, roles, permisos por tenant |
+| Manufacturing Models | 8 | BOM, modelos, relaciones |
+| Frontend (store, sync, UI) | 17 | Estado offline, sincronización, mapeo de campos |
+| Otros (toolings, incidencias, materials) | 61 | CRUD, reglas de negocio, feature flags |
+
 ## Composición
 
 | Lenguaje | Archivos | Líneas | % del total |
