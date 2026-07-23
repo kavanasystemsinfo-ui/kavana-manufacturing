@@ -14,6 +14,7 @@ const KNOWN_MODULE_KEYS = new Set([
   'oee_monitoring',
   'quality_assurance',
   'cost_management',
+  'materials_management',
 ]);
 
 @Injectable()
