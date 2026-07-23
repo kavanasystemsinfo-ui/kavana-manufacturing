@@ -1,276 +1,264 @@
-# Kavana Manufacturing: Sistema MES SaaS para Manufactura Industrial
+# Kavana Manufacturing — MES SaaS para Manufactura Industrial
 
-**Problema que resuelve:** Las plantas de manufactura pierden tiempo y visibilidad cuando la producción depende de papel, redes inestables y datos que llegan tarde. Los sistemas MES tradicionales son costosos, difíciles de implementar y no funcionan offline.
-
-**Solución:** Kavana Manufacturing es un MES SaaS multi-tenant que ejecuta órdenes de producción en pantallas HMI táctiles, con resiliencia offline-first para que el registro de planta no dependa de la conexión.
-
----
-
-## Objetivos de diseño
-
-Cada decisión de arquitectura responde a un problema concreto de planta. No son métricas de cliente (el producto aún no tiene implantación en producción), sino el propósito para el que se diseñó cada pieza:
-
-| Objetivo de diseño | Cómo se aborda |
-|-------------------|----------------|
-| Reducir tiempo de implantación | Arquitectura SaaS multi-tenant: un despliegue sirve a varios clientes |
-| Evitar pérdida de datos en planta | Offline-first: el registro se guarda localmente y sincroniza al recuperar red |
-| Reducir errores del operario | HMI con botones grandes (64px+) para manos con guantes |
-| Aislar los datos de cada cliente | Multi-tenancy con Row Level Security (RLS) en PostgreSQL |
-| Reducir coste de entrada | Arquitectura compartida + feature flags (cada cliente activa solo lo que usa) |
+[![Tests](https://img.shields.io/badge/tests-17%20passing-brightgreen)](https://github.com/kavanasystemsinfo-ui/kavana-systems-v3)
+[![Frontend](https://img.shields.io/badge/frontend-Vite%2FReact-61DAFB)](https://kavana-systems-v3-frontend.vercel.app)
+[![Backend](https://img.shields.io/badge/backend-NestJS-E0234E)](https://kavana-manufacturing-api.onrender.com/health)
+[![License](https://img.shields.io/badge/license-MIT-blue)](LICENSE)
 
 ---
 
-## 60 Segundos: Cómo Funciona
+## ⚡ 30 Segundos: ¿Qué es y para qué sirve?
+
+**Problema que resuelve:** Las plantas de manufactura pierden tiempo y visibilidad cuando la producción depende de papel, hojas de cálculo o redes inestables. Los sistemas MES tradicionales cuestan decenas de miles de euros, requieren meses de implantación y fallan cuando se pierde conexión en planta.
+
+**Solución:** Un MES SaaS multi-tenant que:
+- Ejecuta órdenes de producción en **pantallas HMI táctiles** diseñadas para operarios con guantes
+- **Funciona sin internet** (offline-first) — el registro nunca se pierde, aunque caiga la red
+- Se **activa por features** (cada cliente paga solo lo que usa) sin deploy adicional
+- **Aísla datos** de cada cliente con Row Level Security en PostgreSQL
+
+**Stack:** React + Tailwind · NestJS · PostgreSQL 16 · Zustand + Dexie.js · Vitest (TDD)
+
+**[🎯 Live Demo →](https://kavana-systems-v3-frontend.vercel.app)** — Tenant: `demo`, Usuario: `admin`, Contraseña: `admin123`
+
+---
+
+## 📖 Índice
+
+1. [Arquitectura en 60 segundos](#-arquitectura-en-60-segundos)
+2. [Decisiones clave (por qué cada tecnología)](#-decisiones-clave)
+3. [Stack tecnológico](#-stack-tecnológico)
+4. [Cómo ejecutar](#-cómo-ejecutar)
+5. [Estado del proyecto](#-estado-del-proyecto)
+6. [Documentación completa](#-documentación)
+7. [Portfolio para consultores](#-portfolio-para-consultores-it)
+8. [Seguridad](#-seguridad)
+9. [Licencia y contacto](#-licencia)
+
+---
+
+## 🏗️ Arquitectura en 60 segundos
 
 ```
-┌─────────────────────────────────────────────────────────────┐
-│  OPERADOR EN PLANTA                                         │
-│  ┌─────────────┐  ┌─────────────────────────────────────┐   │
-│  │ Orden:      │  │         ▶ INICIAR BLOQUE            │   │
-│  │ #12345      │  │         (Botón 80px - con guantes)  │   │
-│  │ EnCurso     │  │                                     │   │
-│  └─────────────┘  └─────────────────────────────────────┘   │
-│                                                             │
-│  [Parar] [Pausar] [Siguiente] [Reporte] [Alerta]           │
-│   64px    64px     64px        64px       64px              │
-└─────────────────────────────────────────────────────────────┘
-                              │
-                              ▼ (offline-first)
-                    ┌─────────────────┐
-                    │ IndexedDB local │ ← Sync FIFO
-                    │ (Dexie.js)      │ ← AbortController 4s
-                    └────────┬────────┘
-                             │
-                             ▼ (cuando hay red)
-                    ┌─────────────────┐
-                    │ Backend NestJS  │
-                    │ PostgreSQL 16   │
-                    │ + RLS           │
-                    └─────────────────┘
+┌──────────────────────────────────────────────────────────────┐
+│  OPERADOR EN PLANTA                                          │
+│  ┌──────────┐  ┌────────────────────────────────────────┐   │
+│  │ Orden:   │  │     ▶ REGISTRAR BLOQUE (80px)          │   │
+│  │ #12345   │  │     (Botón grande - manos con guantes) │   │
+│  │ En curso │  │                                        │   │
+│  └──────────┘  └────────────────────────────────────────┘   │
+│                        │  (offline-first)                    │
+│                        ▼                                    │
+│              ┌──────────────────┐                            │
+│              │  IndexedDB local │ ← Sync FIFO con retry     │
+│              │  (Dexie.js)      │ ← AbortController 4s      │
+│              └────────┬─────────┘                            │
+│                       │ (cuando hay red)                    │
+│                       ▼                                     │
+│              ┌──────────────────┐                            │
+│              │  API Gateway     │ → Vercel → Render         │
+│              │  (NestJS)        │ ← Proxy inverso            │
+│              └────────┬─────────┘                            │
+│                       ▼                                     │
+│              ┌──────────────────┐   ┌──────────────┐        │
+│              │  PostgreSQL 16   │   │ Redis (cols) │        │
+│              │  + RLS por tenant│   │ BullMQ       │        │
+│              └──────────────────┘   └──────────────┘        │
+│              + Prometheus / Grafana / OpenTelemetry          │
+└──────────────────────────────────────────────────────────────┘
 ```
 
----
-
-## Pilares Técnicos (Por Qué Importan para el Negocio)
-
-### 1. Multi-Tenancy con RLS
-**Para qué:** Cada cliente tiene datos aislados en la misma base de datos.
-**Impacto:** Un bug no afecta a otros clientes. El aislamiento se enforce en la base de datos, no solo en código.
-**Decisión:** [ADR-001](docs/adr/001-shared-schema-multi-tenant-rls.md)
-
-### 2. Feature Flags como JSONB
-**Para qué:** Clientes pagan solo por funcionalidades que usan (OEE, MES, Dashboard).
-**Impacto:** Modelo SaaS escalable. Activación instantánea sin deploy.
-**Decisión:** [ADR-002](docs/adr/002-feature-flags-jsonb.md)
-
-### 3. Offline-First con Dexie.js
-**Para qué:** Operadores nunca pierden datos aunque se caiga la red.
-**Impacto:** El registro de producción se conserva localmente y se sincroniza al recuperar conexión. Cero pérdida por caída de red.
-**Decisión:** [ADR-003](docs/adr/003-offline-first-dexie.md)
-
-### 4. UX Tunnel Vision
-**Para qué:** Interfaz grande (64px+) para operadores con guantes industriales.
-**Impacto:** Menos errores de pulsación y adopción más rápida en planta.
-**Decisión:** [ADR-004](docs/adr/004-ux-tunnel-vision.md)
-
-### 5. Dual Theme (Clásico + Moderno)
-**Para qué:** Respetar la diversidad de usuarios industriales — supervisores veteranos vs operarios jóvenes.
-**Impacto:** Adopción más rápida, menor resistencia al cambio.
-**Decisión:** [ decisions-log.md](docs/decisions-log.md)
+**Flujo completo:**
+1. Operario selecciona orden en HMI táctil
+2. Registra bloque de producción (inicio/fin, cantidad, defectos)
+3. Los datos se guardan **primero en IndexedDB local** (offline-safe)
+4. Cuando hay conexión, sincroniza FIFO contra API REST
+5. Backend valida, persiste en PostgreSQL con RLS y encola jobs async en BullMQ
 
 ---
 
-## Stack Tecnológico
+## 🧠 Decisiones clave
 
-| Componente | Tecnología | Por Qué |
-|------------|-----------|---------|
-| **Frontend** | React + Tailwind | Componentes reutilizables, Tailwind para HMI responsive |
-| **Backend** | NestJS | Arquitectura modular, DI, Guards para auth |
-| **Base de Datos** | PostgreSQL 16 | RLS nativo, JSONB para features, rendimiento |
-| **Estado Local** | Zustand + Dexie.js | Offline-first, sync FIFO |
-| **Tests** | Vitest + Testing Library | TDD, 208 tests pasando |
+Cada decisión arquitectónica responde a un **problema concreto de planta** y se documenta con alternativas evaluadas y justificación:
 
----
+| Decisión | Problema | Por qué esta opción | Alternativas descartadas |
+|----------|----------|---------------------|--------------------------|
+| **RLS multi-tenant** | Aislar datos de clientes en una DB | Forzado en BD, no confía solo en código | Schema-per-tenant (migraciones inviables) → [ADR-001](docs/adr/001-shared-schema-multi-tenant-rls.md) |
+| **Feature flags JSONB** | Clientes con necesidades distintas | Sin migraciones, activación instantánea | Tablas separadas (múltiples JOINs) → [ADR-002](docs/adr/002-feature-flags-jsonb.md) |
+| **Offline-first (Dexie)** | Red inestable en planta | Cero pérdida de datos, sincronización FIFO | WebSockets (fallan sin conexión) → [ADR-003](docs/adr/003-offline-first-dexie.md) |
+| **UX Tunnel Vision** | Operarios con guantes industriales | Botones 64px+, modo tunel, sin distracciones | UI estándar 44px (insuficiente) → [ADR-004](docs/adr/004-ux-tunnel-vision.md) |
+| **TDD desde el inicio** | Evitar deuda técnica temprana | 208 tests backend, 17 frontend = confianza para refactor | Testing post-hoc (falla) → [CONTRIBUTING](CONTRIBUTING.md) |
 
-## Para Consultoras IT: Lecciones Aprendidas
-
-### Lo que funcionó
-1. **RLS > App logic** — Enforcement en DB es más seguro que en código
-2. **JSONB para features** — Flexibilidad sin migraciones
-3. **TDD estricto** — 208 tests dieron confidence para refactoring agresivo
-4. **Env-gated backdoors** — `ALLOW_MOCK_AUTH=true` preservó flujo de dev
-
-### Lo que no funcionó
-1. **Schema-per-tenant** — Complejidad de migraciones inmanejable
-2. **WebSockets para offline** — Falla sin conexión
-3. **UI estándar 44px** — Insuficiente con guantes industriales
-4. **Testing post-hoc** — Difícil agregar tests después del código
-
-### Recomendaciones para futuros proyectos
-1. **Empezar con RLS** — No es opcional en SaaS multi-tenant
-2. **Offline-first desde día 1** — No se puede agregar después
-3. **UX contextual** — Investigar condiciones reales de uso (guantes, ruido)
-4. **TDD desde el inicio** — El ROI es exponencial
+> 📘 **Todas las decisiones documentadas en:** [`docs/adr/`](docs/adr/) · [`docs/decisions-log.md`](docs/decisions-log.md) · [`DECISIONES_ESTRATEGICAS.md`](DECISIONES_ESTRATEGICAS.md)
 
 ---
 
-## Cómo Ejecutar
+## 🛠️ Stack tecnológico
+
+| Capa | Tecnología | Justificación |
+|------|-----------|---------------|
+| **Frontend** | React 19 + Vite + Tailwind CSS | Componentes reutilizables, HMI responsive con Tailwind, bundle optimizado |
+| **Estado** | Zustand + Dexie.js (IndexedDB) | Offline-first con cola FIFO de sincronización |
+| **Backend** | NestJS (TypeScript) | Arquitectura modular, DI, Guards para auth, soporte nativo para decorators |
+| **BD Principal** | PostgreSQL 16 | RLS nativo, JSONB para features flags, `gin_trgm_ops` para búsqueda |
+| **Colas** | BullMQ + Redis | Jobs desacoplados (OEE, informes, ingestión de documentos) |
+| **AI Advisor** | RAG multi-provider (Ollama, vLLM, OpenAI, OpenRouter) | Asistente industrial contextualizado con datos reales |
+| **Observabilidad** | OpenTelemetry + Prometheus + Grafana | Trazabilidad de principio a fin, métricas por provider/modelo |
+| **Tests** | Vitest + Testing Library | TDD: 17 frontend + 208+ backend tests |
+| **CI/CD** | GitHub Actions → Vercel + Render | Deploy automático en push a main |
+| **Infra** | Vercel (frontend) · Render (backend) · Neon (PostgreSQL) · Upstash (Redis) |
+
+---
+
+## 🚀 Cómo ejecutar
 
 ```bash
-# Backend
-cd backend
-npm install
-npm run dev    # http://localhost:3001
+# 1. Clonar
+git clone https://github.com/kavanasystemsinfo-ui/kavana-systems-v3.git
+cd kavana-systems-v3
 
-# Frontend
-cd frontend
-npm install
-npm run dev    # http://localhost:5173
+# 2. Configurar variables de entorno
+cp backend/.env.example backend/.env
+# Editar backend/.env con tus credenciales
 
-# Docker (stack completo: DB + Redis + backend + worker)
+# 3. Backend
+cd backend && npm install && npm run dev      # http://localhost:3001
+
+# 4. Frontend (otra terminal)
+cd frontend && npm install && npm run dev      # http://localhost:5173
+
+# 5. Tests
+npm run test                                   # 17 frontend tests
+cd backend && npm run test                     # 208+ backend tests
+
+# 6. Docker (stack completo)
 docker compose up -d
-
-# Docker + observabilidad (Prometheus + Grafana)
-METRICS_PORT=9464 docker compose -f docker-compose.yml -f docker-compose.observability.yml up -d
-
-# Tests
-npm run test   # 208 tests pasando
 ```
+
+**Demo online:** https://kavana-systems-v3-frontend.vercel.app  
+**Health check API:** https://kavana-manufacturing-api.onrender.com/health
 
 ---
 
-## Estructura del Proyecto
-
-```
-kavana-v3/
-├── backend/                    # NestJS API (13 módulos)
-│   ├── src/
-│   │   ├── auth/              # JWT, roles, tenant context
-│   │   ├── core-mes-production/ # Producción en planta (work blocks, sync)
-│   │   ├── orders/            # Órdenes de fabricación
-│   │   ├── workstations/      # Puestos de trabajo y HMI
-│   │   ├── manufacturing-models/ # Modelos de fabricación, BOM
-│   │   ├── oee/               # Overall Equipment Effectiveness
-│   │   ├── quality/           # Control de calidad y no conformidades
-│   │   ├── cost/              # Costes de producción
-│   │   ├── users/             # Gestión de usuarios y operarios
-│   │   ├── tenant-capabilities/ # Feature flags JSONB por cliente
-│   │   ├── global-admin/      # Administración multi-tenant
-│   │   ├── auth-login/        # Login y registro de usuarios
-│   │   ├── ai-advisor/        # Asistente IA industrial (RAG + multi-provider)
-│   │   ├── queue/             # Colas asíncronas BullMQ (OEE, reportes, ingestión)
-│   │   └── telemetry/         # OpenTelemetry SDK + métricas Prometheus
-│   └── test/
-├── frontend/                   # React HMI
-│   ├── src/
-│   │   ├── components/operator/ # HMI components
-│   │   ├── store/             # Zustand state
-│   │   └── lib/               # Dexie.js DB
-│   └── __tests__/
-├── docs/
-│   ├── adr/                   # Architectural Decision Records
-│   ├── technical/             # Documentación técnica
-│   └── commercial/            # Documentación de negocio
-├── KAVANA_RULES.md            # Reglas del proyecto
-├── CONTRIBUTING.md            # Guía de contribución
-└── DECISIONES_ESTRATEGICAS.md # Decisiones estratégicas
-```
-
----
-
-## Plataforma AI (Nuevo en v3.1)
-
-### AI Advisor Industrial
-Asistente IA integrado que permite a operarios y supervisores hacer preguntas en lenguaje natural sobre la producción. Responde usando datos reales de la planta (órdenes, OEE, calidad, work blocks).
-
-- **Providers:** Ollama (local) · vLLM (self-hosted) · NVIDIA NIM · OpenRouter · OpenAI
-- **Grounding estricto:** solo responde desde los datos del tenant
-- **Evaluación:** recall@k + precision@k automáticos
-- **Observabilidad:** tracing OpenTelemetry, métricas Prometheus, dashboard Grafana
-- **Costes:** tracking por prompt (FinOps)
-
-### Colas Asíncronas (BullMQ + Redis)
-Jobs pesados desacoplados del request HTTP. Workers independientes escalables horizontalmente.
-
-- `oee-recalc` — Recalcula OEE desde work blocks
-- `report-export` — Exporta informes (CSV/JSON/PDF)
-- `document-ingest` — Indexa manuales y specs para el AI Advisor
-
-### Stack de Observabilidad
-```bash
-# Levantar con 1 comando:
-METRICS_PORT=9464 docker compose -f docker-compose.yml -f docker-compose.observability.yml up -d
-```
-- **Prometheus** (:9090) — Scrapea métricas cada 15s
-- **Grafana** (:3000) — Dashboard LLM preconfigurado
-- **Métricas:** latencia, tokens, coste, errores por provider/modelo
-
-### Kubernetes
-Manifiestos listos para producción: Deployments, Services, PVCs, ServiceMonitor (Prometheus Operator).
-
----
-
-## Estado del proyecto
-
-Transparencia sobre lo construido y lo pendiente. El objetivo es que quien lea esto pueda verificar cada punto en el repositorio.
+## 📊 Estado del proyecto
 
 ### ✅ Implementado y verificable
-- Arquitectura multi-tenant con aislamiento por RLS
-- Backend funcional en NestJS (13 módulos) con autenticación y contexto de tenant
-- Offline-first operativo (Dexie/IndexedDB + sincronización)
-- Pruebas automatizadas (Vitest): ~208 tests en backend
-- ADRs documentados (`docs/adr/`) con alternativas evaluadas
-- Colas asíncronas con BullMQ + Redis
-- Observabilidad: OpenTelemetry + Prometheus; Grafana vía docker-compose
-- Manifiestos de Kubernetes en `k8s/` (Deployments, Services, ServiceMonitor)
+- [x] Arquitectura multi-tenant con RLS (PostgreSQL nativo)
+- [x] Backend NestJS funcional (15+ módulos: auth, orders, OEE, quality, cost, materials, incidencias, toolings...)
+- [x] Offline-first operativo (Dexie/IndexedDB + sincronización FIFO)
+- [x] Feature flags JSONB (cada cliente activa solo lo que necesita)
+- [x] AI Advisor industrial (RAG con datos reales de planta)
+- [x] Fábrica demo completa (18 modelos solares, 15 puestos, 17 materias primas con BOM)
+- [x] Tests automatizados: 17 frontend + 208 backend
+- [x] ADRs documentados con alternativas evaluadas
+- [x] Despliegue automatizado (Vercel + Render + Neon)
+- [x] Tema dual (Kavana + Clásico) para diferentes perfiles de usuario
 
-### 🚧 En desarrollo / pendiente
-- **Integración con PLC / OPC-UA / Modbus** — aún no conectado a maquinaria real
-- **Implantación en producción piloto** — el producto no tiene clientes en producción todavía
-- **Capturas reales de la interfaz** — los mockups del case study son vista previa de diseño
-- **Trazabilidad documental certificada (ISO 9001 / GMP)** — el registro existe, pero no está auditado ni certificado
+### 🚧 En desarrollo
+- [ ] Integración PLC / OPC-UA / Modbus (captura automática sin pulsación manual)
+- [ ] Implantación en producción piloto (el producto no tiene clientes reales aún)
+- [ ] Capturas reales de interfaz en planta (los mockups son preview de diseño)
+- [ ] Trazabilidad documental certificada (ISO 9001 / GMP)
+- [ ] Sincronización bidireccional con resolución de conflictos
+- [ ] Dashboard de coste en tiempo real por turno
 
----
-
-## Qué construiría después
-
-- Sincronización bidireccional en conflicto (varios operarios editando la misma orden offline)
-- Conectores PLC/OPC-UA para captura automática sin pulsación manual
-- Dashboard de coste en tiempo real por turno, no solo por orden
-- Modo "auditoría" con exportación inmutable para cumplimiento
-
----
-
-## Documentación para Portfolio
-
-Este proyecto documenta decisiones arquitectónicas clave para demostrar:
-
-- **Juicio técnico** — [ADR](docs/adr/) con alternativas evaluadas
-- **Proceso de ingeniería** — TDD estricto, 208 tests
-- **Aprendizaje continuo** — [Decisions Log](docs/decisions-log.md) con lecciones
-- **Enfoque en impacto de negocio** — cada ADR justifica su impacto operativo
-- **Trazabilidad de decisiones** — Commits convencionales, ADRs datados
-
-### Archivos Clave para Portfolio
-
-| Archivo | Qué demuestra |
-|---------|---------------|
-| `docs/adr/001-*.md` | Juicio arquitectónico (RLS vs alternatives) |
-| `docs/adr/002-*.md` | Diseño de feature flags (JSONB decision) |
-| `docs/adr/003-*.md` | Offline-first (Dexie.js + FIFO sync) |
-| `docs/adr/004-*.md` | UX industrial (tunnel vision) |
-| `docs/decisions-log.md` | Evolución del conocimiento |
-| `CONTRIBUTING.md` | Proceso de ingeniería (TDD/YAGNI) |
-| `backend/src/auth/jwt.service.spec.ts` | Testing de seguridad (24 tests) |
+### 📈 Evolución del proyecto
+| Fase | Qué se construyó | Tests |
+|------|-----------------|-------|
+| 1. Auditoría V2 | Migración de MongoDB a PostgreSQL, RLS, multi-tenancy | — |
+| 2. Backend Core | NestJS, auth, órdenes, OEE, calidad | 208 |
+| 3. Frontend HMI | React, offline-first, tema dual, panels | 17 |
+| 4. Módulos Avanzados | AI Advisor, Toolings, Incidencias, BOM, Colas | +50 |
+| 5. Deploy & Docs | Vercel + Render + Neon, documentación completa | — |
 
 ---
 
-## Contacto
+## 📚 Documentación
 
-**Desarrollado por:** Jorge Adán Rodríguez  
-**Metodología:** IT Audit Agent (Hermes)  
+### Para negocio / ventas
+| Documento | Contenido |
+|-----------|-----------|
+| [Executive Summary](docs/commercial/00_executive-summary.md) | Resumen ejecutivo para decisores |
+| [Product Positioning](docs/commercial/01_product-positioning.md) | Nicho de mercado y diferenciación |
+| [Portfolio Case Study](docs/commercial/02_portfolio-case-study.md) | Estudio de caso completo (7 fases) |
+| [One-Pager Ventas](docs/commercial/03_sales-one-pager.md) | Folleto comercial 1 página |
+| [Feature-Benefits Matrix](docs/commercial/04_feature-benefits-matrix.md) | Matriz funcionalidad vs beneficio |
+
+### Para arquitectura / decisiones técnicas
+| Documento | Contenido |
+|-----------|-----------|
+| [ADR-001: RLS Multi-Tenancy](docs/adr/001-shared-schema-multi-tenant-rls.md) | Por qué RLS sobre schema-per-tenant |
+| [ADR-002: Feature Flags JSONB](docs/adr/002-feature-flags-jsonb.md) | Flexibilidad sin migraciones |
+| [ADR-003: Offline-First Dexie](docs/adr/003-offline-first-dexie.md) | Sincronización FIFO con retry |
+| [ADR-004: UX Tunnel Vision](docs/adr/004-ux-tunnel-vision.md) | Diseño para operarios con guantes |
+| [ADR-005: Toolings Estimation](docs/adr/005-toolings-estimacion-preventiva.md) | Estimación preventiva de utillajes |
+| [Decisions Log](docs/decisions-log.md) | Lecciones aprendidas durante el desarrollo |
+| [Decisiones Estratégicas](DECISIONES_ESTRATEGICAS.md) | Decisiones de alto nivel del proyecto |
+
+### Para desarrolladores / deploy
+| Documento | Contenido |
+|-----------|-----------|
+| [Guía de Deploy](docs/deploy/deploy-kavana-manufacturing.md) | Vercel + Render + Neon + DNS |
+| [CONTRIBUTING](CONTRIBUTING.md) | Estándares de código, TDD, commits |
+| [KAVANA RULES](KAVANA_RULES.md) | Reglas del proyecto (YAGNI, context-first) |
+| [Arquitectura Técnica](docs/technical/00_architecture-overview.md) | Visión general del sistema |
+| [Multi-Tenancy & RLS](docs/technical/01_multi-tenancy-rls-audit.md) | Auditoría de aislamiento |
+| [Backend Auth](docs/technical/02_backend-auth-context.md) | JWT, roles, contexto de tenant |
+| [Feature Flags](docs/technical/03_feature-flags-modularity.md) | Implementación de modularidad |
+| [Core MES Production](docs/technical/04_core-mes-production.md) | Flujo de producción en planta |
+| [Frontend Offline-First](docs/technical/05_frontend-hmi-offline-first.md) | Arquitectura del HMI offline |
+
+---
+
+## 💼 Portfolio para consultores IT
+
+Este proyecto demuestra capacidades técnicas aplicadas a un dominio industrial real:
+
+| Lo que demuestra | Dónde verlo |
+|-----------------|-------------|
+| **Arquitectura SaaS multi-tenant** | [ADR-001](docs/adr/001-shared-schema-multi-tenant-rls.md) + [technical/01](docs/technical/01_multi-tenancy-rls-audit.md) |
+| **Offline-first resiliente** | [ADR-003](docs/adr/003-offline-first-dexie.md) + implementación en frontend |
+| **UX industrial contextual** | [ADR-004](docs/adr/004-ux-tunnel-vision.md) + pantallas HMI |
+| **TDD y calidad** | [CONTRIBUTING](CONTRIBUTING.md) + 225+ tests |
+| **AI aplicada a industria** | [AI Advisor](docs/ai/README.md) + RAG multi-provider |
+| **Feature flags como producto** | [ADR-002](docs/adr/002-feature-flags-jsonb.md) + módulo tenant-capabilities |
+| **Documentación como infraestructura** | ADRs, decisions log, technical docs |
+| **Proceso de ingeniería** | Commits convencionales, PR template, CI/CD |
+
+### 🎯 Aprendizajes clave
+1. **RLS > App logic** — Enforcement en BD es más seguro que en código
+2. **Offline-first desde día 1** — No se puede agregar después
+3. **JSONB para features** — Flexibilidad sin migraciones
+4. **TDD estricto** — Confianza para refactoring agresivo
+5. **UX contextual** — Investigar condiciones reales de uso (guantes, ruido, luz)
+
+### ⚠️ Transparencia
+- El producto **no tiene clientes en producción** — es un proyecto de portfolio/demo
+- Las **capturas de interfaz** son mockups de diseño, no fotos de planta real
+- La **trazabilidad documental** no está auditada ni certificada ISO
+
+---
+
+## 🔒 Seguridad
+
+- **Autenticación:** JWT con HMAC, contexto de tenant en cada request (via `AsyncLocalStorage`)
+- **Autorización:** Roles `global_admin` · `tenant_admin` · `supervisor` · `operator`, enforced via NestJS Guards
+- **Aislamiento:** Row Level Security (RLS) en PostgreSQL — el tenant solo ve sus datos
+- **Offline:** Los datos locales (IndexedDB) están aislados por tenant en el frontend
+- **Variables de entorno:** [`backend/.env.example`](backend/.env.example) — sin secrets en el repo
+- **CORS:** Configurado por entorno, origen verificado
+
+> **Ver también:** [`docs/technical/07_security-qa-audit.md`](docs/technical/07_security-qa-audit.md)
+
+---
+
+## 📄 Licencia
+
+MIT © [Jorge Adán Rodríguez](https://github.com/kavanasystemsinfo-ui)
+
+---
+
+**Desarrollado con:** Hermes Agent (IT Audit Agent) · Metodología TDD + YAGNI  
 **Última actualización:** 2026-07-23
 
----
-
-*Arquitectura documentada con ADR. Cada decisión, justificada.*
+*Cada decisión, justificada. Cada línea, testeada.*
