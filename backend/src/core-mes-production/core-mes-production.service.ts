@@ -200,7 +200,7 @@ WHERE tenant_id = $1::bigint AND id = $2::uuid
   async listOrderLogs(orderId: string) {
     const context = getTenantContext();
     const result = await postgresPool.query(
-      `SELECT id, order_id, workstation_id, operator_id, type, downtime_reason, start_time, end_time, produced_quantity, defect_quantity, is_offline_event, client_device_id
+      `SELECT id, order_id, workstation_id, operator_id, type, downtime_reason, start_time, end_time, produced_quantity, defect_quantity, observations, is_offline_event, client_device_id
        FROM production_work_blocks
        WHERE tenant_id = $1::bigint AND order_id = $2::uuid
        ORDER BY start_time ASC`,
@@ -230,7 +230,7 @@ private async insertWorkBlock(
       INSERT INTO production_work_blocks (
         tenant_id, id, order_id, workstation_id, operator_id,
         client_event_id, type, start_time, end_time, downtime_reason,
-        produced_quantity, defect_quantity, is_offline_event, client_device_id, version
+        produced_quantity, defect_quantity, observations, is_offline_event, client_device_id, version
       )
       VALUES (
         ${tenantId.toString()},
@@ -245,6 +245,7 @@ private async insertWorkBlock(
         ${dto.type === 'parada' ? `'${dto.downtime_reason ?? ''}'` : 'NULL'},
         ${dto.type === 'produccion' ? (dto.produced_quantity ?? 0) : 0},
         ${dto.type === 'produccion' ? (dto.defect_quantity ?? 0) : 0},
+        ${dto.observations ? `'${dto.observations.replace(/'/g, "''")}'` : 'NULL'},
         ${dto.is_offline_event ?? false},
         ${dto.client_device_id ? `'${dto.client_device_id}'` : 'NULL'},
         ${(dto as any).version ?? 1}

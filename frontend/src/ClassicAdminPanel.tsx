@@ -56,19 +56,25 @@ export function ClassicAdminPanel() {
 
   return (
     <div className="min-h-screen bg-gray-50 text-gray-900" style={{ fontFamily: 'Segoe UI, system-ui, sans-serif' }}>
-      <header className="bg-white border-b border-gray-200 shadow-sm sticky top-0 z-50">
-        <div className="max-w-7xl mx-auto px-4 py-3 flex items-center justify-between">
-          <h1 className="text-lg font-semibold text-gray-800">Panel de Administración</h1>
+      <header className="bg-kavana-dark text-white shadow-md sticky top-0 z-50">
+        <div className="px-4 py-3 flex items-center justify-between">
           <div className="flex items-center gap-3">
-          <nav className="flex gap-0.5 bg-gray-100 rounded-md p-0.5">
+            <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-white text-kavana-dark font-bold text-sm">KV</div>
+            <div>
+              <p className="text-xs font-bold uppercase tracking-wider text-kavana-orange-light">Kavana Manufacturing HMI</p>
+              <h1 className="text-lg font-semibold text-white">Panel de Administración</h1>
+            </div>
+          </div>
+          <div className="flex items-center gap-3">
+          <nav className="flex gap-0.5 bg-gray-800 rounded-md p-0.5">
             {tabs.map((t) => (
               <button
                 key={t.key}
                 onClick={() => setTab(t.key)}
                 className={`px-3 py-1.5 rounded text-sm font-medium transition-colors ${
                   tab === t.key
-                    ? 'bg-white text-blue-700 shadow-sm'
-                    : 'text-gray-500 hover:text-gray-700 hover:bg-gray-200/50'
+                    ? 'bg-kavana-orange text-white shadow-sm'
+                    : 'text-gray-400 hover:text-white hover:bg-gray-700'
                 }`}
               >
                 {t.label}
@@ -80,7 +86,7 @@ export function ClassicAdminPanel() {
         </div>
       </header>
 
-      <main className="max-w-7xl mx-auto px-4 py-5">
+      <main className="w-[90%] mx-auto px-4 py-5">
         {tab === 'users' && <UsersTab />}
         {tab === 'workstations' && <WorkstationsTab />}
         {tab === 'models' && <ModelsTab />}
@@ -101,10 +107,10 @@ export function ClassicAdminPanel() {
 // ──── Shared inline-edit row style ────
 const thStyle = 'px-4 py-2.5 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider border-b border-gray-200';
 const tdStyle = 'px-4 py-3 text-sm border-b border-gray-100';
-const inputStyle = 'w-full border border-gray-300 rounded px-2 py-1 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none bg-white text-gray-900';
-const selectStyle = 'border border-gray-300 rounded px-2 py-1 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none bg-white';
+const inputStyle = 'w-full border border-gray-300 rounded px-2 py-1 text-sm focus:ring-kavana-orange focus:border-kavana-orange outline-none bg-white text-gray-900';
+const selectStyle = 'border border-gray-300 rounded px-2 py-1 text-sm focus:ring-kavana-orange focus:border-kavana-orange outline-none bg-white';
 const btnSm = 'text-xs font-medium px-2 py-1 rounded transition-colors';
-const btnPrimary = `${btnSm} bg-blue-600 text-white hover:bg-blue-700`;
+const btnPrimary = `${btnSm} bg-kavana-orange text-white hover:bg-kavana-orange-light`;
 const btnSuccess = `${btnSm} bg-green-600 text-white hover:bg-green-700`;
 const btnDanger = `${btnSm} text-red-600 hover:text-red-800 hover:bg-red-50`;
 const btnGhost = `${btnSm} text-gray-500 hover:text-gray-700 hover:bg-gray-100`;
@@ -204,7 +210,7 @@ function UsersTab() {
   const roleBadge = (role: string) => {
     const colors: Record<string, string> = {
       tenant_admin: 'bg-purple-100 text-purple-700',
-      supervisor: 'bg-blue-100 text-blue-700',
+      supervisor: 'bg-orange-100 text-orange-700',
       operario: 'bg-green-100 text-green-700',
     };
     return <span className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-medium ${colors[role] || 'bg-gray-100 text-gray-700'}`}>{roleLabels[role] || role}</span>;
@@ -225,7 +231,7 @@ function UsersTab() {
       {error && <div className="mx-4 mt-3 bg-red-50 border border-red-200 rounded px-3 py-2 text-red-700 text-sm">{error}</div>}
 
       {showCreate && (
-        <div className="mx-4 mt-3 bg-blue-50 border border-blue-200 rounded-lg p-3">
+        <div className="mx-4 mt-3 bg-orange-50 border border-orange-200 rounded-lg p-3">
           <div className="grid grid-cols-3 gap-3">
             <input placeholder="Nombre" value={form.first_name} onChange={(e) => setForm({ ...form, first_name: e.target.value })} className={inputStyle} />
             <input placeholder="Apellidos" value={form.last_name} onChange={(e) => setForm({ ...form, last_name: e.target.value })} className={inputStyle} />
@@ -410,7 +416,7 @@ function WorkstationsTab() {
       {error && <div className="mx-4 mt-3 bg-red-50 border border-red-200 rounded px-3 py-2 text-red-700 text-sm">{error}</div>}
 
       {showCreate && (
-        <div className="mx-4 mt-3 bg-blue-50 border border-blue-200 rounded-lg p-3">
+        <div className="mx-4 mt-3 bg-orange-50 border border-orange-200 rounded-lg p-3">
           <div className="grid grid-cols-2 gap-3">
             <input placeholder="Nombre del puesto" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} className={inputStyle} />
             <select value={form.status} onChange={(e) => setForm({ ...form, status: e.target.value as 'active' | 'inactive' })} className={selectStyle}>
@@ -562,7 +568,7 @@ function ModelsTab() {
       {error && <div className="mx-4 mt-3 bg-red-50 border border-red-200 rounded px-3 py-2 text-red-700 text-sm">{error}</div>}
 
       {showCreate && (
-        <div className="mx-4 mt-3 bg-blue-50 border border-blue-200 rounded-lg p-3">
+        <div className="mx-4 mt-3 bg-orange-50 border border-orange-200 rounded-lg p-3">
           <div className="grid grid-cols-2 gap-3">
             <input placeholder="Nombre del modelo" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} className={inputStyle} />
             {oeeEnabled && (
@@ -694,7 +700,7 @@ function OrdersTab() {
                   <td className={tdStyle}>
                     <span className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-medium ${
                       o.status === 'completed' ? 'bg-green-100 text-green-700' :
-                      o.status === 'in_progress' ? 'bg-blue-100 text-blue-700' :
+                      o.status === 'in_progress' ? 'bg-orange-100 text-orange-700' :
                       o.status === 'cancelled' ? 'bg-red-100 text-red-700' :
                       'bg-gray-100 text-gray-600'
                     }`}>
@@ -767,7 +773,7 @@ function ModulesTab() {
         <div className="p-4 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
           {Object.entries(capabilities.modules).map(([key, mod]) => (
             <div key={key} className={`border rounded-lg p-3 flex items-center justify-between transition-all ${
-              mod.enabled ? 'border-blue-200 bg-blue-50/50' : 'border-gray-200 bg-gray-50/50'
+              mod.enabled ? 'border-orange-200 bg-orange-50/50' : 'border-gray-200 bg-gray-50/50'
             }`}>
               <div>
                 <h3 className="text-sm font-medium text-gray-800">{key.replace(/_/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase())}</h3>
@@ -777,7 +783,7 @@ function ModulesTab() {
                 onClick={() => handleToggle(key, !mod.enabled)}
                 disabled={saving === key}
                 className={`relative inline-flex h-5 w-9 items-center rounded-full transition-colors ${
-                  mod.enabled ? 'bg-blue-600' : 'bg-gray-300'
+                  mod.enabled ? 'bg-kavana-orange' : 'bg-gray-300'
                 } ${saving === key ? 'opacity-50' : ''}`}
               >
                 <span className={`inline-block h-3.5 w-3.5 transform rounded-full bg-white transition-transform shadow ${
@@ -857,7 +863,7 @@ function CustomFieldsTab() {
                 <option value="boolean">Booleano</option>
               </select>
               <label className="flex items-center gap-1.5 text-sm text-gray-500">
-                <input type="checkbox" checked={f.required} onChange={(e) => updateField(idx, { required: e.target.checked })} className="rounded border-gray-300 text-blue-600 focus:ring-blue-500" />
+                <input type="checkbox" checked={f.required} onChange={(e) => updateField(idx, { required: e.target.checked })} className="rounded border-gray-300 text-kavana-orange focus:ring-kavana-orange" />
                 Req.
               </label>
               <button onClick={() => removeField(idx)} className={`${btnDanger} ml-auto`}>Eliminar</button>
@@ -1009,13 +1015,13 @@ function ToolingsTab() {
       <div className="flex items-center justify-between">
         <div>
           <h2 className="text-xl font-bold text-gray-800">Utillajes</h2>
-          <p className="text-sm text-blue-600 mt-1">Herramienta de estimación preventiva de vida útil</p>
+          <p className="text-sm text-kavana-orange mt-1">Herramienta de estimación preventiva de vida útil</p>
         </div>
         <div className="flex gap-2">
           <button onClick={() => setShowTypeConfig(true)} className="px-3 py-2 bg-gray-200 hover:bg-gray-300 rounded-lg text-sm font-medium transition-colors text-gray-700">
             ⚙️ Configurar tipos
           </button>
-          <button onClick={() => { setShowCreate(true); setEditing(null); setForm(emptyForm); }} className="px-4 py-2 bg-blue-600 hover:bg-blue-700 rounded-lg text-sm font-medium transition-colors text-white">
+          <button onClick={() => { setShowCreate(true); setEditing(null); setForm(emptyForm); }} className="px-4 py-2 bg-kavana-orange hover:bg-kavana-orange-light rounded-lg text-sm font-medium transition-colors text-white">
             + Nuevo Utillaje
           </button>
         </div>
@@ -1028,8 +1034,8 @@ function ToolingsTab() {
         </div>
       )}
 
-      <div className="bg-blue-50 border border-blue-200 rounded-lg px-4 py-3 text-blue-700 text-sm">
-        ℹ️ Los ciclos se estiman automáticamente: <code className="bg-blue-100 px-1 rounded">cycles_per_piece × piezas_producidas</code>. Registra producción con el botón ▶ Producción.
+      <div className="bg-orange-50 border border-orange-200 rounded-lg px-4 py-3 text-orange-700 text-sm">
+        ℹ️ Los ciclos se estiman automáticamente: <code className="bg-orange-100 px-1 rounded">cycles_per_piece × piezas_producidas</code>. Registra producción con el botón ▶ Producción.
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -1049,7 +1055,7 @@ function ToolingsTab() {
                   <div className="text-xs text-gray-500 mt-1">{t.code} · {t.type}</div>
                 </div>
                 <div className="flex gap-1">
-                  <button onClick={() => startEdit(t)} className="text-gray-400 hover:text-blue-600 text-sm px-1">✏️</button>
+                  <button onClick={() => startEdit(t)} className="text-gray-400 hover:text-kavana-orange text-sm px-1">✏️</button>
                   <button onClick={() => handleDelete(t.id)} className="text-gray-400 hover:text-red-600 text-sm px-1">🗑️</button>
                 </div>
               </div>
@@ -1066,7 +1072,7 @@ function ToolingsTab() {
 
               {t.cycles_per_piece > 0 && (
                 <div className="text-xs text-gray-500 mb-3">
-                  <span className="text-blue-600">⚡ {t.cycles_per_piece} ciclos/pieza</span>
+                  <span className="text-kavana-orange">⚡ {t.cycles_per_piece} ciclos/pieza</span>
                   {t.estimated_pieces !== null && t.estimated_pieces > 0 && (
                     <span className="ml-2">· ~{t.estimated_pieces.toLocaleString()} piezas</span>
                   )}
@@ -1106,9 +1112,7 @@ function ToolingsTab() {
                 </div>
                 <div>
                   <label className="text-xs text-gray-500 mb-1 block">Tipo</label>
-                  <select value={form.type} onChange={(e) => setForm({ ...form, type: e.target.value })} className={selectStyle}>
-                    {toolingTypes.map(t => <option key={t} value={t}>{t}</option>)}
-                  </select>
+                  <input value={form.type} onChange={(e) => setForm({ ...form, type: e.target.value })} className={inputStyle} placeholder="Ej: troquel, molde, punzón..." />
                 </div>
               </div>
               <div>
@@ -1140,7 +1144,7 @@ function ToolingsTab() {
               </div>
               <div className="flex gap-2 pt-2">
                 <button onClick={() => { setShowCreate(false); setEditing(null); setForm(emptyForm); }} className="flex-1 px-4 py-2 bg-gray-100 hover:bg-gray-200 rounded-lg text-sm font-medium transition-colors">Cancelar</button>
-                <button onClick={editing ? handleUpdate : handleCreate} disabled={!form.code || !form.name} className="flex-1 px-4 py-2 bg-blue-600 hover:bg-blue-700 rounded-lg text-sm font-medium transition-colors disabled:opacity-50 text-white">
+                <button onClick={editing ? handleUpdate : handleCreate} disabled={!form.code || !form.name} className="flex-1 px-4 py-2 bg-kavana-orange hover:bg-kavana-orange-light rounded-lg text-sm font-medium transition-colors disabled:opacity-50 text-white">
                   {editing ? 'Guardar' : 'Crear'}
                 </button>
               </div>
@@ -1177,9 +1181,9 @@ function ToolingsTab() {
             <div className="space-y-3">
               <div className="flex flex-wrap gap-2">
                 {toolingTypes.map(t => (
-                  <span key={t} className="bg-blue-50 text-blue-700 border border-blue-200 px-3 py-1 rounded-full text-sm flex items-center gap-2">
+                  <span key={t} className="bg-orange-50 text-orange-700 border border-orange-200 px-3 py-1 rounded-full text-sm flex items-center gap-2">
                     {t}
-                    <button onClick={() => removeType(t)} className="text-blue-400 hover:text-red-500">×</button>
+                    <button onClick={() => removeType(t)} className="text-orange-400 hover:text-red-500">×</button>
                   </span>
                 ))}
               </div>
@@ -1189,7 +1193,7 @@ function ToolingsTab() {
               </div>
               <div className="flex gap-2 pt-2">
                 <button onClick={() => setShowTypeConfig(false)} className="flex-1 px-4 py-2 bg-gray-100 hover:bg-gray-200 rounded-lg text-sm font-medium transition-colors">Cancelar</button>
-                <button onClick={saveTypes} className="flex-1 px-4 py-2 bg-blue-600 hover:bg-blue-700 rounded-lg text-sm font-medium transition-colors text-white">Guardar</button>
+                <button onClick={saveTypes} className="flex-1 px-4 py-2 bg-kavana-orange hover:bg-kavana-orange-light rounded-lg text-sm font-medium transition-colors text-white">Guardar</button>
               </div>
             </div>
           </div>
@@ -1290,7 +1294,7 @@ function IncidenciasTab() {
 
   const getStatusBadge = (status: string) => {
     if (status === 'abierto') return 'bg-red-100 text-red-800 border border-red-200';
-    if (status === 'en_progreso') return 'bg-blue-100 text-blue-800 border border-blue-200';
+    if (status === 'en_progreso') return 'bg-orange-100 text-orange-800 border border-orange-200';
     if (status === 'resuelto') return 'bg-green-100 text-green-800 border border-green-200';
     return 'bg-gray-100 text-gray-500 border border-gray-200';
   };
@@ -1307,9 +1311,9 @@ function IncidenciasTab() {
       <div className="flex items-center justify-between">
         <div>
           <h2 className="text-xl font-bold text-gray-800">Incidencias</h2>
-          <p className="text-sm text-blue-600 mt-1">Registro y seguimiento de incidencias</p>
+          <p className="text-sm text-kavana-orange mt-1">Registro y seguimiento de incidencias</p>
         </div>
-        <button onClick={() => { setShowCreate(true); setEditing(null); setForm(emptyForm); }} className="px-4 py-2 bg-blue-600 hover:bg-blue-700 rounded-lg text-sm font-medium transition-colors text-white">
+        <button onClick={() => { setShowCreate(true); setEditing(null); setForm(emptyForm); }} className="px-4 py-2 bg-kavana-orange hover:bg-kavana-orange-light rounded-lg text-sm font-medium transition-colors text-white">
           + Nueva Incidencia
         </button>
       </div>
@@ -1331,9 +1335,9 @@ function IncidenciasTab() {
             <div className="text-2xl font-bold text-red-600">{stats.abiertas}</div>
             <div className="text-xs text-red-600">Abiertas</div>
           </div>
-          <div className="bg-blue-50 rounded-lg border border-blue-200 p-3 text-center">
-            <div className="text-2xl font-bold text-blue-600">{stats.en_progreso}</div>
-            <div className="text-xs text-blue-600">En Progreso</div>
+          <div className="bg-orange-50 rounded-lg border border-orange-200 p-3 text-center">
+            <div className="text-2xl font-bold text-kavana-orange">{stats.en_progreso}</div>
+            <div className="text-xs text-kavana-orange">En Progreso</div>
           </div>
           <div className="bg-green-50 rounded-lg border border-green-200 p-3 text-center">
             <div className="text-2xl font-bold text-green-600">{stats.resueltas + stats.cerradas}</div>
@@ -1347,7 +1351,7 @@ function IncidenciasTab() {
           <button
             key={s}
             onClick={() => setFilterStatus(s)}
-            className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${filterStatus === s ? 'bg-blue-600 text-white' : 'bg-white text-gray-500 hover:text-gray-700 border border-gray-200'}`}
+            className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${filterStatus === s ? 'bg-kavana-orange text-white' : 'bg-white text-gray-500 hover:text-gray-700 border border-gray-200'}`}
           >
             {s === 'all' ? 'Todas' : s.replace('_', ' ')}
           </button>
@@ -1376,14 +1380,14 @@ function IncidenciasTab() {
                 )}
               </div>
               <div className="flex gap-1 ml-4">
-                <button onClick={() => startEdit(inc)} className="text-gray-400 hover:text-blue-600 text-sm px-1">✏️</button>
+                <button onClick={() => startEdit(inc)} className="text-gray-400 hover:text-kavana-orange text-sm px-1">✏️</button>
                 <button onClick={() => handleDelete(inc.id)} className="text-gray-400 hover:text-red-600 text-sm px-1">🗑️</button>
               </div>
             </div>
 
             <div className="flex gap-2 mt-3">
               {inc.status === 'abierto' && (
-                <button onClick={() => handleStatusChange(inc.id, 'en_progreso')} className="px-3 py-1 bg-blue-600 hover:bg-blue-700 rounded text-xs font-medium transition-colors text-white">
+                <button onClick={() => handleStatusChange(inc.id, 'en_progreso')} className="px-3 py-1 bg-kavana-orange hover:bg-kavana-orange-light rounded text-xs font-medium transition-colors text-white">
                   Iniciar
                 </button>
               )}
@@ -1444,7 +1448,7 @@ function IncidenciasTab() {
               </div>
               <div className="flex gap-2 pt-2">
                 <button onClick={() => { setShowCreate(false); setEditing(null); setForm(emptyForm); }} className="flex-1 px-4 py-2 bg-gray-100 hover:bg-gray-200 rounded-lg text-sm font-medium transition-colors">Cancelar</button>
-                <button onClick={editing ? handleUpdate : handleCreate} disabled={!form.title} className="flex-1 px-4 py-2 bg-blue-600 hover:bg-blue-700 rounded-lg text-sm font-medium transition-colors disabled:opacity-50 text-white">
+                <button onClick={editing ? handleUpdate : handleCreate} disabled={!form.title} className="flex-1 px-4 py-2 bg-kavana-orange hover:bg-kavana-orange-light rounded-lg text-sm font-medium transition-colors disabled:opacity-50 text-white">
                   {editing ? 'Guardar' : 'Crear'}
                 </button>
               </div>
@@ -1511,7 +1515,7 @@ function MaterialsTab() {
       <div className="mb-4 flex items-center justify-between">
         <h2 className="text-lg font-semibold text-gray-800">Catálogo de Materias Primas</h2>
         <button onClick={() => { setEditMat(null); setForm({ code: '', name: '', unit: 'uds', unit_cost: 0, category: '', supplier: '' }); setShowForm(!showForm); }}
-          className="rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700">
+          className="rounded-md bg-kavana-orange px-4 py-2 text-sm font-medium text-white hover:bg-kavana-orange-light">
           {showForm ? 'Cancelar' : '+ Nueva'}
         </button>
       </div>
@@ -1526,7 +1530,7 @@ function MaterialsTab() {
             <div><label className="block text-xs text-gray-500 mb-1">Categoria</label><input value={form.category} onChange={e => setForm({...form, category: e.target.value})} className="w-full rounded border border-gray-300 px-3 py-2 text-sm" placeholder="vidrio / celula" /></div>
             <div><label className="block text-xs text-gray-500 mb-1">Proveedor</label><input value={form.supplier} onChange={e => setForm({...form, supplier: e.target.value})} className="w-full rounded border border-gray-300 px-3 py-2 text-sm" /></div>
           </div>
-          <button onClick={saveMat} className="mt-4 rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700">{editMat ? "Actualizar" : "Crear"}</button>
+          <button onClick={saveMat} className="mt-4 rounded-md bg-kavana-orange px-4 py-2 text-sm font-medium text-white hover:bg-kavana-orange-light">{editMat ? "Actualizar" : "Crear"}</button>
         </div>
       )}
       {cats.map(cat => (
@@ -1537,11 +1541,11 @@ function MaterialsTab() {
               <div key={mat.id} className="rounded-lg border border-gray-200 bg-white p-4 shadow-sm">
                 <div className="flex items-start justify-between">
                   <div><p className="font-medium text-gray-900">{mat.name}</p><p className="text-xs text-gray-500">{mat.code}</p></div>
-                  <span className="text-sm font-semibold text-blue-600">{mat.unit_cost.toFixed(2)}€</span>
+                  <span className="text-sm font-semibold text-kavana-orange">{mat.unit_cost.toFixed(2)}€</span>
                 </div>
                 <div className="mt-3 flex gap-2">
                   <button onClick={() => { setEditMat(mat); setForm({code:mat.code,name:mat.name,unit:mat.unit,unit_cost:mat.unit_cost,category:mat.category||'',supplier:mat.supplier||''}); setShowForm(true); }}
-                    className="rounded bg-blue-100 px-2 py-1 text-xs text-blue-700 hover:bg-blue-200">Editar</button>
+                    className="rounded bg-orange-100 px-2 py-1 text-xs text-orange-700 hover:bg-orange-200">Editar</button>
                   <button onClick={async () => { if (confirm("Eliminar?")) { (await import("./api/admin-entities.js")).deleteMaterial(mat.id); void load(); } }}
                     className="rounded bg-red-100 px-2 py-1 text-xs text-red-700 hover:bg-red-200">Eliminar</button>
                 </div>

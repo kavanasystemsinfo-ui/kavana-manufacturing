@@ -175,7 +175,7 @@ function TenantsTab({ tenants, loading, onReload, onError }: { tenants: GlobalTe
                       <div className="flex gap-1" onClick={(e) => e.stopPropagation()}>
                         <button
                           onClick={() => { setEditing(t.id); setEditForm({ name: t.name, status: t.status }); }}
-                          className="text-xs font-medium px-2 py-1 rounded bg-blue-600 text-white hover:bg-blue-700"
+                          className="text-xs font-medium px-2 py-1 rounded bg-kavana-orange text-white hover:bg-kavana-orange-light"
                         >Editar</button>
                         <button
                           onClick={() => void handleDelete(t.id)}

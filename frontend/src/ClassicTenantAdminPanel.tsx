@@ -160,7 +160,7 @@ export function ClassicTenantAdminPanel() {
 
         {isLoading ? (
           <div className="flex items-center gap-3 text-slate-500">
-            <div className="h-4 w-4 animate-spin rounded-full border-2 border-slate-300 border-t-blue-600"></div>
+            <div className="h-4 w-4 animate-spin rounded-full border-2 border-slate-300 border-t-kavana-orange"></div>
             <p className="text-sm">Cargando capacidades...</p>
           </div>
         ) : capabilities ? (
@@ -269,7 +269,7 @@ export function ClassicTenantAdminPanel() {
                                 onChange={(e) => handleKeyChange(index, e.target.value)}
                                 disabled={isMutating}
                                 placeholder="ej. grosor_bobina"
-                                className="block w-full rounded-md border border-slate-300 bg-white px-3 py-1.5 text-sm shadow-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 disabled:opacity-50"
+                                className="block w-full rounded-md border border-slate-300 bg-white px-3 py-1.5 text-sm shadow-sm focus:border-kavana-orange focus:outline-none focus:ring-1 focus:ring-kavana-orange disabled:opacity-50"
                               />
                             </td>
                             <td className="px-4 py-2">
@@ -283,7 +283,7 @@ export function ClassicTenantAdminPanel() {
                                 }}
                                 disabled={isMutating}
                                 placeholder="ej. Grosor Bobina"
-                                className="block w-full rounded-md border border-slate-300 bg-white px-3 py-1.5 text-sm shadow-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 disabled:opacity-50"
+                                className="block w-full rounded-md border border-slate-300 bg-white px-3 py-1.5 text-sm shadow-sm focus:border-kavana-orange focus:outline-none focus:ring-1 focus:ring-kavana-orange disabled:opacity-50"
                               />
                             </td>
                             <td className="px-4 py-2">
@@ -291,7 +291,7 @@ export function ClassicTenantAdminPanel() {
                                 value={field.type}
                                 onChange={(e) => handleTypeChange(index, e.target.value as any)}
                                 disabled={isMutating}
-                                className="block w-full rounded-md border border-slate-300 bg-white px-3 py-1.5 text-sm shadow-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 disabled:opacity-50"
+                                className="block w-full rounded-md border border-slate-300 bg-white px-3 py-1.5 text-sm shadow-sm focus:border-kavana-orange focus:outline-none focus:ring-1 focus:ring-kavana-orange disabled:opacity-50"
                               >
                                 <option value="string">Texto</option>
                                 <option value="number">Número</option>
@@ -304,7 +304,7 @@ export function ClassicTenantAdminPanel() {
                                 checked={field.required}
                                 onChange={(e) => handleRequiredChange(index, e.target.checked)}
                                 disabled={isMutating}
-                                className="h-4 w-4 rounded border-slate-300 text-blue-600 focus:ring-blue-500"
+                                className="h-4 w-4 rounded border-slate-300 text-kavana-orange focus:ring-kavana-orange"
                               />
                             </td>
                             <td className="px-4 py-2 text-center">
@@ -344,7 +344,7 @@ export function ClassicTenantAdminPanel() {
                     type="button"
                     onClick={handleSaveSchema}
                     disabled={isMutating || isQuotaExceeded}
-                    className="rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-blue-700 disabled:opacity-50"
+                    className="rounded-md bg-kavana-orange px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-kavana-orange-light disabled:opacity-50"
                   >
                     {isMutating ? 'Guardando...' : 'Guardar Esquema'}
                   </button>

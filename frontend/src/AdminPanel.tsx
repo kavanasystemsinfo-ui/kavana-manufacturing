@@ -1115,9 +1115,7 @@ function ToolingsTab() {
                 </div>
                 <div>
                   <label className="text-xs text-gray-400 mb-1 block">Tipo</label>
-                  <select value={form.type} onChange={(e) => setForm({ ...form, type: e.target.value })} className="w-full bg-gray-900 border border-gray-600 rounded-lg px-3 py-2 text-sm text-white focus:ring-2 focus:ring-indigo-500 outline-none">
-                    {toolingTypes.map(t => <option key={t} value={t}>{t}</option>)}
-                  </select>
+                  <input value={form.type} onChange={(e) => setForm({ ...form, type: e.target.value })} className="w-full bg-gray-900 border border-gray-600 rounded-lg px-3 py-2 text-sm text-white focus:ring-2 focus:ring-indigo-500 outline-none" placeholder="Ej: troquel, molde, punzón..." />
                 </div>
               </div>
               <div>

@@ -69,6 +69,7 @@ interface HmiState {
     reason?: string | null,
     producedQuantity?: number,
     defectQuantity?: number,
+    observations?: string | null,
   ) => Promise<void>;
   loadOrder: (orderId: string) => Promise<void>;
   updateCustomFields: (orderId: string, customFields: Record<string, any>) => Promise<void>;
@@ -280,7 +281,7 @@ export const useHmiStore = create<HmiState>()((set, get) => ({
     }
   },
 
-  registerWorkBlock: async (type, startTime, endTime, reason, producedQuantity, defectQuantity) => {
+  registerWorkBlock: async (type, startTime, endTime, reason, producedQuantity, defectQuantity, observations) => {
     set({ isMutating: true });
 
     const state = get();
@@ -306,10 +307,11 @@ export const useHmiStore = create<HmiState>()((set, get) => ({
       downtime_reason: reason ?? null,
       produced_quantity: producedQuantity,
       defect_quantity: defectQuantity,
+      observations: observations ?? null,
       is_offline_event: !state.isOnline,
       client_device_id: typeof navigator !== 'undefined' ? navigator.userAgent : 'unknown-device',
-      version: 1,                            // NUEVO: versión inicial
-      device_id: getDeviceId(),               // NUEVO: ID único del dispositivo
+      version: 1,
+      device_id: getDeviceId(),
     };
 
     try {
@@ -366,6 +368,7 @@ export async function triggerSyncEngine() {
           downtime_reason: failedBlock.downtime_reason,
           produced_quantity: failedBlock.produced_quantity,
           defect_quantity: failedBlock.defect_quantity,
+          observations: failedBlock.observations,
           is_offline_event: failedBlock.is_offline_event,
           client_device_id: failedBlock.client_device_id,
           version: failedBlock.version ?? 1,

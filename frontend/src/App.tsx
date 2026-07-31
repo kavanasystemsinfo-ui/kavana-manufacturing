@@ -113,14 +113,10 @@ export function App() {
     );
   }
 
-  // Default: show landing page or login
+  // Default: show login
   if (!auth) {
-    if (path === '/' || path === '') {
-      // On manufacturing subdomain, show login directly
-      if (window.location.hostname === 'www.manufacturing.kavanasystems.com') {
-        return <LoginPage onLogin={handleLogin} />;
-      }
-      return <LandingPage />;
+    if (path === '/global-admin') {
+      return <LoginPage onLogin={handleLogin} />;
     }
     return <LoginPage onLogin={handleLogin} />;
   }

@@ -13,10 +13,11 @@ export interface OfflineWorkBlock {
   downtime_reason: string | null;
   produced_quantity?: number;
   defect_quantity?: number;
+  observations?: string | null;
   is_offline_event: boolean;
   client_device_id: string;
-  version: number;         // NUEVO: control de versiones para conflicto
-  device_id: string;        // NUEVO: identificador único del dispositivo
+  version: number;
+  device_id: string;
 }
 
 export interface FailedOfflineWorkBlock extends OfflineWorkBlock {
