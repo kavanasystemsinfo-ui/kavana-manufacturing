@@ -1,12 +1,12 @@
-# Auditoría Técnica Senior y Mapa Mental KAVANA V3
+# Auditoría Técnica Senior y Mapa Mental KAVANA MANUFACTURING
 
 > Carpeta origen auditada: `C:\Users\jorge\Desktop\proyectos IA\kavana systems v2`  
-> Carpeta destino para el nuevo software: `C:\Users\jorge\Desktop\proyectos IA\kavana systems v2\KAVANA V3 JUNIO 2026`  
-> Objetivo: separar lo que merece ser rescatado de la versión obsoleta, documentar la arquitectura y funcionalidades, y dejar una hoja de ruta para reescribir KAVANA V3 desde cero sin perder inteligencia de negocio.
+> Carpeta destino para el nuevo software: `C:\Users\jorge\Desktop\proyectos IA\kavana systems v2\KAVANA MANUFACTURING JUNIO 2026`  
+> Objetivo: separar lo que merece ser rescatado de la versión obsoleta, documentar la arquitectura y funcionalidades, y dejar una hoja de ruta para reescribir KAVANA MANUFACTURING desde cero sin perder inteligencia de negocio.
 
 ---
 
-## 1. Resumen ejecutivo para KAVANA V3
+## 1. Resumen ejecutivo para KAVANA MANUFACTURING
 
 KAVANA Systems V2 es un **MES industrial MERN** con un núcleo de valor muy sólido: trazabilidad de producción, inventario FIFO por lotes, cálculo financiero en tiempo real, gestión de modelos de fabricación, panel táctil de operario, dashboards de supervisor/gerencia, IA contextual y documentación estratégica. También arrastra deuda técnica importante: backend monolítico en Express, lógica de producción demasiado grande, alta mezcla de UI legacy y V2, logs sensibles dispersos, scripts de mantenimiento en producción, dependencias cloud hardcodeadas y módulos que deben ser replanteados como dominios independientes.
 
@@ -31,7 +31,7 @@ Y debe reescribir:
 
 ```mermaid
 mindmap
-  root((KAVANA V3))
+  root((KAVANA MANUFACTURING))
     Dominios de negocio
       Tenants
       Usuarios y roles
@@ -621,7 +621,7 @@ Evidencia:
 
 ---
 
-## 10. Arquitectura recomendada para KAVANA V3
+## 10. Arquitectura recomendada para KAVANA MANUFACTURING
 
 ### 10.1 Principios
 
@@ -786,7 +786,7 @@ La mejor estrategia para V3 es:
 6. **Convertir scripts en migraciones.**
 7. **Documentar cada regla de negocio antes de implementarla.**
 
-Este documento debe servir como mapa base para construir el nuevo proyecto en la carpeta `KAVANA V3 JUNIO 2026`.
+Este documento debe servir como mapa base para construir el nuevo proyecto en la carpeta `KAVANA MANUFACTURING JUNIO 2026`.
 
 ---
 

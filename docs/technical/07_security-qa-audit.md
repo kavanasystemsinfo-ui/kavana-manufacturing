@@ -1,4 +1,4 @@
-# Kavana V3 - QA y Auditoría de Seguridad
+# Kavana Manufacturing - QA y Auditoría de Seguridad
 
 ## Estado del documento
 

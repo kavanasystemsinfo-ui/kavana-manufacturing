@@ -1,4 +1,4 @@
-# Kavana V3 - Panel de Supervisor
+# Kavana Manufacturing - Panel de Supervisor
 
 ## Estado del documento
 

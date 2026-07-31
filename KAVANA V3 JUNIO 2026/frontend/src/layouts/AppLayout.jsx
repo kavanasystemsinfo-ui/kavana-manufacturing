@@ -59,7 +59,7 @@ export function AppLayout({ role = 'operator' }) {
       >
         <div className="flex h-16 items-center justify-between border-b border-white/10 px-5">
           <Link to="/" className="text-lg font-black uppercase tracking-widest text-kavana-copper">
-            KAVANA V3
+            KAVANA MANUFACTURING
           </Link>
           <button
             onClick={() => setSidebarOpen(false)}

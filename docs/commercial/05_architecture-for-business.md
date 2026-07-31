@@ -1,4 +1,4 @@
-# Kavana V3 - Arquitectura Explicada para Negocio
+# Kavana Manufacturing - Arquitectura Explicada para Negocio
 
 ## Estado del documento
 
@@ -7,7 +7,7 @@
 
 ## Por qué importa la arquitectura
 
-La arquitectura de Kavana V3 no es un detalle técnico menor. Es la base que permite vender el producto como SaaS seguro, escalable y fiable.
+La arquitectura de Kavana Manufacturing no es un detalle técnico menor. Es la base que permite vender el producto como SaaS seguro, escalable y fiable.
 
 ## Multi-tenant
 
@@ -53,7 +53,7 @@ La interfaz HMI usa una paleta corporativa premium: azul medianoche para reducir
 
 ## Dual Theme (Diferencial único)
 
-Kavana V3 ofrece **dos estilos visuales** que coexisten:
+Kavana Manufacturing ofrece **dos estilos visuales** que coexisten:
 
 - **Clásico ERP (GTA San Andreas essence):** Tablas, fondos claros, tipografía limpia — para supervisores veteranos y clientes legacy.
 - **Moderno Kavana (GTA 5 graphics):** Tarjetas, fondos oscuros, gradientes — para operarios jóvenes y clientes innovadores.
@@ -79,4 +79,4 @@ El usuario elige su estilo preferido con un toggle flotante. La preferencia se p
 
 ## Conclusión
 
-Kavana V3 combina arquitectura empresarial con experiencia de usuario simple — **y respeta la diversidad de usuarios industriales con un sistema de temas dual**. Esa combinación es el principal diferencial comercial del proyecto.
+Kavana Manufacturing combina arquitectura empresarial con experiencia de usuario simple — **y respeta la diversidad de usuarios industriales con un sistema de temas dual**. Esa combinación es el principal diferencial comercial del proyecto.

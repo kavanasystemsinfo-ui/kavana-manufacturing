@@ -1,4 +1,4 @@
-# Kavana V3 - Core MES de Producción
+# Kavana Manufacturing - Core MES de Producción
 
 ## Estado del documento
 

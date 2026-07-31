@@ -1,6 +1,6 @@
 # Guía para Cursor/Codex
 
-Este archivo está pensado para agentes IA que van a escribir código en KAVANA V3.
+Este archivo está pensado para agentes IA que van a escribir código en KAVANA MANUFACTURING.
 
 ## Cómo trabajar
 

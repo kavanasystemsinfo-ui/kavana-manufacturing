@@ -29,7 +29,7 @@ export class CostService {
       `INSERT INTO cost_entries (tenant_id, order_id, category, amount, currency, description)
        VALUES ($1, $2, $3, $4, $5, $6)
        RETURNING id, order_id, category, amount, currency, description, created_at`,
-      [context.tenantId, orderId, category, amount, currency, description ?? null],
+      [String(context.tenantId), orderId, category, amount, currency, description ?? null],
     );
     return r.rows[0];
   }
@@ -41,7 +41,7 @@ export class CostService {
        FROM cost_entries
        WHERE tenant_id = $1 AND order_id = $2
        ORDER BY created_at DESC`,
-      [context.tenantId, orderId],
+      [String(context.tenantId), orderId],
     );
     return r.rows;
   }
@@ -58,7 +58,7 @@ export class CostService {
          COALESCE(MAX(currency), 'USD') as currency
        FROM cost_entries
        WHERE tenant_id = $1 AND order_id = $2`,
-      [context.tenantId, orderId],
+      [String(context.tenantId), orderId],
     );
     const row = r.rows[0];
     return {

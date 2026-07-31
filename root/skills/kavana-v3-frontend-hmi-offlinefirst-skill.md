@@ -1,4 +1,4 @@
-# Skill: Kavana V3 - Frontend HMI Offline-First
+# Skill: Kavana Manufacturing - Frontend HMI Offline-First
 
 ## Propósito
 

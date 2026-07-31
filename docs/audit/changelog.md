@@ -1,4 +1,4 @@
-# Kavana V3 - Changelog Documental
+# Kavana Manufacturing - Changelog Documental
 
 ## 2026-07-07 — Diagnóstico, hardening y herramientas
 

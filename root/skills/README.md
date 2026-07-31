@@ -1,6 +1,6 @@
-# RooCode Skills para Kavana V3
+# RooCode Skills para Kavana Manufacturing
 
-Este directorio contiene skills especializadas para RooCode. Cada skill está diseñada para reforzar un área concreta del contrato arquitectónico de Kavana V3.
+Este directorio contiene skills especializadas para RooCode. Cada skill está diseñada para reforzar un área concreta del contrato arquitectónico de Kavana Manufacturing.
 
 ## Estado del documento
 

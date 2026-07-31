@@ -15,6 +15,8 @@ export interface OfflineWorkBlock {
   defect_quantity?: number;
   is_offline_event: boolean;
   client_device_id: string;
+  version: number;         // NUEVO: control de versiones para conflicto
+  device_id: string;        // NUEVO: identificador único del dispositivo
 }
 
 export interface FailedOfflineWorkBlock extends OfflineWorkBlock {
@@ -47,6 +49,11 @@ class KavanaHmiDatabase extends Dexie {
     this.version(3).stores({
       offlineBlocks: 'id, start_time, tenant_id, order_id',
       failedBlocks: 'id, start_time, tenant_id, order_id',
+    });
+    this.version(4).stores({
+      offlineBlocks: 'id, start_time, tenant_id, order_id, version, device_id',
+      failedBlocks: 'id, start_time, tenant_id, order_id, version, device_id',
+      tenantConfig: 'tenantId',
     });
   }
 }

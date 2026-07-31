@@ -1,9 +1,9 @@
 {
-  "name": "kavana-v3",
-  "version": "3.0.0-alpha",
+  "name": "kavana-manufacturing",
+  "version": "1.0.0",
   "private": true,
   "type": "module",
-  "description": "Kavana V3 - MES industrial SaaS multi-tenant, modular y offline-first.",
+  "description": "Kavana Manufacturing - MES industrial SaaS multi-tenant, modular y offline-first.",
   "workspaces": [
     "backend",
     "frontend"

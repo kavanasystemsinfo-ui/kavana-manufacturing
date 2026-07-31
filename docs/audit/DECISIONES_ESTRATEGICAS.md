@@ -1,4 +1,4 @@
-# Decisiones Estratégicas y Arquitectónicas (Kavana V3)
+# Decisiones Estratégicas y Arquitectónicas (Kavana Manufacturing)
 
 Este documento registra el "por qué" de las decisiones clave de arquitectura e implementación.
 
@@ -34,7 +34,7 @@ Este documento registra el "por qué" de las decisiones clave de arquitectura e 
 
 **Decisión:** Crear `tools-ai/notebooklm/` como módulo interno de automatización local con Chrome DevTools Protocol, Playwright y un perfil aislado de Chrome en `localhost:9222`.
 
-**Por qué:** NotebookLM se incorpora como motor activo de síntesis de contexto, razonamiento de mercado y generación de artefactos profundos para Kavana V3. Roo Code actúa como piloto local que prepara contexto, acciona artefactos y extrae Markdown a `docs/ai/outputs/`, cerrando el ciclo Roo Code <-> NotebookLM sin tocar backend, frontend ni database.
+**Por qué:** NotebookLM se incorpora como motor activo de síntesis de contexto, razonamiento de mercado y generación de artefactos profundos para Kavana Manufacturing. Roo Code actúa como piloto local que prepara contexto, acciona artefactos y extrae Markdown a `docs/ai/outputs/`, cerrando el ciclo Roo Code <-> NotebookLM sin tocar backend, frontend ni database.
 
 **Riesgos controlados:** robustez de selectores ante cambios de UI de Google mediante `get_by_text`/`get_by_role`, aislamiento del perfil de Chrome para no interferir con el navegador diario, y CDP estrictamente local en `127.0.0.1:9222`.
 
@@ -44,7 +44,7 @@ Este documento registra el "por qué" de las decisiones clave de arquitectura e 
 
 ### 1. Reutilización de cuaderno permanente
 
-**Decisión:** El flujo V3 deja de crear cuadernos o subir archivos locales en cada ciclo. `notebook_bridge.py` reutiliza el cuaderno permanente de Kavana V3 `https://notebooklm.google.com/notebook/a8ef67a8-896b-463e-a522-eaae826b3b79`, mantiene fuentes estructurales sincronizadas desde Drive y solo inyecta fuentes externas temporales bajo demanda.
+**Decisión:** El flujo V3 deja de crear cuadernos o subir archivos locales en cada ciclo. `notebook_bridge.py` reutiliza el cuaderno permanente de Kavana Manufacturing `https://notebooklm.google.com/notebook/a8ef67a8-896b-463e-a522-eaae826b3b79`, mantiene fuentes estructurales sincronizadas desde Drive y solo inyecta fuentes externas temporales bajo demanda.
 
 **Por qué:** Reduce ruido, evita duplicidad de cuadernos y respeta el límite de fuentes de NotebookLM. La fuente de verdad estructural permanece en el repositorio y en Drive; NotebookLM actúa como motor de síntesis temporal.
 

@@ -2,7 +2,7 @@
 
 ## Purpose
 
-This root-level document gives Roo Code a compact source of truth for Kavana V3 architecture without requiring it to infer details from scattered files. It summarizes the controls that must not be broken during automation.
+This root-level document gives Roo Code a compact source of truth for Kavana Manufacturing architecture without requiring it to infer details from scattered files. It summarizes the controls that must not be broken during automation.
 
 ## Permanent NotebookLM source
 
@@ -14,7 +14,7 @@ https://notebooklm.google.com/notebook/a8ef67a8-896b-463e-a522-eaae826b3b79
 
 ## Core architecture
 
-Kavana V3 is a multi-tenant MES SaaS with:
+Kavana Manufacturing is a multi-tenant MES SaaS with:
 
 - React/Vite frontend HMI.
 - NestJS backend API.
