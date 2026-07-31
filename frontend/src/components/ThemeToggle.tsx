@@ -1,7 +1,6 @@
 import { useThemeStore, type Theme } from '../store/theme-store.js';
 
 interface ThemeToggleProps {
-  /** Visual variant - 'header' for inline in headers, 'floating' for fixed position */
   variant?: 'header' | 'floating';
 }
 
@@ -19,11 +18,11 @@ export function ThemeToggle({ variant = 'header' }: ThemeToggleProps) {
           color: isClassic ? '#f1f5f9' : '#1e293b',
           borderColor: isClassic ? '#334155' : '#e2e8f0',
         }}
-        title={`Cambiar a tema ${isClassic ? 'Moderno' : 'Clásico'}`}
+        title={`Cambiar a tema ${isClassic ? 'Kavana' : 'Clásico'}`}
       >
         <div className="flex items-center gap-2 px-4 py-2 text-sm font-medium">
           <span>{isClassic ? '🖥️' : '🎮'}</span>
-          <span>{isClassic ? 'Clásico' : 'Moderno'}</span>
+          <span>{isClassic ? 'Clásico' : 'Kavana'}</span>
         </div>
       </button>
     );
@@ -43,26 +42,26 @@ export function ThemeToggle({ variant = 'header' }: ThemeToggleProps) {
           onClick={() => useThemeStore.getState().setTheme('modern')}
           className="rounded px-2.5 py-1 text-xs font-medium transition text-gray-500 hover:text-gray-700 hover:bg-gray-200/50"
         >
-          Moderno
+          Kavana
         </button>
       </div>
     );
   }
 
-  // Modern header variant
+  // Modern header variant — Kavana naranja
   return (
-    <div className="flex items-center gap-1 rounded-lg bg-gray-900/50 p-1">
+    <div className="flex items-center gap-1 rounded-lg bg-kavana-dark p-1 ring-1 ring-kavana-orange/30">
       <button
         onClick={() => useThemeStore.getState().setTheme('classic')}
-        className="rounded-md px-2.5 py-1 text-xs font-medium transition text-gray-400 hover:text-white hover:bg-gray-700"
+        className="rounded-md px-2.5 py-1 text-xs font-medium transition text-slate-400 hover:text-white hover:bg-kavana-steel/30"
       >
         Clásico
       </button>
       <button
         onClick={() => useThemeStore.getState().setTheme('modern')}
-        className="rounded-md px-2.5 py-1 text-xs font-medium transition bg-indigo-600 text-white shadow-lg"
+        className="rounded-md px-2.5 py-1 text-xs font-medium transition bg-kavana-orange text-kavana-dark shadow-lg"
       >
-        Moderno
+        Kavana
       </button>
     </div>
   );
