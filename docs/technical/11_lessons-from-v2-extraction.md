@@ -129,7 +129,7 @@ La extracción anterior usaba principalmente:
 
 La arquitectura actual exige:
 
-- PostgreSQL 18.
+- PostgreSQL 16.
 - RLS.
 - `tenant_id` obligatorio.
 - PgBouncer Transaction Pooling.

@@ -37,12 +37,13 @@ kind: Secret
 metadata:
   name: backend-secrets
   namespace: kavana-manufacturing
+  annotations:
+    sealedsecrets.bitnami.com/managed: 'true'
 type: Opaque
-stringData:
-  DATABASE_URL: 'postgresql://kavana:***@db:5432/kavana_v3'
-  JWT_SECRET: 'change-in-production-use-sealed-secrets'
-  NVIDIA_API_KEY: 'nvapi-change-me'
-  OPENROUTER_API_KEY: 'sk-or-change-me'
+# ⚠️ NO guardar valores reales aquí — usar SealedSecrets o ExternalSecrets en producción.
+# Ver k8s/secrets.example.yaml para el formato con placeholders.
+# En desarrollo local: kubectl create secret generic backend-secrets --from-literal=...
+stringData: {}
 
 ---
 apiVersion: v1
@@ -102,8 +103,7 @@ spec:
               valueFrom:
                 secretKeyRef:
                   name: backend-secrets
-                  key: DATABASE_URL
-                  # En producción: usar operador de secrets (SealedSecrets, Vault, etc.)
+                  key: DB_PASSWORD
             - name: POSTGRES_DB
               value: 'kavana_v3'
           volumeMounts:

@@ -2,7 +2,7 @@
 
 ## Propósito
 
-Usa esta skill para diseñar, revisar o corregir migraciones SQL, modelos de datos, índices, políticas RLS y configuración de PostgreSQL 18 para Kavana Manufacturing.
+Usa esta skill para diseñar, revisar o corregir migraciones SQL, modelos de datos, índices, políticas RLS y configuración de PostgreSQL 16 para Kavana Manufacturing.
 
 ## Fuente maestra
 
