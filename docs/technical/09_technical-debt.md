@@ -51,7 +51,7 @@
 | Falta de mecanismo para ejecutar SQL real sin `psql` | Runner Node.js con `pg`, Docker opcional y soporte para `DATABASE_URL` | [`database/scripts/run-postgres-smoke.js`](database/scripts/run-postgres-smoke.js:1) |
 | Falta de script raíz para smoke SQL | Script npm `database:smoke` | [`package.json`](package.json:18) |
 | Documentación SQL dependiente de `psql` | README actualizado con modo sin `psql` | [`database/README.md`](database/README.md:47), [`database/tests/README.md`](database/tests/README.md:1) |
-| Migraciones y smoke tests no ejecutados contra PostgreSQL real | `npm run database:smoke` ejecutado contra PostgreSQL 18 en Docker | Validación final: migraciones `000..005`, grants y smoke tests `001..002` aprobados |
+| Migraciones y smoke tests no ejecutados contra PostgreSQL real | `npm run database:smoke` ejecutado contra PostgreSQL 16 en Docker | Validación final: migraciones `000..005`, grants y smoke tests `001..002` aprobados |
 | Grants insuficientes para `kavana_app` | Grants explícitos en `public` y default privileges | [`database/migrations/000_extensions_roles_rls.sql`](database/extensions_roles_rls.sql:20) |
 | Trigger de auditoría apuntaba a `NEW.tenant_id` inexistente en `tenants` | Corregido a `NEW.id` | [`database/migrations/005_tenant_governance.sql`](database/migrations/005_tenant_governance.sql:256) |
 | Test de auditoría esperaba 3 eventos cuando solo se generan 2 cambios | Ajustado a mínimo 2 auditorías | [`database/tests/002_tenant_governance_smoke.sql`](database/tests/002_tenant_governance_smoke.sql:95) |

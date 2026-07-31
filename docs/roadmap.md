@@ -46,7 +46,7 @@ Antes de modificar backend, frontend store, API client, cola IndexedDB o cualqui
 - ~~Renderizado dinámico de custom fields en OperatorPanel~~ → **Resuelto**
 - ~~Modal TERMINAR con cantidad producida y scrap~~ → **Pendiente** (YAGNI)
 - ~~Backend actualiza `produced_quantity` y `defect_quantity` en transición terminado~~ → **Pendiente** (YAGNI)
-- Suite funcional en verde: **138 tests passing**
+- Suite funcional en verde: **208 tests passing**
 
 ### Dual Theme - Implementación
 
@@ -60,7 +60,7 @@ Antes de modificar backend, frontend store, API client, cola IndexedDB o cualqui
 
 ## Inventario de tests funcionales
 
-### Backend (138 tests)
+### Backend (208 tests)
 
 - [`backend/src/core-mes-production/core-mes-production.controller.spec.ts`](backend/src/core-mes-production/core-mes-production.controller.spec.ts:1) — 6 tests
 - [`backend/src/core-mes-production/custom-fields-validation.spec.ts`](backend/src/core-mes-production/custom-fields-validation.spec.ts:1) — 3 tests
@@ -88,7 +88,7 @@ Antes de modificar backend, frontend store, API client, cola IndexedDB o cualqui
 ## Validación actual
 
 - `py -3 -m py_compile tools-ai\notebooklm\notebook_bridge.py`: pasó.
-- `npm test --workspaces --if-present`: pasó con **138 tests** funcionales en verde.
+- `npm test --workspaces --if-present`: pasó con **208 tests** funcionales en verde.
 - `npm run build` (frontend): **Build exitoso** con sistema de temas dual.
 
 ## Avance
@@ -98,7 +98,7 @@ Antes de modificar backend, frontend store, API client, cola IndexedDB o cualqui
 | 5.1 - Gobernanza de tenant | Completada | Verde documental y migración existente |
 | 5.2 - Capacidades y feature flags | Completada | Backend y tests existentes |
 | 5.3 - Tenant Admin | Completada | Admin panel implementado |
-| 5.4 - Custom fields en runtime + Dual Theme | **Completada** | 138 tests + Build exitoso |
+| 5.4 - Custom fields en runtime + Dual Theme | **Completada** | 208 tests + Build exitoso |
 | 5.5 - QA automatizado | **En progreso** | NestJS DI fix + Orders table + Test mocks |
 
 ### Fase 5.5 — Detalle de cambios (2026-07-03)

@@ -47,8 +47,9 @@ export class AiAdvisorService {
     try {
       const answer = await this.callLLM(prompt, cv);
       const latency = Date.now() - startTime;
-      this.logger.log(`AI advisor: ${question.slice(0, 50)}... (${latency}ms, ctx=${cv.hash}, tenant ${ctx.tenantId})`);
-      return { answer, engine: 'openrouter', contextVersion: cv };
+      const engine = process.env.LLM_PROVIDER || 'openrouter';
+      this.logger.log(`AI advisor: ${question.slice(0, 50)}... (${latency}ms, ctx=${cv.hash}, engine=${engine}, tenant ${ctx.tenantId})`);
+      return { answer, engine, contextVersion: cv };
     } catch (err) {
       this.logger.warn(`AI advisor fallback (LLM error): ${err instanceof Error ? err.message : String(err)}`);
       return {
@@ -180,11 +181,20 @@ export class AiAdvisorService {
   }
 
   private async callLLM(prompt: string, cv?: ContextVersion): Promise<string> {
-    // Provider selection: ollama, nvidia, openrouter, or openai
+    // Provider selection: ollama, vllm, nvidia, openrouter, or openai
     const provider = (process.env.LLM_PROVIDER || 'openrouter').toLowerCase();
-    const apiKey = provider === 'ollama' || provider === 'vllm' ? 'ollama' : process.env[provider === 'nvidia' ? 'NVIDIA_API_KEY' : provider === 'openai' ? 'OPENAI_API_KEY' : 'OPENROUTER_API_KEY']
-      || process.env.OPENROUTER_API_KEY
-      || process.env.OPENAI_API_KEY;
+
+    // Provider → env-var lookup (extensible sin cambiar lógica)
+    const KEY_MAP: Record<string, string> = {
+      nvidia: 'NVIDIA_API_KEY',
+      openai: 'OPENAI_API_KEY',
+      openrouter: 'OPENROUTER_API_KEY',
+    };
+    const apiKey = (provider === 'ollama' || provider === 'vllm')
+      ? 'ollama'
+      : process.env[KEY_MAP[provider] || 'OPENROUTER_API_KEY']
+        || process.env.OPENROUTER_API_KEY
+        || process.env.OPENAI_API_KEY;
 
     const baseUrl = process.env.LLM_BASE_URL || {
       ollama: 'http://localhost:11434/v1',

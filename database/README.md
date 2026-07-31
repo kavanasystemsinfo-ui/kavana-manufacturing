@@ -8,7 +8,7 @@ Este directorio contiene las migraciones PostgreSQL que construyen el núcleo se
 
 ## Principios
 
-- PostgreSQL 18.
+- PostgreSQL 16.
 - Shared-schema multi-tenant.
 - `tenant_id BIGINT NOT NULL` en toda entidad multi-tenant.
 - `PRIMARY KEY (tenant_id, id)`.
@@ -95,7 +95,7 @@ Para evitar depender de `psql` instalado en PATH, existe un runner Node.js que u
 npm run database:smoke
 ```
 
-El comando anterior intenta crear un contenedor efímero `postgres:18`, aplica migraciones `000..013`, verifica grants de `kavana_app` y ejecuta los smoke tests.
+El comando anterior intenta crear un contenedor efímero `postgres:16`, aplica migraciones `000..013`, verifica grants de `kavana_app` y ejecuta los smoke tests.
 
 Si ya existe una base PostgreSQL, no se necesita Docker:
 

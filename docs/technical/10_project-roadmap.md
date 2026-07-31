@@ -38,7 +38,7 @@ Avanzar a Fase 5.5 - QA automatizado:
    - Auditoría de cambios críticos en `tenant_config_audit`.
    - Evidencia: [`database/migrations/005_tenant_governance.sql`](database/migrations/005_tenant_governance.sql:1).
    - Evidencia: [`database/tests/002_tenant_governance_smoke.sql`](database/tests/002_tenant_governance_smoke.sql:1).
-   - Validación real: [`npm run database:smoke`](package.json:18) contra PostgreSQL 18.
+   - Validación real: [`npm run database:smoke`](package.json:18) contra PostgreSQL 16.
 2. **Completado: Fase 5.2 - Backend de capacidades**
    - Endpoint de capacidades por tenant.
    - Guards backend por módulo.
@@ -94,7 +94,7 @@ Habilitar configuración real por tenant, activación modular y campos personali
 - Proteger todos los cambios con `tenant_id` y RLS.
 - Evidencia: [`database/migrations/005_tenant_governance.sql`](database/migrations/005_tenant_governance.sql:1).
 - Test manual: [`database/tests/002_tenant_governance_smoke.sql`](database/tests/002_tenant_governance_smoke.sql:1).
-- Validación real: `npm run database:smoke` contra PostgreSQL 18.
+- Validación real: `npm run database:smoke` contra PostgreSQL 16.
 
 #### 5.2 - Backend de capacidades y feature flags
 

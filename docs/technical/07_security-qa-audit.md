@@ -57,7 +57,7 @@ Mantener una auditoría continua orientada a prevenir Data Bleeding, corrupción
 - Existe middleware de contexto con `AsyncLocalStorage.run()`.
 - Existe transacción con `SET LOCAL app.current_tenant_id`.
 - Existe SQL base para tenants, usuarios, puestos, órdenes, logs y gobernanza.
-- `npm run database:smoke` pasó contra PostgreSQL 18 en Docker.
+- `npm run database:smoke` pasó contra PostgreSQL 16 en Docker.
 - [`database/tests/001_rls_isolation_smoke.sql`](database/tests/001_rls_isolation_smoke.sql:1) pasó.
 - [`database/tests/002_tenant_governance_smoke.sql`](database/tests/002_tenant_governance_smoke.sql:1) pasó.
 - Grants de `kavana_app` sobre tablas multi-tenant fueron verificados.

@@ -12,7 +12,7 @@ Este directorio contiene skills especializadas para RooCode. Cada skill está di
    - Skill general de arquitectura. Úsala cuando no exista una skill más específica.
 
 2. [`kavana-v3-infra-postgresql-rls-skill.md`](kavana-v3-infra-postgresql-rls-skill.md)
-   - PostgreSQL 18, multi-tenancy, RLS, índices y migraciones.
+   - PostgreSQL 16, multi-tenancy, RLS, índices y migraciones.
 
 3. [`kavana-v3-backend-auth-rls-skill.md`](kavana-v3-backend-auth-rls-skill.md)
    - Backend NestJS/Node.js, JWT, PgBouncer, AsyncLocalStorage y transacciones.

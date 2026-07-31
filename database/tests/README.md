@@ -14,7 +14,7 @@ Use the root script when `psql` is not installed:
 npm run database:smoke
 ```
 
-It applies migrations `000..005`, verifies `kavana_app` grants, and runs both smoke scripts. By default it starts an ephemeral `postgres:18` Docker container. To use an existing PostgreSQL database instead:
+It applies migrations `000..005`, verifies `kavana_app` grants, and runs both smoke scripts. By default it starts an ephemeral `postgres:16` Docker container. To use an existing PostgreSQL database instead:
 
 ```bash
 npm run database:smoke -- --database-url="$DATABASE_URL"

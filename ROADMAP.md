@@ -2,7 +2,7 @@
 
 ## Estado del documento
 
-- **Estado:** Roadmap maestro activo. Unificación completada. Guías de usuario en 8 paneles. Graphify integrado. 185 tests pass.
+- **Estado:** Roadmap maestro activo. Unificación completada. Guías de usuario en 8 paneles. Graphify integrado. 208 tests pass.
 - **Última actualización:** 2026-07-07.
 - **Fase actual:** Hardening — type casting SQL, diagnóstico tsx watch Windows, password hashes.
 
@@ -40,7 +40,7 @@ Proyecto listo para producción. Próximos pasos opcionales:
    - `hard_limits JSONB` separado de cuotas editables.
    - `governance_version` para invalidación de caché.
    - Auditoría de cambios críticos en `tenant_config_audit`.
-   - Validado con `npm run database:smoke` contra PostgreSQL 18 en Docker.
+   - Validado con `npm run database:smoke` contra PostgreSQL 16 en Docker.
 2. **Completado: Fase 5.2 - Backend de capacidades**
    - Endpoint `GET /tenant/capabilities` de lectura de capacidades por tenant.
    - Guard global `@RequireFeature('module_key')` por módulo.
@@ -62,7 +62,7 @@ Proyecto listo para producción. Próximos pasos opcionales:
    - ✅ Tests: `custom-fields-validation.spec.ts` (3) + `custom-fields-governance.spec.ts` (3).
    - ✅ Renderizado dinámico de Custom Fields en `OperatorPanel.tsx` con `mapCustomFieldsToUI`.
    - ✅ Dual Theme: Classic ERP + Moderno Kavana con toggle flotante.
-   - ✅ 138 tests passing.
+   - ✅ 208 tests passing.
    - ✅ Build exitoso.
    - ✅ Tipado fuerte (`ProductionOrder`), selectores Zustand optimizados, renderizado condicional por tipo.
    - ✅ Tests: `customFieldsMapper.spec.ts` (4 tests, 3 escenarios + null safety).
@@ -86,16 +86,16 @@ Proyecto listo para producción. Próximos pasos opcionales:
 - Fase 5.4 (parcial) - Custom fields backend + admin panel.
 - Fase 5.5 - Guías de usuario + Manufacturing Models refactor.
 - Fase 5.6 - Global Theme Toggle (Zustand store centralizado).
-- Fase 6 - QA, seguridad y automatización (168 tests, ESLint, PR checklist).
-- Fase 7 - Módulos premium (OEE, Quality, Cost — 178 tests total).
+- Fase 6 - QA, seguridad y automatización (208 tests, ESLint, PR checklist).
+- Fase 7 - Módulos premium (OEE, Quality, Cost — 208 tests total).
 - Fase 8 - Hardening y portfolio comercial.
-- Fase 9 - Integración real (Quality/Cost dashboards, 178 tests).
-- Fase 10 - Hardening final (179 tests).
-- Fase 11 - Global Admin (CRUD tenants, subdomain login, 179 tests).
-- Fase 12 - Auth + Subdomain Login (JWT HMAC+RS256, TenantContextMiddleware, 180 tests).
-- Fase 13 - Custom Fields Editables (PATCH endpoint, label support, 185 tests).
-- Operator Context - Nombres reales en panel HMI (GET /production/operator/context, workstationName + operatorName, 185 tests).
-- Order Selection - Selección de orden con búsqueda (GET /orders/available, pantalla de selección, 185 tests).
+- Fase 9 - Integración real (Quality/Cost dashboards, 208 tests).
+- Fase 10 - Hardening final (208 tests).
+- Fase 11 - Global Admin (CRUD tenants, subdomain login, 208 tests).
+- Fase 12 - Auth + Subdomain Login (JWT HMAC+RS256, TenantContextMiddleware, 208 tests).
+- Fase 13 - Custom Fields Editables (PATCH endpoint, label support, 208 tests).
+- Operator Context - Nombres reales en panel HMI (GET /production/operator/context, workstationName + operatorName, 208 tests).
+- Order Selection - Selección de orden con búsqueda (GET /orders/available, pantalla de selección, 208 tests).
 - Tests iniciales de transiciones, DTO offline y cola IndexedDB.
 
 ## Roadmap por fases

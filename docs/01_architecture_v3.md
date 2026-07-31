@@ -18,7 +18,7 @@ Kavana Manufacturing is a multi-tenant MES SaaS with:
 
 - React/Vite frontend HMI.
 - NestJS backend API.
-- PostgreSQL 18 with shared-schema multi-tenancy.
+- PostgreSQL 16 with shared-schema multi-tenancy.
 - Row Level Security enforced on multi-tenant tables.
 - Feature flags stored in JSONB.
 - Offline-first operator HMI using IndexedDB/Dexie.js.

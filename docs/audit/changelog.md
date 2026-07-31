@@ -820,7 +820,7 @@ La documentación no se estaba actualizando en tiempo real con los cambios de c�
 
 ### Verificado
 
-- `npm run database:smoke` pasó contra PostgreSQL 18 en Docker.
+- `npm run database:smoke` pasó contra PostgreSQL 16 en Docker.
 - Aplicó migraciones `000..005`.
 - Verificó grants de `kavana_app` sobre tablas multi-tenant.
 - Ejecutó [`database/tests/001_rls_isolation_smoke.sql`](database/tests/001_rls_isolation_smoke.sql:1).
@@ -845,7 +845,7 @@ El riesgo crítico persistente de no poder verificar migración, smoke test ni g
 ### Verificado
 
 - `node database/scripts/run-postgres-smoke.js --tests-only --database-url=postgres://postgres:postgres@127.0.0.1:1/kavana_v3_smoke` falla limpiamente por `ECONNREFUSED`, demostrando que ya no depende de Docker cuando se pasa `--database-url`.
-- Docker Desktop quedó disponible durante la validación final y permitió ejecutar `npm run database:smoke` contra PostgreSQL 18.
+- Docker Desktop quedó disponible durante la validación final y permitió ejecutar `npm run database:smoke` contra PostgreSQL 16.
 
 ### Pendiente
 

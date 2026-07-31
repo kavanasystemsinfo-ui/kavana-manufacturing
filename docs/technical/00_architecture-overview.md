@@ -29,7 +29,7 @@ Kavana Manufacturing se plantea como una plataforma de ejecución de producción
    - Guards de roles y feature flags.
    - Transacciones con `SET LOCAL app.current_tenant_id`.
 
-3. **Base de datos PostgreSQL 18**
+3. **Base de datos PostgreSQL 16**
    - Shared-schema multi-tenant.
    - `tenant_id BIGINT NOT NULL` en toda entidad multi-tenant.
    - PK compuestas `(tenant_id, id)`.
@@ -64,7 +64,7 @@ Implementación existente:
 
 Pendiente de implementación:
 
-- Validación real de migraciones, grants y smoke tests contra PostgreSQL 18 mediante `npm run database:smoke`.
+- Validación real de migraciones, grants y smoke tests contra PostgreSQL 16 mediante `npm run database:smoke`.
 - Backend API con autenticación JWT real/JWKS.
 - Endpoint de capacidades y guards backend por módulo.
 - Caché L1/L2 para `feature_matrix`.
