@@ -33,6 +33,12 @@ export interface DowntimeBreakdown {
   percentage: number;
 }
 
+interface DowntimeRow {
+  downtime_reason: string | null;
+  count: string;
+  total_ms: string;
+}
+
 @Injectable()
 export class OeeService {
   async getOeeSummary(
@@ -171,11 +177,11 @@ export class OeeService {
     );
 
     const totalDowntimeMs = result.rows.reduce(
-      (sum: number, row: any) => sum + Number(row.total_ms),
+      (sum: number, row: DowntimeRow) => sum + Number(row.total_ms),
       0,
     );
 
-    return result.rows.map((row: any) => ({
+    return result.rows.map((row: DowntimeRow) => ({
       reason: row.downtime_reason ?? row.reason,
       count: Number(row.count),
       total_ms: Number(row.total_ms),

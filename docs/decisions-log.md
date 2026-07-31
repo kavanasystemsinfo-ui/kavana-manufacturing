@@ -4,6 +4,71 @@ Este registro documenta las decisiones técnicas clave del proyecto, mostrando l
 
 ---
 
+## 2026-07-21 | Módulo Utillajes — Estimación preventiva de vida útil
+
+**Decisión:** Implementar módulo de utillajes como sistema de estimación preventiva, no de tracking en tiempo real. Ciclos calculados automáticamente según `cycles_per_piece × piezas_producidas`.
+
+**Contexto:** Un MES necesita controlar la vida útil de troqueles, moldes y herramientas. Sin conexión a PLC/IoT, un sistema de tracking en tiempo real no tiene sentido. En su lugar, se implementa como herramienta de estimación: cada utillaje se configura con "ciclos por pieza" y el sistema estima el desgaste basándose en la producción registrada.
+
+**Qué se implementó:**
+- `database/migrations/025_create_toolings.sql` — tabla `toolings` con RLS
+- `database/migrations/026_toolings_estimation.sql` — `cycles_per_piece`, `estimated_pieces`, `workstations.tooling_id`
+- `backend/src/toolings/` — NestJS module completo (controller, service, DTOs, module)
+- Endpoints: CRUD + `POST /:id/produce` (incremento automático) + `GET /workstation/:id`
+- `frontend/AdminPanel.tsx` — ToolingsTab con UI de cards, barra de progreso, estimación en vivo
+- Tipos de utillaje configurables por tenant via `tenants.feature_matrix -> tooling.types`
+
+**Alternativas consideradas:**
+- Tracking en tiempo real con PLC/IoT → Descartada: sin hardware, no tiene sentido
+- Contador manual simple → Descartada: incoherente con el uso real
+- Estimación por ciclos/pieza → **Elegida**: coherente, demuestra lógica de negocio, funciona como demo
+
+**Lección:** Un módulo que no está conectado al hardware real debe ser honesto sobre lo que es. Etiquetarlo como "estimación preventiva" en lugar de "tracking" alinea expectativas y demuestra pensamiento de negocio real.
+
+**Impacto:**
+- Módulo funcional con UX clara (banner azul: "herramienta de estimación preventiva")
+- Configuración por tenant (tipos personalizados)
+- Base para futura integración con PLC real
+
+---
+
+## 2026-07-21 | Tipos de utillaje configurables por tenant
+
+**Decisión:** Los tipos de utillaje (troquel, molde, punzon, etc.) son configurables por cada tenant via `feature_matrix`, no un enum fijo en el código.
+
+**Contexto:** Cada fábrica trabaja con distintos componentes. Un enum fijo en el backend (`troquel | molde | punzon | rodillo | matriz | otro`) no es flexible. Un tenant que fabrica envases de plástico usa "premolde", "molde", "corona"; uno de metal usa "troquel", "corte", "estampa".
+
+**Qué se implementó:**
+- `GET /tenant/tooling-types` — obtiene tipos configurados
+- `PATCH /tenant/tooling-types` — guarda la lista
+- Se almacenan en `tenants.feature_matrix -> tooling.types`
+- AdminPanel: botón "⚙️ Configurar tipos" con UI de chips + input
+- El desplegable del formulario usa los tipos configurados (no hardcoded)
+
+**Alternativas consideradas:**
+- Enum fijo en backend → Descartada: inflexible por tenant
+- Tabla separada `tooling_types` → Descartada: YAGNI, JSONB es suficiente
+- Config en `feature_matrix` → **Elegida**: consistente con patrón existente (supervisor.field_order, ai_config)
+
+**Lección:** Cuando un catalogo es pequeño (<20 items) y varía por tenant, `feature_matrix` JSONB es más simple que una tabla separada. El patrón se repite: supervisor field_order, ai_config, tooling types — todos usan el mismo mecanismo.
+
+**Impacto:**
+- Cada fábrica define sus propios tipos
+- UI consistente con otros módulos de configuración
+- Sin migración adicional (JSONB)
+
+---
+
+## 2026-07-21 | @Inject(ToolingsService) obligatorio bajo tsx watch
+
+**Decisión:** `ToolingsController` requiere `@Inject(ToolingsService)` explícito en el constructor.
+
+**Contexto:** Al crear `ToolingsController` sin `@Inject`, el DI de NestJS fallaba silenciosamente bajo `tsx watch` — `this.service` era `undefined`. Causó `Cannot read properties of undefined (reading 'list')` en runtime. Tercera vez que aparece este patrón (Users, Workstations, Toolings).
+
+**Lección reforzada:** `tsx watch` NO emite `emitDecoratorMetadata`. `@Inject(ServiceClass)` es obligatorio en TODOS los controladores NestJS. Sin excepciones.
+
+---
+
 ## 2026-07-07 | Type casting explícito en queries PostgreSQL
 
 **Decisión:** Todos los parámetros SQL que pasan por el driver `pg` deben tener cast explícito (`$1::bigint`, `$2::uuid`, `$3::varchar`, etc.).
@@ -16,6 +81,51 @@ Este registro documenta las decisiones técnicas clave del proyecto, mostrando l
 - Casts explícitos en SQL → **Elegida**: determinista, portable, independiente de la versión del driver.
 
 **Patrón:** `WHERE tenant_id = $1::bigint AND id = $2::uuid`. En VALUES: `VALUES ($1::bigint, $2::uuid, $3::varchar, ...)`.
+
+---
+
+## 2026-07-21 | Refactor UX Operario: formulario simplificado, tema Kavana
+
+**Decisión:** Se simplificó el formulario del panel operario eliminando los botones Producción/Parada y el campo Motivo de Parada. El operario ahora solo registra hora inicio, hora fin, piezas producidas y mermas. Se eliminaron los campos personalizados editables (solo lectura). Se renombró el tema "Moderno" a "Kavana".
+
+**Contexto:** Los botones de tipo de bloque (producción/parada) no tenían uso real — el operario registra la producción retrospectivamente indicando el rango de tiempo trabajado. El motivo de parada no se usaba. Los campos personalizados editables por el operario causaban confusión. El nombre "Moderno" no era descriptivo de la marca.
+
+**Qué se implementó:**
+- Eliminados botones Producción/Parada y toda la lógica conditional asociada
+- Eliminado campo "Motivo de Parada" y estado `downtimeReason`
+- Eliminada sección editable de Campos Personalizados (ahora solo lectura en "Datos de la orden")
+- Eliminado botón ⚙️ Admin del panel operario
+- Eliminados ThemeToggle flotantes duplicados de App.tsx
+- Renombrado "Moderno" → "Kavana" en el selector de temas
+- Toggle de tema Kavana ahora usa `bg-kavana-dark` con borde `border-kavana-orange`
+- Header del tema Clásico unificado con fondo `bg-kavana-dark`
+- Paneles ampliados a `w-[90%]` con borde naranja
+- HelpModal ampliado y colores índigo → naranja
+- Guía de ayuda del operario actualizada
+
+---
+
+## 2026-07-21 | AI Config por tenant — configuración multi-tenant de proveedores LLM
+
+**Decisión:** Se añadió la columna `ai_config JSONB` a la tabla `tenants` para que cada empresa configure su propio proveedor de IA (Ollama, OpenRouter, OpenAI, NVIDIA, vLLM), API key encriptada con AES-256-GCM y modelo.
+
+**Contexto:** La configuración de IA era global via env vars en el backend. En un SaaS multi-tenant, cada cliente debe:
+- Usar su propia API key (cada empresa paga su consumo)
+- Elegir su proveedor (unos quieren Ollama local gratuito, otros OpenAI premium)
+- No exponer la API key a otros tenants ni al frontend en texto plano
+
+**Qué se implementó:**
+- `database/migrations/024_add_tenant_ai_config.sql` — columna `ai_config JSONB`
+- `ai-advisor/ai-config.service.ts` — encriptación AES-256-GCM, endpoints GET/PATCH
+- `tenant-capabilities.controller.ts` — `GET/PATCH /tenant/ai-config` (requiere role tenant_admin)
+- `ai-advisor.service.ts` — lee config del tenant primero, fallback a env vars
+- `frontend/AdminPanel.tsx` + `ClassicAdminPanel.tsx` — pestaña "IA" con formulario de configuración
+- `frontend/components/AiAdvisorChat.tsx` — chat IA en panel Supervisor con timeout 30s
+
+**Protección de la API key:**
+- Se encripta con AES-256-GCM (iv:encrypted:tag) antes de persistir
+- El GET del frontend devuelve solo `••••••••` + últimos 4 caracteres
+- Si el frontend envía una key que empieza con `••••`, el backend preserva la existente
 
 ---
 
@@ -651,6 +761,12 @@ Este registro documenta las decisiones técnicas clave del proyecto, mostrando l
 | UI condicional | Campos siempre visibles | Renderizado según módulo activo | Si el módulo está desactivado, ni el campo ni la columna aparecen |
 | Operator Context | UUIDs truncados en panel | Nombres reales via COALESCE | HMI industrial SIEMPRE muestra nombres legibles, no IDs internos |
 | Order Selection | Entrada directa sin elegir orden | Pantalla de selección con búsqueda | El operario debe ver y elegir las órdenes de su puesto |
+| Toolings | Enum fijo de tipos | Configurables por tenant en feature_matrix | Catálogos pequeños por tenant → JSONB, no tabla separada |
+| Estimación preventiva | Tracking en tiempo real sin PLC | Estimación por ciclos/pieza | Si no hay hardware real, sé honesto: estimación > tracking ficticio |
+| NestJS DI (tsx)×3 | @Inject() opcional | @Inject() siempre, sin excepción | Tercera vez que falla: el patrón es definitivo |
+| Toolings | Enum fijo de tipos | Configurables por tenant en feature_matrix | Catálogos pequeños por tenant → JSONB, no tabla separada |
+| Estimación preventiva | Tracking en tiempo real sin PLC | Estimación por ciclos/pieza | Si no hay hardware real, sé honesto: estimación > tracking ficticio |
+| NestJS DI (tsx)×3 | @Inject() opcional | @Inject() siempre, sin excepción | Tercera vez que falla: el patrón es definitivo |
 
 ---
 

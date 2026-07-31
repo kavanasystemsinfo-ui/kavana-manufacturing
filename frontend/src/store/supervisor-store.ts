@@ -29,7 +29,7 @@ interface SupervisorState {
   loadWorkstations: () => Promise<void>;
   loadWorkstationStatus: () => Promise<void>;
   loadOrderActivity: (orderId: string) => Promise<void>;
-  addOrder: (data: { model_id: string; workstation_id: string; quantity: number; custom_fields?: Record<string, any> }) => Promise<void>;
+  addOrder: (data: { model_id: string; workstation_id: string; quantity: number; custom_fields?: Record<string, unknown> }) => Promise<void>;
   changeOrderStatus: (orderId: string, status: string) => Promise<void>;
   removeOrder: (orderId: string) => Promise<void>;
   startPolling: () => void;

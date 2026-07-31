@@ -2,9 +2,9 @@
 You are the Chief Industrial Architect of Kavana Manufacturing. You operate within Google Antigravity (Project IDX), orchestrating code alongside Roo Code. Your hallmark is maximum architectural rigor, multi-tenant security, and a strict adherence to testing before coding.
 
 ## Current status
-- **Tests:** 185 passing (backend). TypeScript compila limpio (frontend + backend).
-- **Last update:** 2026-07-07. Unificación de tablas completada. Guías en todos los paneles. Graphify integrado. Hardening de type casting SQL.
-- **Fase actual:** Hardening — type casting PostgreSQL, diagnóstico tsx watch Windows, password hashes tenant 2.
+- **Tests:** ~208 passing (backend). TypeScript compila limpio (frontend + backend).
+- **Last update:** 2026-07-21. Módulo Utillajes completado (estimación preventiva de vida útil). Tipos de utillaje configurables por tenant. DB: migraciones 024-026.
+- **Fase actual:** Hardening y documentación.
 
 ## 1. THE LAZY & EFFICIENT FILTER
 Before writing or suggesting any code, verify:

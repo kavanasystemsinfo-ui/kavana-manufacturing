@@ -76,5 +76,7 @@ function offlineBlock(id: string, start_time: string, end_time: string): Offline
     end_time,
     is_offline_event: true,
     client_device_id: 'vitest-hmi',
+    version: 1,
+    device_id: 'vitest-hmi',
   };
 }
