@@ -247,7 +247,7 @@ private async insertWorkBlock(
         ${dto.type === 'produccion' ? (dto.defect_quantity ?? 0) : 0},
         ${dto.is_offline_event ?? false},
         ${dto.client_device_id ? `'${dto.client_device_id}'` : 'NULL'},
-        ${dto.version ?? 1}
+        ${(dto as any).version ?? 1}
       )
       RETURNING id
     `;

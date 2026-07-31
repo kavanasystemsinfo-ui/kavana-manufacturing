@@ -26,10 +26,13 @@ docs/ai/
 
 ## Próximas sesiones planificadas
 
-- [ ] 4 — Base de datos: índices, RLS, documentar esquema
-- [ ] 5 — Azure Deployment: scripts, CI/CD, infraestructura
-- [ ] 6 — AI Advisor: caché, tests integración, costes
-- [ ] 7 — Documentación y caso de estudio final
+- [ ] 5 — Docker local: docker-compose funcional con backend + frontend + BD + Redis
+- [ ] 6 — AI Advisor: caché, tests integración, optimización de costes
+- [ ] 7 — Documentación y caso de estudio final (CASE_STUDY.md)
+
+## Documentación de referencia
+
+- `reference/AZURE_DEPLOY.md` — Guía de cómo desplegar en Azure (cuando haya presupuesto)
 
 ## Estado actual del proyecto
 

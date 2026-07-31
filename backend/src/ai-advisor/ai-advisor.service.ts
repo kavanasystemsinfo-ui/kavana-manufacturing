@@ -14,16 +14,38 @@ interface ContextBundle {
   workblocks: string;
 }
 
+interface CacheEntry {
+  answer: string;
+  engine: string;
+  contextVersion: ContextVersion;
+  cachedAt: number;
+}
+
 @Injectable()
 export class AiAdvisorService {
   private readonly logger = new Logger(AiAdvisorService.name);
+  private readonly cache = new Map<string, CacheEntry>();
+  private readonly CACHE_TTL_MS = 60_000; // 1 minuto
+
+  private getCacheKey(question: string, contextFilter?: { order_id?: string; workstation_id?: string; model_id?: string }): string {
+    const filterKey = contextFilter ? JSON.stringify(contextFilter) : '';
+    return `${question.toLowerCase().trim()}|${filterKey}`;
+  }
 
   async ask(question: string, contextFilter?: { order_id?: string; workstation_id?: string; model_id?: string }): Promise<{ answer: string; engine: string; contextVersion: ContextVersion }> {
     const ctx = getTenantContext();
     const startTime = Date.now();
 
+    // Cache check: misma pregunta mismo contexto = respuesta en caché
+    const cacheKey = this.getCacheKey(question, contextFilter);
+    const cached = this.cache.get(cacheKey);
+    if (cached && (Date.now() - cached.cachedAt) < this.CACHE_TTL_MS) {
+      this.logger.log(`AI advisor cache hit: ${question.slice(0, 50)}...`);
+      return { answer: cached.answer, engine: `${cached.engine} (cached)`, contextVersion: cached.contextVersion };
+    }
+
     // 1. Gather context from manufacturing data
-    const bundle = await this.gatherContext(ctx.tenantId, contextFilter);
+    const bundle = await this.gatherContext(String(ctx.tenantId), contextFilter);
 
     // 2. Versionar el contexto para trazabilidad
     const contextJSON = JSON.stringify(bundle);
@@ -32,7 +54,7 @@ export class AiAdvisorService {
     const qualityParsed = JSON.parse(bundle.quality);
     const wbParsed = JSON.parse(bundle.workblocks);
     const cv = versionContext(
-      ctx.tenantId,
+      String(ctx.tenantId),
       contextJSON,
       Array.isArray(ordersParsed) ? ordersParsed.length : 0,
       Array.isArray(oeeParsed) ? oeeParsed.length : 0,
@@ -49,6 +71,8 @@ export class AiAdvisorService {
       const latency = Date.now() - startTime;
       const engine = process.env.LLM_PROVIDER || 'openrouter';
       this.logger.log(`AI advisor: ${question.slice(0, 50)}... (${latency}ms, ctx=${cv.hash}, engine=${engine}, tenant ${ctx.tenantId})`);
+      // Almacenar en caché
+      this.cache.set(cacheKey, { answer, engine, contextVersion: cv, cachedAt: Date.now() });
       return { answer, engine, contextVersion: cv };
     } catch (err) {
       this.logger.warn(`AI advisor fallback (LLM error): ${err instanceof Error ? err.message : String(err)}`);
@@ -224,13 +248,13 @@ export class AiAdvisorService {
       model,
       question: prompt.split('=== PREGUNTA DEL OPERARIO ===')[1]?.trim() || prompt.slice(0, 200),
       context_chunks: ctxChunks,
-      tenant_id: ctx.tenantId,
+      tenant_id: String(ctx.tenantId),
       context_version: cv?.hash,
     });
 
     try {
       const { default: openai } = await import('openai');
-      const client = new openai.OpenAI({ apiKey, baseUrl });
+      const client = new openai.OpenAI({ apiKey, baseURL: baseUrl });
 
       const response = await client.chat.completions.create({
         model,

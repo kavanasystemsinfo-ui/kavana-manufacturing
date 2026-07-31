@@ -267,9 +267,9 @@ Este proyecto documenta decisiones arquitectónicas clave para demostrar:
 
 ## Contacto
 
-**Desarrollado por:** Jorge Luis Parra  
+**Desarrollado por:** Jorge Adán Rodríguez  
 **Metodología:** IT Audit Agent (Hermes)  
-**Última actualización:** 2026-07-03
+**Última actualización:** 2026-07-23
 
 ---
 

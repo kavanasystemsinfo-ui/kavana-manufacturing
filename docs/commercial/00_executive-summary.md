@@ -2,8 +2,8 @@
 
 ## Estado del documento
 
-- **Estado:** Portfolio comercial actualizado con módulos premium integrados en UI y 178 tests.
-- **Última actualización:** 2026-07-04.
+- **Estado:** Portfolio profesional actualizado con plataforma AI, 216 tests y contenedorización completa.
+- **Última actualización:** 2026-07-23.
 
 ## Qué es Kavana Manufacturing
 
@@ -31,10 +31,11 @@ Kavana Manufacturing ofrece:
 - **UX industrial:** botones grandes, flujos de 1 o 2 clics y visión de túnel.
 - **Offline-first:** el operario puede seguir trabajando aunque caiga la red.
 - **SaaS multi-tenant:** cada cliente mantiene sus datos completamente aislados.
-- **Modularidad:** módulos premium como OEE, Calidad y Costes se activan según necesidad.
+- **Modularidad:** módulos premium como OEE, Calidad, Costes, Toolings e Incidencias se activan según necesidad.
 - **Cross-sector:** núcleo adaptable a diferentes industrias mediante campos personalizados.
 - **Dual Theme:** sistema de temas que respeta la diversidad de usuarios industriales.
-- **OEE automático:** cálculo de Overall Equipment Effectiveness sin configuración manual.
+- **AI Advisor:** asistente industrial con RAG sobre datos reales de producción, multi-provider.
+- **Observabilidad:** Prometheus + Grafana + OpenTelemetry para monitorización LLM.
 
 ## Diferencial profesional
 
@@ -49,17 +50,20 @@ Un diferencial único en el mercado MES: **dos estilos visuales** que coexisten:
 
 El usuario elige su estilo preferido con un toggle flotante. La preferencia se persiste en localStorage.
 
+### AI Advisor Industrial
+
+Asistente IA contextual que responde preguntas sobre la producción usando datos reales del tenant. Soporta Ollama (local), vLLM, NVIDIA NIM, OpenRouter y OpenAI. Con trazabilidad OpenTelemetry, dashboard Grafana y cost tracking FinOps.
+
 ## Estado actual
 
 El proyecto cuenta con:
-- Documentación maestra y reglas arquitectónicas
-- Backend NestJS con 178 tests passing (OEE, Quality, Cost incluidos)
-- Frontend React con sistema de temas dual + OEE/Quality/Cost dashboards
-- Panel de operario, supervisor y administrador
-- CRUD completo para órdenes, workstations, modelos de fabricación y usuarios
-- Sistema de autenticación JWT con multi-tenant RLS
-- **3 módulos premium funcionales:** OEE (3 endpoints), Quality (3 endpoints), Cost (3 endpoints)
-- **3 dashboards frontend:** OEE (grid workstations), Quality (checks + resumen), Cost (entries + gráfico)
-- **2 tablas DB:** `quality_checks` y `cost_entries` con RLS e índices
-- **Seguridad verificada:** 15 cross-tenant tests, 8 state machine tests, 9 sync integrity tests
-- **Tabs condicionales:** Admin panel muestra solo módulos habilitados por feature flags
+- **216 tests (30 test files)** en verde — TDD estricto desde la refactorización.
+- **13 módulos backend NestJS** con autenticación JWT + RLS multi-tenant.
+- **Frontend React** con sistema de temas dual + dashboards (OEE, Quality, Cost).
+- **Panel de operario, supervisor y administrador** con variantes clásica y moderna.
+- **AI Advisor industrial** con RAG + pgvector + 5 proveedores LLM.
+- **Colas asíncronas** BullMQ + Redis (OEE recalc, report export, ingestión).
+- **Observabilidad** OpenTelemetry + Prometheus + Grafana.
+- **Docker multi-stage** backend/frontend + docker-compose + K8s manifests.
+- **Plataforma AI** con evaluación automática, cost tracking y versionado de embeddings.
+- **Documentación completa:** ADRs, decisions-log, technical docs, commercial portfolio.
