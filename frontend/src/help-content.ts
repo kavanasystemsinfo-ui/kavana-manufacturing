@@ -11,7 +11,7 @@ export const SUPERVISOR_HELP = {
 • Modelo y puesto asignado
 • Barra de progreso (producido / objetivo en %)
 • Estado (Pendiente, En Progreso, Completada, Cancelada)
-• Botones: Iniciar, Completar, Actividad, Eliminar
+• Botones: Registrar, Completar, Actividad, Eliminar
 Haz clic en "Actividad" para expandir la línea de tiempo de bloques de trabajo de la orden.`,
     },
     {
@@ -78,7 +78,7 @@ Estos campos son de solo lectura. Si crees que hay un error, contacta al supervi
     },
     {
       title: 'Botones principales',
-      content: `• Iniciar — Comienza un bloque de trabajo (producción)
+      content: `• Registrar — Comienza un bloque de trabajo (producción)
 • Pausar — Detiene temporalmente (almuerzo, descanso, cambio)
 • Reanudar — Continúa la producción tras pausa
 • Terminar — Finaliza la orden y registra cantidades finales

@@ -60,5 +60,20 @@ export class TenantCapabilitiesController {
 
     return { success: true, message: 'Custom fields schema updated.' };
   }
+
+  @Get('tooling-types')
+  async getToolingTypes() {
+    const context = getTenantContext();
+    return this.capabilities.getToolingTypes(context.tenantId);
+  }
+
+  @Patch('tooling-types')
+  @RequireRole('tenant_admin')
+  @UseGuards(RolesGuard)
+  async saveToolingTypes(@Body('types') types: string[]) {
+    const context = getTenantContext();
+    await this.capabilities.saveToolingTypes(context.tenantId, types);
+    return { success: true };
+  }
 }
 

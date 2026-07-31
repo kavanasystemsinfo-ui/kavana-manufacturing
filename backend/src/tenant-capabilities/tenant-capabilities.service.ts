@@ -14,6 +14,7 @@ const KNOWN_MODULE_KEYS = new Set([
   'oee_monitoring',
   'quality_assurance',
   'cost_management',
+  'materials_management',
 ]);
 
 @Injectable()
@@ -227,6 +228,30 @@ export class TenantCapabilitiesService {
 
   invalidateCache(tenantId: bigint): void {
     invalidateCachedCapabilities(tenantId);
+  }
+
+  async getToolingTypes(tenantId: bigint): Promise<string[]> {
+    const result = await postgresPool.query(
+      `SELECT feature_matrix#>'{tooling,types}' as types FROM tenants WHERE id = $1`,
+      [tenantId.toString()],
+    );
+    if (result.rowCount === 0) return [];
+    return result.rows[0]?.types ?? [];
+  }
+
+  async saveToolingTypes(tenantId: bigint, types: string[]): Promise<void> {
+    await postgresPool.query(
+      `UPDATE tenants
+       SET feature_matrix = jsonb_set(
+             COALESCE(feature_matrix, '{}'::jsonb),
+             '{tooling,types}',
+             $2::jsonb
+           ),
+           updated_at = NOW()
+       WHERE id = $1`,
+      [tenantId.toString(), JSON.stringify(types)],
+    );
+    this.invalidateCache(tenantId);
   }
 }
 
