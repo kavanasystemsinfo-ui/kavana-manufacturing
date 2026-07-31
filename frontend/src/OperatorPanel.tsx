@@ -337,7 +337,8 @@ export function OperatorPanel() {
               )}
       
       {isFailedLogsModalOpen && (
-        <FailedLogsModal
+        <FailedEventsModal
+          isOpen={isFailedLogsModalOpen}
           onClose={() => setIsFailedLogsModalOpen(false)}
           onClearAll={() => {
              useHmiStore.getState().setFailedCount(0);
