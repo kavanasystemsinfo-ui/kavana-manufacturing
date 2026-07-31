@@ -14,6 +14,11 @@ export function getSubdomain(): string | null {
     return hostname.replace('.localhost', '');
   }
 
+  // Vercel preview/ deployment domains → no subdomain
+  if (hostname.endsWith('.vercel.app')) {
+    return null;
+  }
+
   const parts = hostname.split('.');
   if (parts.length >= 3) {
     return parts[0];

@@ -1,0 +1,14 @@
+{
+  "rewrites": [
+    { "source": "/api/(.*)", "destination": "https://kavana-manufacturing-api.onrender.com/$1" },
+    { "source": "/production/(.*)", "destination": "https://kavana-manufacturing-api.onrender.com/production/$1" },
+    { "source": "/tenant/(.*)", "destination": "https://kavana-manufacturing-api.onrender.com/tenant/$1" },
+    { "source": "/oee/(.*)", "destination": "https://kavana-manufacturing-api.onrender.com/oee/$1" },
+    { "source": "/quality/(.*)", "destination": "https://kavana-manufacturing-api.onrender.com/quality/$1" },
+    { "source": "/cost/(.*)", "destination": "https://kavana-manufacturing-api.onrender.com/costs/$1" },
+    { "source": "/health", "destination": "https://kavana-manufacturing-api.onrender.com/health" },
+    { "source": "/ai-advisor/(.*)", "destination": "https://kavana-manufacturing-api.onrender.com/ai-advisor/$1" },
+    { "source": "/global-admin/(.*)", "destination": "https://kavana-manufacturing-api.onrender.com/global-admin/$1" },
+    { "source": "/(.*)", "destination": "/index.html" }
+  ]
+}
