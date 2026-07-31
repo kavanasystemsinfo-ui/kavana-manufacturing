@@ -1,12 +1,12 @@
-import { Injectable, Inject } from '@nestjs/common';
-import { Pool } from 'pg';
+import { Injectable } from '@nestjs/common';
+import { postgresPool } from '../db/postgres.provider.js';
+import { tenantQuery } from '../db/tenant-query.js';
 
 @Injectable()
 export class IncidenciasService {
-  constructor(@Inject('DATABASE_POOL') private readonly pool: Pool) {}
-
   async list(tenantId: bigint) {
-    const res = await this.pool.query(
+    const res = await tenantQuery(
+      postgresPool,
       'SELECT * FROM incidencias WHERE tenant_id = $1 ORDER BY created_at DESC',
       [tenantId]
     );
@@ -14,7 +14,8 @@ export class IncidenciasService {
   }
 
   async getById(tenantId: bigint, id: string) {
-    const res = await this.pool.query(
+    const res = await tenantQuery(
+      postgresPool,
       'SELECT * FROM incidencias WHERE tenant_id = $1 AND id = $2',
       [tenantId, id]
     );
@@ -31,7 +32,8 @@ export class IncidenciasService {
     description?: string;
     assigned_to?: string;
   }) {
-    const res = await this.pool.query(
+    const res = await tenantQuery(
+      postgresPool,
       `INSERT INTO incidencias (tenant_id, workstation_id, order_id, reported_by, type, severity, title, description, assigned_to)
        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9) RETURNING *`,
       [tenantId, data.workstation_id || null, data.order_id || null, data.reported_by, data.type, data.severity, data.title, data.description || null, data.assigned_to || null]
@@ -65,7 +67,8 @@ export class IncidenciasService {
     if (fields.length === 0) return this.getById(tenantId, id);
 
     fields.push('updated_at = NOW()');
-    const res = await this.pool.query(
+    const res = await tenantQuery(
+      postgresPool,
       `UPDATE incidencias SET ${fields.join(', ')} WHERE tenant_id = $1 AND id = $2 RETURNING *`,
       values
     );
@@ -73,14 +76,16 @@ export class IncidenciasService {
   }
 
   async delete(tenantId: bigint, id: string) {
-    await this.pool.query(
+    await tenantQuery(
+      postgresPool,
       'DELETE FROM incidencias WHERE tenant_id = $1 AND id = $2',
       [tenantId, id]
     );
   }
 
   async getStats(tenantId: bigint) {
-    const res = await this.pool.query(
+    const res = await tenantQuery(
+      postgresPool,
       `SELECT
         COUNT(*) as total,
         COUNT(*) FILTER (WHERE status = 'abierto') as abiertas,
