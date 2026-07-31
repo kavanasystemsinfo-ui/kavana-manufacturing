@@ -1,20 +1,22 @@
 # Kavana Manufacturing: Sistema MES SaaS para Manufactura Industrial
 
-**Problema que resuelve:** Las plantas de manufactura pierden $15,000-50,000 por hora de parada por falta de trazabilidad en tiempo real. Los sistemas MES tradicionales son costosos, difíciles de implementar y no funcionan offline.
+**Problema que resuelve:** Las plantas de manufactura pierden tiempo y visibilidad cuando la producción depende de papel, redes inestables y datos que llegan tarde. Los sistemas MES tradicionales son costosos, difíciles de implementar y no funcionan offline.
 
-**Solución:** Kavana Manufacturing es un MES SaaS multi-tenant que ejecuta órdenes de producción en pantallas HMI táctiles, con resiliencia offline-first y precios 80% menores que soluciones tradicionales.
+**Solución:** Kavana Manufacturing es un MES SaaS multi-tenant que ejecuta órdenes de producción en pantallas HMI táctiles, con resiliencia offline-first para que el registro de planta no dependa de la conexión.
 
 ---
 
-## Impacto de Negocio
+## Objetivos de diseño
 
-| Métrica | Kavana Manufacturing | Impacto vs métodos tradicionales |
-|---------|---------------------|----------------------------------|
-| Tiempo de implementación | 2-4 semanas | 90% más rápido |
-| Costo por cliente | $10,000-15,000 | 70-80% más barato |
-| Pérdida de datos offline | Cero | Eliminada |
-| Tasa de error de operadores | 5-8% | 60% menos errores |
-| Certificaciones GMP | Garantizadas | Compliance 100% |
+Cada decisión de arquitectura responde a un problema concreto de planta. No son métricas de cliente (el producto aún no tiene implantación en producción), sino el propósito para el que se diseñó cada pieza:
+
+| Objetivo de diseño | Cómo se aborda |
+|-------------------|----------------|
+| Reducir tiempo de implantación | Arquitectura SaaS multi-tenant: un despliegue sirve a varios clientes |
+| Evitar pérdida de datos en planta | Offline-first: el registro se guarda localmente y sincroniza al recuperar red |
+| Reducir errores del operario | HMI con botones grandes (64px+) para manos con guantes |
+| Aislar los datos de cada cliente | Multi-tenancy con Row Level Security (RLS) en PostgreSQL |
+| Reducir coste de entrada | Arquitectura compartida + feature flags (cada cliente activa solo lo que usa) |
 
 ---
 
@@ -53,7 +55,7 @@
 
 ### 1. Multi-Tenancy con RLS
 **Para qué:** Cada cliente tiene datos aislados en la misma base de datos.
-**Impacto:** Un bug no afecta a otros clientes. Cumplimiento GMP garantizado.
+**Impacto:** Un bug no afecta a otros clientes. El aislamiento se enforce en la base de datos, no solo en código.
 **Decisión:** [ADR-001](docs/adr/001-shared-schema-multi-tenant-rls.md)
 
 ### 2. Feature Flags como JSONB
@@ -63,12 +65,12 @@
 
 ### 3. Offline-First con Dexie.js
 **Para qué:** Operadores nunca pierden datos aunque se caiga la red.
-**Impacto:** Trazabilidad completa 24/7. Cero pérdida de producción.
+**Impacto:** El registro de producción se conserva localmente y se sincroniza al recuperar conexión. Cero pérdida por caída de red.
 **Decisión:** [ADR-003](docs/adr/003-offline-first-dexie.md)
 
 ### 4. UX Tunnel Vision
 **Para qué:** Interfaz grande (64px+) para operadores con guantes industriales.
-**Impacto:** 60% menos errores de operador. Seguridad mejorada.
+**Impacto:** Menos errores de pulsación y adopción más rápida en planta.
 **Decisión:** [ADR-004](docs/adr/004-ux-tunnel-vision.md)
 
 ### 5. Dual Theme (Clásico + Moderno)
@@ -208,6 +210,37 @@ Manifiestos listos para producción: Deployments, Services, PVCs, ServiceMonitor
 
 ---
 
+## Estado del proyecto
+
+Transparencia sobre lo construido y lo pendiente. El objetivo es que quien lea esto pueda verificar cada punto en el repositorio.
+
+### ✅ Implementado y verificable
+- Arquitectura multi-tenant con aislamiento por RLS
+- Backend funcional en NestJS (13 módulos) con autenticación y contexto de tenant
+- Offline-first operativo (Dexie/IndexedDB + sincronización)
+- Pruebas automatizadas (Vitest): ~208 tests en backend
+- ADRs documentados (`docs/adr/`) con alternativas evaluadas
+- Colas asíncronas con BullMQ + Redis
+- Observabilidad: OpenTelemetry + Prometheus; Grafana vía docker-compose
+- Manifiestos de Kubernetes en `k8s/` (Deployments, Services, ServiceMonitor)
+
+### 🚧 En desarrollo / pendiente
+- **Integración con PLC / OPC-UA / Modbus** — aún no conectado a maquinaria real
+- **Implantación en producción piloto** — el producto no tiene clientes en producción todavía
+- **Capturas reales de la interfaz** — los mockups del case study son vista previa de diseño
+- **Trazabilidad documental certificada (ISO 9001 / GMP)** — el registro existe, pero no está auditado ni certificado
+
+---
+
+## Qué construiría después
+
+- Sincronización bidireccional en conflicto (varios operarios editando la misma orden offline)
+- Conectores PLC/OPC-UA para captura automática sin pulsación manual
+- Dashboard de coste en tiempo real por turno, no solo por orden
+- Modo "auditoría" con exportación inmutable para cumplimiento
+
+---
+
 ## Documentación para Portfolio
 
 Este proyecto documenta decisiones arquitectónicas clave para demostrar:
@@ -215,8 +248,8 @@ Este proyecto documenta decisiones arquitectónicas clave para demostrar:
 - **Juicio técnico** — [ADR](docs/adr/) con alternativas evaluadas
 - **Proceso de ingeniería** — TDD estricto, 208 tests
 - **Aprendizaje continuo** — [Decisions Log](docs/decisions-log.md) con lecciones
-- **Enfoque en impacto de negocio** — Métricas de reducción de costos
-- **Trazabilidad** — Commits convencionales, ADRs datados
+- **Enfoque en impacto de negocio** — cada ADR justifica su impacto operativo
+- **Trazabilidad de decisiones** — Commits convencionales, ADRs datados
 
 ### Archivos Clave para Portfolio
 
@@ -240,4 +273,4 @@ Este proyecto documenta decisiones arquitectónicas clave para demostrar:
 
 ---
 
-*Arquitectura de precisión industrial. Cero compromisos en seguridad.*
+*Arquitectura documentada con ADR. Cada decisión, justificada.*
