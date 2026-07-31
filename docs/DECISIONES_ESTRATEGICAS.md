@@ -1,4 +1,4 @@
-# DECISIONES ESTRATÉGICAS - KAVANA V3
+# DECISIONES ESTRATÉGICAS - KAVANA MANUFACTURING
 
 Este documento registra los "por qués" detrás de las decisiones técnicas y arquitectónicas clave del proyecto, garantizando que el equipo entienda la lógica original y no revierta soluciones a problemas ya resueltos.
 

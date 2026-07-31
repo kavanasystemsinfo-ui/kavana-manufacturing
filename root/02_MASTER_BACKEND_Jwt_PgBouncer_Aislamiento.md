@@ -1,7 +1,7 @@
-DOCUMENTO DE INGENIERÍA DE BACKEND: KAVANA V3
-Este documento técnico consolida los estándares críticos para la arquitectura de Kavana V3, centrándose en la seguridad de aislamiento de datos, observabilidad y resiliencia en entornos multi-tenant.
+DOCUMENTO DE INGENIERÍA DE BACKEND: KAVANA MANUFACTURING
+Este documento técnico consolida los estándares críticos para la arquitectura de Kavana Manufacturing, centrándose en la seguridad de aislamiento de datos, observabilidad y resiliencia en entornos multi-tenant.
 1. ARQUITECTURA DE CONEXIONES CON PGBOUNCER
-El uso de PgBouncer en modo Transaction Pooling es obligatorio para escalar Kavana V3, permitiendo manejar miles de conexiones de clientes con un número reducido de procesos en el servidor PostgreSQL. Sin embargo, este modo introduce un riesgo crítico de contaminación cruzada de datos (data bleeding).
+El uso de PgBouncer en modo Transaction Pooling es obligatorio para escalar Kavana Manufacturing, permitiendo manejar miles de conexiones de clientes con un número reducido de procesos en el servidor PostgreSQL. Sin embargo, este modo introduce un riesgo crítico de contaminación cruzada de datos (data bleeding).
 Riesgo Crítico y el Fallo de SET SESSION: En el modo de transacción, PgBouncer asigna una conexión de servidor a un cliente solo durante el ciclo de vida de una transacción SQL (entre BEGIN y COMMIT/ROLLBACK). Si la aplicación utiliza SET SESSION app.current_tenant_id = 'X', este valor se escribe de forma persistente en la memoria GUC (Grand Unified Configuration) del proceso backend de PostgreSQL. Al finalizar la transacción, PgBouncer devuelve la conexión al pool sin borrar este parámetro. Por defecto, server_reset_query (como DISCARD ALL) se omite en el modo de transacción para maximizar el rendimiento, a menos que se configure server_reset_query_always = 1, lo cual es costoso. En consecuencia, un segundo inquilino puede recibir la misma conexión y heredar inadvertidamente el tenant_id del anterior, provocando fugas de datos si se utiliza RLS basado en esa variable.
 Solución Exacta: Aislamiento mediante SET LOCAL: Para garantizar la estanqueidad, la identidad del inquilino debe acotarse estrictamente al marco temporal de la transacción activa. Se debe ejecutar el comando SET LOCAL o la función set_config con el parámetro is_local en true estrictamente dentro de un bloque BEGIN/COMMIT.
 
@@ -9,7 +9,7 @@ Solución Exacta: Aislamiento mediante SET LOCAL: Para garantizar la estanqueida
 
 Este enfoque asegura que el motor de PostgreSQL destruya automáticamente la variable de sesión al completarse la transacción, evitando que el estado "sangre" hacia la siguiente petición que reutilice la conexión física.
 2. FLUJO DE AUTENTICACIÓN, JWT Y ASYNCLOCALSTORAGE
-Kavana V3 utiliza una arquitectura de Defensa en Profundidad. La identidad del inquilino se captura en el perímetro, se propaga asíncronamente en el runtime y se inyecta en la base de datos.
+Kavana Manufacturing utiliza una arquitectura de Defensa en Profundidad. La identidad del inquilino se captura en el perímetro, se propaga asíncronamente en el runtime y se inyecta en la base de datos.
 Captura y Extracción de Contexto:
 
     Captura: El middleware extrae el JWT de la cabecera Authorization: Bearer.

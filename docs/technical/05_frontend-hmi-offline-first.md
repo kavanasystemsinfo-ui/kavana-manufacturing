@@ -1,4 +1,4 @@
-# Kavana V3 - Frontend HMI Offline-First
+# Kavana Manufacturing - Frontend HMI Offline-First
 
 ## Estado del documento
 

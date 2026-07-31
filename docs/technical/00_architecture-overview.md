@@ -1,4 +1,4 @@
-# Kavana V3 - Arquitectura Técnica General
+# Kavana Manufacturing - Arquitectura Técnica General
 
 ## Estado del documento
 
@@ -9,11 +9,11 @@
 
 ## Objetivo
 
-Definir la arquitectura base de Kavana V3 como sistema MES SaaS multi-tenant, modular, offline-first y preparado para escalar como plataforma industrial cross-sector.
+Definir la arquitectura base de Kavana Manufacturing como sistema MES SaaS multi-tenant, modular, offline-first y preparado para escalar como plataforma industrial cross-sector.
 
 ## Visión arquitectónica
 
-Kavana V3 se plantea como una plataforma de ejecución de producción para planta industrial con cuatro capas principales:
+Kavana Manufacturing se plantea como una plataforma de ejecución de producción para planta industrial con cuatro capas principales:
 
 1. **Frontend HMI táctil**
    - React + Tailwind.

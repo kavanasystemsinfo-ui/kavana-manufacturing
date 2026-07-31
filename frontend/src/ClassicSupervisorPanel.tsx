@@ -5,6 +5,7 @@ import { ActivityFeed } from './components/ActivityFeed.js';
 import { WorkstationBoard } from './components/WorkstationBoard.js';
 import { HelpModal } from './components/HelpModal.js';
 import { SUPERVISOR_HELP } from './help-content.js';
+import { formatQuantity } from './utils/formatNumber.js';
 
 const statusColors: Record<string, string> = {
   pending: 'bg-amber-100 text-amber-800 border-amber-300',
@@ -222,7 +223,7 @@ export function ClassicSupervisorPanel() {
                           <div className="mt-2">
                             <div className="flex items-center justify-between text-xs text-slate-500 mb-1">
                               <span>Progreso</span>
-                              <span>{Number(order.produced_quantity)} / {order.quantity} ({pct}%)</span>
+                              <span>{formatQuantity(order.produced_quantity)} / {formatQuantity(order.quantity)} ({pct}%)</span>
                             </div>
                             <div className="h-2 rounded-full bg-slate-100 overflow-hidden">
                               <div
@@ -233,7 +234,7 @@ export function ClassicSupervisorPanel() {
                               />
                             </div>
                             {Number(order.defect_quantity) > 0 && (
-                              <p className="mt-1 text-xs text-red-600">Defectos: {order.defect_quantity}</p>
+                              <p className="mt-1 text-xs text-red-600">Defectos: {formatQuantity(order.defect_quantity)}</p>
                             )}
                           </div>
                         </div>

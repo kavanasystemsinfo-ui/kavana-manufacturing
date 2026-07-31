@@ -1,4 +1,4 @@
-Este manual técnico constituye la especificación de ingeniería definitiva para el motor de aislamiento de Kavana V3, fundamentado en el análisis exhaustivo de las fuentes técnicas y la documentación interna del motor PostgreSQL 18.
+Este manual técnico constituye la especificación de ingeniería definitiva para el motor de aislamiento de Kavana Manufacturing, fundamentado en el análisis exhaustivo de las fuentes técnicas y la documentación interna del motor PostgreSQL 18.
 1. ARQUITECTURA DE ESQUEMA COMPARTIDO (SHARED-SCHEMA)
 La arquitectura de esquema compartido es el modelo de multi-tenencia donde todos los inquilinos coexisten en una única base de datos lógica, compartiendo tablas y relaciones, diferenciados únicamente por una columna de aislamiento, típicamente tenant_id.
 
@@ -12,7 +12,7 @@ La arquitectura de esquema compartido es el modelo de multi-tenencia donde todos
         Presión de Vacuum: Las operaciones masivas de DELETE o UPDATE generan una acumulación de tuplas muertas (bloat) que afecta el rendimiento global de la tabla compartida.
 
 2. IMPLEMENTACIÓN PASO A PASO DE RLS
-Para Kavana V3, el aislamiento debe ser Fail-Closed (cerrado por defecto): si no hay un inquilino definido, el sistema debe devolver cero filas en lugar de todas.
+Para Kavana Manufacturing, el aislamiento debe ser Fail-Closed (cerrado por defecto): si no hay un inquilino definido, el sistema debe devolver cero filas en lugar de todas.
 Paso A: Definición de la Infraestructura de Inquilinos
 Se recomienda el uso de BIGINT para el tenant_id por ser más compacto y rápido de comparar que identificadores de texto.
 
@@ -72,7 +72,7 @@ El motor de RLS de Postgres actúa como un Query Rewriter, inyectando automátic
 La adopción de RLS introduce una penalización latente en el tiempo de planificación y puede invalidar índices existentes si no se estructuran correctamente.
 
     La Regla de la Columna Líder: Todo índice en una tabla RLS debe comenzar con la columna de aislamiento (tenant_id). Un índice sobre (id) forzará un Sequential Scan masivo porque Postgres necesita filtrar primero por tenant_id para garantizar la seguridad.
-    Estructura de Clave Primaria para Kavana V3:
+    Estructura de Clave Primaria para Kavana Manufacturing:
         Patrón A (Prioridad del Inquilino): PRIMARY KEY (tenant_id, id). Es la estructura óptima. Mejora las lecturas en un 1.7x y las eliminaciones en cascada hasta 57x comparado con índices simples, al permitir búsquedas directas en el árbol B-Tree que satisfacen tanto la seguridad como la búsqueda de entidad.
     Forzar Index-Only Scans: Utilizando la cláusula INCLUDE, se pueden crear índices de cobertura que eliminen los "Heap Fetches" (lecturas de disco al montón de datos).
 

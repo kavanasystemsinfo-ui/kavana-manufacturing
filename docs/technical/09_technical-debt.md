@@ -1,4 +1,4 @@
-# Kavana V3 - Deuda Técnica y Brechas Detectadas
+# Kavana Manufacturing - Deuda Técnica y Brechas Detectadas
 
 ## Estado del documento
 

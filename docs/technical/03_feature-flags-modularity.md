@@ -1,4 +1,4 @@
-# Kavana V3 - Modularidad y Feature Flags JSONB
+# Kavana Manufacturing - Modularidad y Feature Flags JSONB
 
 ## Estado del documento
 
@@ -8,7 +8,7 @@
 
 ## Objetivo
 
-Definir el sistema de modularidad de Kavana V3 mediante `feature_matrix` JSONB.
+Definir el sistema de modularidad de Kavana Manufacturing mediante `feature_matrix` JSONB.
 
 ## Estándar obligatorio
 

@@ -45,7 +45,7 @@ export class OeeService {
     // Get workstation name
     const wsResult = await postgresPool.query(
       `SELECT name FROM workstations WHERE tenant_id = $1 AND id = $2`,
-      [context.tenantId, workstationId],
+      [String(context.tenantId), workstationId],
     );
     const wsName = wsResult.rows[0]?.name ?? 'Unknown';
 
@@ -56,7 +56,7 @@ export class OeeService {
        WHERE tenant_id = $1 AND workstation_id = $2
          AND start_time >= $3 AND end_time <= $4
        ORDER BY start_time ASC`,
-      [context.tenantId, workstationId, startDate, endDate],
+      [String(context.tenantId), workstationId, startDate, endDate],
     );
 
     const blocks = blocksResult.rows;
@@ -90,7 +90,7 @@ export class OeeService {
        JOIN manufacturing_models mm ON po.tenant_id = mm.tenant_id AND po.code = mm.name
        WHERE po.tenant_id = $1 AND po.workstation_id = $2
        LIMIT 1`,
-      [context.tenantId, workstationId],
+      [String(context.tenantId), workstationId],
     );
     const targetRate = Number(modelResult.rows[0]?.target_rate ?? 0);
 
@@ -131,7 +131,7 @@ export class OeeService {
        FROM workstations w
        WHERE w.tenant_id = $1 AND w.status = 'active'
        ORDER BY w.name`,
-      [context.tenantId],
+      [String(context.tenantId)],
     );
 
     const summaries: OeeByWorkstation[] = [];
@@ -167,7 +167,7 @@ export class OeeService {
          AND downtime_reason IS NOT NULL
        GROUP BY downtime_reason
        ORDER BY total_ms DESC`,
-      [context.tenantId, workstationId, startDate, endDate],
+      [String(context.tenantId), workstationId, startDate, endDate],
     );
 
     const totalDowntimeMs = result.rows.reduce(

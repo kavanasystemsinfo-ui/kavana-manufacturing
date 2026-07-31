@@ -1,4 +1,4 @@
-# Kavana V3 - Architecture Decision Records
+# Kavana Manufacturing - Architecture Decision Records
 
 ## Estado del documento
 

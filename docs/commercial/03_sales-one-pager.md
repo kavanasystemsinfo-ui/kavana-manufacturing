@@ -1,11 +1,11 @@
-# Kavana V3 - Sales One Pager
+# Kavana Manufacturing - Sales One Pager
 
 ## Estado del documento
 
 - **Estado:** Documento comercial actualizado con módulos premium integrados en UI.
 - **Última actualización:** 2026-07-04.
 
-## Kavana V3
+## Kavana Manufacturing
 
 **MES SaaS táctil, offline-first y multi-tenant para producción industrial.**
 
@@ -15,7 +15,7 @@ Las plantas industriales necesitan capturar producción de forma rápida, fiable
 
 ## Solución
 
-Kavana V3 ofrece una interfaz de planta simple, con botones grandes, flujos de 1 o 2 clics y persistencia local de eventos. El operario puede iniciar, pausar, reanudar y finalizar órdenes incluso sin conexión. **Además, ofrece un sistema de temas dual que respeta la diversidad de usuarios industriales.**
+Kavana Manufacturing ofrece una interfaz de planta simple, con botones grandes, flujos de 1 o 2 clics y persistencia local de eventos. El operario puede iniciar, pausar, reanudar y finalizar órdenes incluso sin conexión. **Además, ofrece un sistema de temas dual que respeta la diversidad de usuarios industriales.**
 
 ## Beneficios
 
@@ -63,4 +63,4 @@ Kavana V3 ofrece una interfaz de planta simple, con botones grandes, flujos de 1
 
 ## Mensaje final
 
-Kavana V3 está diseñado para llevar la captura de producción industrial al siguiente nivel: simple para el operario, seguro para el negocio, escalable para el proveedor SaaS — **y con módulos premium que cada cliente activa según necesite**.
+Kavana Manufacturing está diseñado para llevar la captura de producción industrial al siguiente nivel: simple para el operario, seguro para el negocio, escalable para el proveedor SaaS — **y con módulos premium que cada cliente activa según necesite**.

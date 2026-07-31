@@ -1,14 +1,14 @@
-# Kavana V3 - Lecciones de la extracción V2 / Junio 2026
+# Kavana Manufacturing - Lecciones de la extracción V2 / Junio 2026
 
 ## Estado del documento
 
 - **Estado:** Auditoría de referencia actualizada con sistema de temas dual, guías de usuario, y OEE como módulo opcional, unificación completada, type casting hardening, Graphify integrado.
 - **Última actualización:** 2026-07-07.
-- **Fuente analizada:** [`KAVANA V3 JUNIO 2026/`](KAVANA%20V3%20JUNIO%202026/README.md:1).
+- **Fuente analizada:** [`KAVANA MANUFACTURING JUNIO 2026/`](KAVANA%20V3%20JUNIO%202026/README.md:1).
 
 ## Conclusión ejecutiva
 
-La carpeta `KAVANA V3 JUNIO 2026` **sí sirve como referencia**, pero no debe usarse como plano de implementación directo.
+La carpeta `KAVANA MANUFACTURING JUNIO 2026` **sí sirve como referencia**, pero no debe usarse como plano de implementación directo.
 
 Su valor principal está en la **inteligencia de negocio heredada de V2**: trazabilidad, inventario FIFO, costes, modelos de fabricación, UX industrial y decisiones estratégicas.
 
@@ -40,11 +40,11 @@ Su riesgo principal es repetir el fallo anterior: construir demasiado completo d
 
 Documentos que sí conviene mantener como referencia:
 
-- [`KAVANA V3 JUNIO 2026/AUDITORIA_TECNICA_SENIOR_KAVANA_V3.md`](KAVANA%20V3%20JUNIO%202026/AUDITORIA_TECNICA_SENIOR_KAVANA_V3.md:1)
-- [`KAVANA V3 JUNIO 2026/DOMAIN_KNOWLEDGE_MAP.md`](KAVANA%20V3%20JUNIO%202026/DOMAIN_KNOWLEDGE_MAP.md:1)
-- [`KAVANA V3 JUNIO 2026/REUSABLE_ASSETS.md`](KAVANA%20V3%20JUNIO%202026/REUSABLE_ASSETS.md:1)
-- [`KAVANA V3 JUNIO 2026/MIGRATION_PLAYBOOK.md`](KAVANA%20V3%20JUNIO%202026/MIGRATION_PLAYBOOK.md:1)
-- [`KAVANA V3 JUNIO 2026/IMPLEMENTATION_PLAN.md`](KAVANA%20V3%20JUNIO%202026/IMPLEMENTATION_PLAN.md:1)
+- [`KAVANA MANUFACTURING JUNIO 2026/AUDITORIA_TECNICA_SENIOR_KAVANA_V3.md`](KAVANA%20V3%20JUNIO%202026/AUDITORIA_TECNICA_SENIOR_KAVANA_V3.md:1)
+- [`KAVANA MANUFACTURING JUNIO 2026/DOMAIN_KNOWLEDGE_MAP.md`](KAVANA%20V3%20JUNIO%202026/DOMAIN_KNOWLEDGE_MAP.md:1)
+- [`KAVANA MANUFACTURING JUNIO 2026/REUSABLE_ASSETS.md`](KAVANA%20V3%20JUNIO%202026/REUSABLE_ASSETS.md:1)
+- [`KAVANA MANUFACTURING JUNIO 2026/MIGRATION_PLAYBOOK.md`](KAVANA%20V3%20JUNIO%202026/MIGRATION_PLAYBOOK.md:1)
+- [`KAVANA MANUFACTURING JUNIO 2026/IMPLEMENTATION_PLAN.md`](KAVANA%20V3%20JUNIO%202026/IMPLEMENTATION_PLAN.md:1)
 
 ## Activos que sí deben rescatarse como conocimiento
 
@@ -118,7 +118,7 @@ El plan anterior intentaba avanzar simultáneamente en:
 
 **Lección V3:** el MVP inicial debe ser mínimo: tenant, usuario, puesto, orden, evento de producción y HMI offline.
 
-### 5. Stack anterior no alineado con la arquitectura Kavana V3 actual
+### 5. Stack anterior no alineado con la arquitectura Kavana Manufacturing actual
 
 La extracción anterior usaba principalmente:
 

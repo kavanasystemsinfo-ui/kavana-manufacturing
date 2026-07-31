@@ -1,4 +1,4 @@
-# Configuración Cursor para KAVANA V3
+# Configuración Cursor para KAVANA MANUFACTURING
 
 Este proyecto incluye reglas Cursor en `.cursor/rules/` para obligar al agente a consultar la base de conocimiento antes de actuar.
 
@@ -12,7 +12,7 @@ Este proyecto incluye reglas Cursor en `.cursor/rules/` para obligar al agente a
 
 Antes de pedir una tarea al agente:
 
-1. Abrir el proyecto `KAVANA V3 JUNIO 2026`.
+1. Abrir el proyecto `KAVANA MANUFACTURING JUNIO 2026`.
 2. Pedir que consulte `AGENTS.md`, `DOMAIN_KNOWLEDGE_MAP.md`, `REUSABLE_ASSETS.md` y `MIGRATION_PLAYBOOK.md`.
 3. Para tareas críticas, pedir explícitamente que siga `MIGRATION_PLAYBOOK.md`.
 4. Para tareas con documentos Notebook, pedir que actualice el índice de conocimiento.

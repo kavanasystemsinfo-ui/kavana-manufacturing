@@ -13,7 +13,7 @@ async function bootstrap() {
   await connectMongo();
 
   server.listen(PORT, () => {
-    logger.info({ port: PORT, env: process.env.NODE_ENV }, 'KAVANA V3 API listening');
+    logger.info({ port: PORT, env: process.env.NODE_ENV }, 'KAVANA MANUFACTURING API listening');
   });
 }
 

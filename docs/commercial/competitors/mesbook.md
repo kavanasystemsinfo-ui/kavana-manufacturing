@@ -16,7 +16,7 @@ Pendiente de completar con fuentes públicas verificables.
 - Trazabilidad.
 - Indicadores de productividad.
 - Dolor de usuarios.
-- Diferenciadores frente a Kavana V3.
+- Diferenciadores frente a Kavana Manufacturing.
 
 ## Regla
 

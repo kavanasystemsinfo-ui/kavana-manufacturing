@@ -1,6 +1,6 @@
-# Mapa de conocimiento de dominios KAVANA V3
+# Mapa de conocimiento de dominios KAVANA MANUFACTURING
 
-Este documento resume los dominios de negocio que debe conocer cualquier agente IA antes de escribir código en KAVANA V3.
+Este documento resume los dominios de negocio que debe conocer cualquier agente IA antes de escribir código en KAVANA MANUFACTURING.
 
 ## 1. Tenant
 

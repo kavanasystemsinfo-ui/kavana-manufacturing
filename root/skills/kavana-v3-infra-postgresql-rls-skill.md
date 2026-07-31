@@ -1,8 +1,8 @@
-# Skill: Kavana V3 - Infra PostgreSQL, Multi-Tenancy y RLS
+# Skill: Kavana Manufacturing - Infra PostgreSQL, Multi-Tenancy y RLS
 
 ## Propósito
 
-Usa esta skill para diseñar, revisar o corregir migraciones SQL, modelos de datos, índices, políticas RLS y configuración de PostgreSQL 18 para Kavana V3.
+Usa esta skill para diseñar, revisar o corregir migraciones SQL, modelos de datos, índices, políticas RLS y configuración de PostgreSQL 18 para Kavana Manufacturing.
 
 ## Fuente maestra
 

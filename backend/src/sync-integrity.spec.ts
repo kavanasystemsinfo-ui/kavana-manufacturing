@@ -161,7 +161,7 @@ describe('Offline Sync Integrity — syncWorkBlock', () => {
       expect(result.synced).toBe(true);
 
       const overlapCall = mockedClient.query.mock.calls.find(c => (c[0] as string).includes('OVERLAPS'));
-      expect(overlapCall?.[1]).toContain(1n);
+      expect(overlapCall?.[1]).toContain('1');
     });
 
     it('rejects sync when order does not exist', async () => {

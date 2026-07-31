@@ -1,10 +1,10 @@
-# Skill: Kavana V3 - Documentación, Auditoría y Portfolio Comercial
+# Skill: Kavana Manufacturing - Documentación, Auditoría y Portfolio Comercial
 
 ## Propósito
 
 Usar esta skill cuando el usuario escriba el comando especial `$d`.
 
-El comando `$d` activa la función de **documentar y auditar continuamente** el proyecto Kavana V3. No debe interpretarse como una petición genérica de documentación, sino como una orden de actualización controlada del registro técnico, arquitectónico, comercial y de auditoría del proyecto.
+El comando `$d` activa la función de **documentar y auditar continuamente** el proyecto Kavana Manufacturing. No debe interpretarse como una petición genérica de documentación, sino como una orden de actualización controlada del registro técnico, arquitectónico, comercial y de auditoría del proyecto.
 
 ## Cuándo activarla
 
@@ -32,7 +32,7 @@ Al recibir `$d`, ejecutar el siguiente flujo:
 2. **Auditar el estado actual**
    - Revisar estructura de carpetas.
    - Identificar archivos nuevos, eliminados o modificados si el usuario aporta contexto o si el entorno lo permite.
-   - Detectar inconsistencias entre código, SQL, documentación y reglas Kavana V3.
+   - Detectar inconsistencias entre código, SQL, documentación y reglas Kavana Manufacturing.
    - Verificar cumplimiento de:
      - `tenant_id` obligatorio.
      - RLS activado y forzado.
@@ -155,7 +155,7 @@ docs/
 
 - Escribir en español.
 - Usar tono orientado a negocio, cliente y portfolio profesional.
-- Explicar Kavana V3 como una solución MES SaaS moderna.
+- Explicar Kavana Manufacturing como una solución MES SaaS moderna.
 - Destacar beneficios medibles:
   - Reducción de fricción operativa.
   - Aislamiento de datos entre clientes.
@@ -181,5 +181,5 @@ docs/
 
 ## Resultado esperado
 
-Cada ejecución de `$d` debe dejar el proyecto con una documentación más completa, trazable y alineada con los estándares de una gran consultora IT, manteniendo además un portfolio comercial profesional que pueda utilizarse para presentar Kavana V3 a clientes o inversores. Además, debe revisar el roadmap maestro para confirmar que el trabajo avanza en el orden correcto.
+Cada ejecución de `$d` debe dejar el proyecto con una documentación más completa, trazable y alineada con los estándares de una gran consultora IT, manteniendo además un portfolio comercial profesional que pueda utilizarse para presentar Kavana Manufacturing a clientes o inversores. Además, debe revisar el roadmap maestro para confirmar que el trabajo avanza en el orden correcto.
 

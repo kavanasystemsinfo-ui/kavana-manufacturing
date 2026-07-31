@@ -1,6 +1,6 @@
 # ESPECIFICACIÓN TÉCNICA: ARQUITECTURA DE AUTENTICACIÓN, GOBERNANZA DE ROLES Y CONTROL DE ACCESOS
 
-Esta especificación técnica consolida el diseño y la implementación del sistema de control de accesos basado en roles (RBAC) y el aislamiento de identidades para Kavana V3. El sistema opera bajo una estrategia de Defensa en Profundidad, combinando validaciones criptográficas perimetrales en el backend con políticas de seguridad a nivel de fila (RLS) en la base de datos.
+Esta especificación técnica consolida el diseño y la implementación del sistema de control de accesos basado en roles (RBAC) y el aislamiento de identidades para Kavana Manufacturing. El sistema opera bajo una estrategia de Defensa en Profundidad, combinando validaciones criptográficas perimetrales en el backend con políticas de seguridad a nivel de fila (RLS) en la base de datos.
 
 ---
 
@@ -54,7 +54,7 @@ CREATE POLICY user_isolation_policy ON users
 
 2. JERARQUÍA DE ROLES Y FRONTERAS TÉCNICAS
 
-El sistema de Kavana V3 delimita los accesos en cuatro niveles operativos, aislando por completo la administración de la plataforma del flujo transaccional de los inquilinos.
+El sistema de Kavana Manufacturing delimita los accesos en cuatro niveles operativos, aislando por completo la administración de la plataforma del flujo transaccional de los inquilinos.
 Rol	Entorno Operativo	Responsabilidad Técnico Principal	Restricción de Datos
 Super Admin	Consola SaaS Externa	Aprovisionamiento de inquilinos, facturación y gobernanza global del JSONB de características.	Fuera de RLS: No posee registro en la tabla users local de ningún inquilino.
 Tenant Admin	Panel de Control Cliente	Altas/Bajas de personal, asignación de roles internos, configuración de infraestructura de planta (Puestos de Trabajo).	Acotado estrictamente a su tenant_id por RLS. No puede alterar límites duros del JSONB.

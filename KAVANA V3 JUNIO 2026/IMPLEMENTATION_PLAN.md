@@ -1,4 +1,4 @@
-# Plan de implementación KAVANA V3
+# Plan de implementación KAVANA MANUFACTURING
 
 ## Fase 1 - Base técnica
 

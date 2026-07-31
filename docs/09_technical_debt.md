@@ -2,7 +2,7 @@
 
 ## Purpose
 
-This root-level document gives Roo Code a compact list of known risks, technical debt, and forbidden breakages while automating Kavana V3.
+This root-level document gives Roo Code a compact list of known risks, technical debt, and forbidden breakages while automating Kavana Manufacturing.
 
 Canonical detailed source: [`docs/technical/09_technical-debt.md`](technical/09_technical-debt.md:1).
 

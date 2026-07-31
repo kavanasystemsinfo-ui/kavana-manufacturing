@@ -5,6 +5,11 @@ export function getSubdomain(): string | null {
     return null;
   }
 
+  // IP address → no subdomain
+  if (/^\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}$/.test(hostname)) {
+    return null;
+  }
+
   if (hostname.endsWith('.localhost')) {
     return hostname.replace('.localhost', '');
   }

@@ -31,7 +31,7 @@ export function Login() {
         className="w-full max-w-md rounded-sm border border-white/10 bg-slate-950 p-8 shadow-2xl"
       >
         <h1 className="text-3xl font-black uppercase tracking-widest text-kavana-copper">
-          KAVANA V3
+          KAVANA MANUFACTURING
         </h1>
         <p className="mt-2 text-sm font-bold uppercase tracking-wide text-slate-400">
           MES industrial modular

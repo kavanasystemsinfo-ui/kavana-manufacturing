@@ -1,4 +1,4 @@
-# Skill: Kavana V3 - Backend, JWT, PgBouncer y RLS
+# Skill: Kavana Manufacturing - Backend, JWT, PgBouncer y RLS
 
 ## Propósito
 

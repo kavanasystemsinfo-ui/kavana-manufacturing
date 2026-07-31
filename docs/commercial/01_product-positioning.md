@@ -1,4 +1,4 @@
-# Kavana V3 - Posicionamiento de Producto
+# Kavana Manufacturing - Posicionamiento de Producto
 
 ## Estado del documento
 
@@ -7,7 +7,7 @@
 
 ## Posicionamiento
 
-Kavana V3 se posiciona como un **MES SaaS táctil, offline-first y multi-tenant para plantas industriales que necesitan simplicidad operativa sin renunciar a seguridad y trazabilidad**.
+Kavana Manufacturing se posiciona como un **MES SaaS táctil, offline-first y multi-tenant para plantas industriales que necesitan simplicidad operativa sin renunciar a seguridad y trazabilidad**.
 
 ## Público objetivo
 
@@ -32,7 +32,7 @@ Kavana V3 se posiciona como un **MES SaaS táctil, offline-first y multi-tenant 
 
 ## Mensaje comercial principal
 
-**Kavana V3 convierte la captura de producción industrial en una experiencia táctil, rápida y fiable, diseñada para operar incluso cuando la red de planta falla — con un sistema de temas que respeta la diversidad de usuarios industriales.**
+**Kavana Manufacturing convierte la captura de producción industrial en una experiencia táctil, rápida y fiable, diseñada para operar incluso cuando la red de planta falla — con un sistema de temas que respeta la diversidad de usuarios industriales.**
 
 ## Pilares de venta
 

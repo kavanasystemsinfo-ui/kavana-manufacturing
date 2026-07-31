@@ -12,7 +12,7 @@ export class ManufacturingModelsService {
         `INSERT INTO manufacturing_models (tenant_id, name, unit_of_measure, target_rate, workstation_id)
          VALUES (get_current_tenant(), $1, $2, $3, $4)
          RETURNING id, name, unit_of_measure, target_rate, workstation_id, created_at, updated_at`,
-        [dto.name, dto.unit_of_measure ?? null, dto.target_rate ?? null, dto.workstation_id ?? null],
+        [dto.name, dto.unit_of_measure ?? 'piezas/h', dto.target_rate ?? null, dto.workstation_id ?? null],
       );
       return result.rows[0];
     } catch (error) {

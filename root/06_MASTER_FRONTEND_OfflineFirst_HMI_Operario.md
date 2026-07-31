@@ -5,7 +5,7 @@ Markdown
 
 # ESPECIFICACIÓN TÉCNICA: MOTOR OFFLINE-FIRST Y ARQUITECTURA DE INTERFAZ TÁCTIL (HMI PLANTA)
 
-Esta especificación técnica define la arquitectura del lado del cliente para el Panel de Operario (HMI Planta) de Kavana V3. El sistema garantiza una latencia de respuesta inmediata (<100ms) y resiliencia absoluta ante caídas críticas de la red Wi-Fi industrial mediante un almacén local persistente estructurado como una cola FIFO (*First-In, First-Out*).
+Esta especificación técnica define la arquitectura del lado del cliente para el Panel de Operario (HMI Planta) de Kavana Manufacturing. El sistema garantiza una latencia de respuesta inmediata (<100ms) y resiliencia absoluta ante caídas críticas de la red Wi-Fi industrial mediante un almacén local persistente estructurado como una cola FIFO (*First-In, First-Out*).
 
 ---
 

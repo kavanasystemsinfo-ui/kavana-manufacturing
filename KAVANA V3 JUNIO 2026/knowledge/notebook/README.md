@@ -1,6 +1,6 @@
 # Documentos NotebookLM
 
-Guarda aquí los documentos técnicos generados con NotebookLM que deban usarse como contexto para KAVANA V3.
+Guarda aquí los documentos técnicos generados con NotebookLM que deban usarse como contexto para KAVANA MANUFACTURING.
 
 ## Regla
 

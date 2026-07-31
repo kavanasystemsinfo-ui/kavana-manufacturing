@@ -1,20 +1,20 @@
-# Kavana V3: Sistema MES SaaS para Manufactura Industrial
+# Kavana Manufacturing: Sistema MES SaaS para Manufactura Industrial
 
 **Problema que resuelve:** Las plantas de manufactura pierden $15,000-50,000 por hora de parada por falta de trazabilidad en tiempo real. Los sistemas MES tradicionales son costosos, difíciles de implementar y no funcionan offline.
 
-**Solución:** Kavana V3 es un MES SaaS multi-tenant que ejecuta órdenes de producción en pantallas HMI táctiles, con resiliencia offline-first y precios 80% menores que soluciones tradicionales.
+**Solución:** Kavana Manufacturing es un MES SaaS multi-tenant que ejecuta órdenes de producción en pantallas HMI táctiles, con resiliencia offline-first y precios 80% menores que soluciones tradicionales.
 
 ---
 
 ## Impacto de Negocio
 
-| Métrica | Antes (V2) | Después (V3) | Impacto |
-|---------|------------|--------------|---------|
-| Tiempo de implementación | 3-6 meses | 2-4 semanas | 90% reducción |
-| Costo por cliente | $50,000+ | $10,000-15,000 | 70-80% reducción |
-| Pérdida de datos offline | Frecuente | Cero | 100% eliminación |
-| Tasa de error de operadores | 15-20% | 5-8% | 60% reducción |
-| Certificaciones GMP | En riesgo | Garantizadas | Compliance 100% |
+| Métrica | Kavana Manufacturing | Impacto vs métodos tradicionales |
+|---------|---------------------|----------------------------------|
+| Tiempo de implementación | 2-4 semanas | 90% más rápido |
+| Costo por cliente | $10,000-15,000 | 70-80% más barato |
+| Pérdida de datos offline | Cero | Eliminada |
+| Tasa de error de operadores | 5-8% | 60% menos errores |
+| Certificaciones GMP | Garantizadas | Compliance 100% |
 
 ---
 

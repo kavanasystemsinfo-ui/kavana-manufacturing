@@ -1,0 +1,118 @@
+{
+  "annotations": {
+    "list": [{ "builtIn": 1, "datasource": { "type": "datasource", "uid": "grafana" }, "enable": true, "hide": true, "iconColor": "rgba(0, 211, 255, 1)", "name": "Annotations & Alerts", "type": "dashboard" }]
+  },
+  "description": "Monitorización de prompts LLM — AI Advisor de Kavana Manufacturing. Latencia, tokens, tasa de éxito por proveedor y modelo.",
+  "editable": true,
+  "fiscalYearStartMonth": 0,
+  "graphTooltip": 0,
+  "id": null,
+  "links": [],
+  "panels": [
+    {
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "fieldConfig": {
+        "defaults": {
+          "mappings": [],
+          "thresholds": { "mode": "absolute", "steps": [{ "color": "green", "value": null }, { "color": "red", "value": 5000 }] },
+          "unit": "ms"
+        }
+      },
+      "gridPos": { "h": 9, "w": 12, "x": 0, "y": 0 },
+      "id": 1,
+      "options": { "orientation": "auto", "reduceOptions": { "values": false, "calcs": ["mean"] }, "showThresholdLabels": false, "showThresholdMarkers": true },
+      "title": "Latencia media de prompts (ms) — por provider/modelo",
+      "targets": [{ "expr": "rate(llm_prompt_latency_ms_sum[5m]) / rate(llm_prompt_latency_ms_count[5m])", "legendFormat": "{{provider}} / {{model}}" }],
+      "type": "timeseries"
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "fieldConfig": {
+        "defaults": {
+          "mappings": [],
+          "thresholds": { "mode": "absolute", "steps": [{ "color": "green", "value": null }] },
+          "unit": "tok"
+        }
+      },
+      "gridPos": { "h": 9, "w": 6, "x": 12, "y": 0 },
+      "id": 2,
+      "options": { "orientation": "auto", "reduceOptions": { "values": false, "calcs": ["sum"] }, "showThresholdLabels": false, "showThresholdMarkers": true },
+      "title": "Tokens de entrada (acumulado)",
+      "targets": [{ "expr": "llm_prompt_tokens_in_total", "legendFormat": "{{provider}} / {{model}}" }],
+      "type": "timeseries"
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "fieldConfig": {
+        "defaults": {
+          "mappings": [],
+          "thresholds": { "mode": "absolute", "steps": [{ "color": "green", "value": null }] },
+          "unit": "tok"
+        }
+      },
+      "gridPos": { "h": 9, "w": 6, "x": 18, "y": 0 },
+      "id": 3,
+      "options": { "orientation": "auto", "reduceOptions": { "values": false, "calcs": ["sum"] }, "showThresholdLabels": false, "showThresholdMarkers": true },
+      "title": "Tokens de salida (acumulado)",
+      "targets": [{ "expr": "llm_prompt_tokens_out_total", "legendFormat": "{{provider}} / {{model}}" }],
+      "type": "timeseries"
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "fieldConfig": {
+        "defaults": {
+          "mappings": [{ "options": { "ok": { "color": "green", "text": "OK" }, "error": { "color": "red", "text": "ERROR" } }, "type": "value" }],
+          "thresholds": { "mode": "absolute", "steps": [{ "color": "green", "value": null }] }
+        }
+      },
+      "gridPos": { "h": 8, "w": 8, "x": 0, "y": 9 },
+      "id": 4,
+      "options": { "displayMode": "gradient", "orientation": "auto", "reduceOptions": { "values": false, "calcs": ["sum"] }, "showUnfilled": true },
+      "title": "Prompts por status (OK vs Error)",
+      "targets": [{ "expr": "llm_prompt_status_total", "legendFormat": "{{provider}} — {{status}}" }],
+      "type": "bargauge"
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "fieldConfig": {
+        "defaults": {
+          "mappings": [],
+          "thresholds": { "mode": "absolute", "steps": [{ "color": "green", "value": null }, { "color": "red", "value": 1 }] },
+          "unit": "cpm"
+        }
+      },
+      "gridPos": { "h": 8, "w": 8, "x": 8, "y": 9 },
+      "id": 5,
+      "options": { "orientation": "auto", "reduceOptions": { "values": false, "calcs": ["lastNotNull"] }, "showThresholdLabels": false, "showThresholdMarkers": true },
+      "title": "Tasa de errores por minuto",
+      "targets": [{ "expr": "rate(llm_prompt_status_total{status=\"error\"}[1m])", "legendFormat": "{{provider}}" }],
+      "type": "stat"
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "fieldConfig": {
+        "defaults": {
+          "mappings": [],
+          "thresholds": { "mode": "absolute", "steps": [{ "color": "blue", "value": null }] },
+          "unit": "reqps"
+        }
+      },
+      "gridPos": { "h": 8, "w": 8, "x": 16, "y": 9 },
+      "id": 6,
+      "options": { "orientation": "auto", "reduceOptions": { "values": false, "calcs": ["lastNotNull"] }, "showThresholdLabels": false, "showThresholdMarkers": true },
+      "title": "Prompts por segundo",
+      "targets": [{ "expr": "rate(llm_prompt_status_total[1m])", "legendFormat": "{{provider}}" }],
+      "type": "stat"
+    }
+  ],
+  "refresh": "30s",
+  "schemaVersion": 39,
+  "tags": ["kavana", "llm", "ai", "manufacturing"],
+  "templating": { "list": [] },
+  "time": { "from": "now-1h", "to": "now" },
+  "timepicker": {},
+  "timezone": "browser",
+  "title": "Kavana Manufacturing — AI Advisor (LLM Prompts)",
+  "uid": "kavana-llm-prompts",
+  "version": 1
+}

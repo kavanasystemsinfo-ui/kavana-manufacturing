@@ -1,4 +1,4 @@
-# Kavana V3 - Roadmap Maestro de Construcción
+# Kavana Manufacturing - Roadmap Maestro de Construcción
 
 ## Estado del documento
 
@@ -8,11 +8,11 @@
 
 ## Propósito
 
-Este documento define el orden real de construcción de Kavana V3. Sirve como guía operativa para avanzar paso a paso, evitando construir frontend, módulos premium o pantallas comerciales antes de tener una base segura multi-tenant.
+Este documento define el orden real de construcción de Kavana Manufacturing. Sirve como guía operativa para avanzar paso a paso, evitando construir frontend, módulos premium o pantallas comerciales antes de tener una base segura multi-tenant.
 
 ## Principio rector
 
-Kavana V3 se construirá desde la seguridad hacia la experiencia:
+Kavana Manufacturing se construirá desde la seguridad hacia la experiencia:
 
 1. Aislamiento de datos.
 2. Backend seguro.
@@ -428,7 +428,7 @@ Permitir configuración real por cliente y activación modular de funcionalidade
 
 ### Objetivo
 
-Convertir las reglas Kavana V3 en controles automatizados.
+Convertir las reglas Kavana Manufacturing en controles automatizados.
 
 ### Entregables técnicos
 
@@ -547,7 +547,7 @@ Excepción: se puede trabajar en documentación comercial o arquitectura de una 
 
 ## Guardrails heredados de V2
 
-La carpeta [`KAVANA V3 JUNIO 2026/`](KAVANA%20V3%20JUNIO%202026/README.md:1) se usará como referencia de conocimiento, no como plano de implementación.
+La carpeta [`KAVANA MANUFACTURING JUNIO 2026/`](KAVANA%20V3%20JUNIO%202026/README.md:1) se usará como referencia de conocimiento, no como plano de implementación.
 
 Reglas derivadas:
 

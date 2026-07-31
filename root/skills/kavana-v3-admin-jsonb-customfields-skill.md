@@ -1,4 +1,4 @@
-# Skill: Kavana V3 - Admin, Gobernanza JSONB y Custom Fields
+# Skill: Kavana Manufacturing - Admin, Gobernanza JSONB y Custom Fields
 
 ## Propósito
 

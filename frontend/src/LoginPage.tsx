@@ -167,7 +167,7 @@ export function LoginPage({ onLogin }: LoginPageProps) {
         </div>
 
         <div className={`p-4 text-center text-xs ${isClassic ? 'text-gray-400 border-t border-gray-100' : 'text-gray-500 border-t border-gray-700'}`}>
-          &copy; 2026 KAVANA SYSTEMS v3.0
+          &copy; 2026 KAVANA MANUFACTURING v1.0
         </div>
       </div>
     </div>

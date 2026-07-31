@@ -1,4 +1,4 @@
-# Kavana V3 - Backend, Autenticación y Contexto de Tenant
+# Kavana Manufacturing - Backend, Autenticación y Contexto de Tenant
 
 ## Estado del documento
 

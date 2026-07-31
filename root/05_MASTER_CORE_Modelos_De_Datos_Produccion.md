@@ -1,6 +1,6 @@
 # ESPECIFICACIÓN TÉCNICA: CORE DE PRODUCCIÓN (WORKSTATIONS, PRODUCTION ORDERS Y MÁQUINA DE ESTADOS)
 
-Esta especificación técnica define el diseño de persistencia y la lógica transaccional para el núcleo del sistema MES (Manufacturing Execution System) de Kavana V3. El modelo de datos está estructurado bajo una abstracción intersectorial (*Cross-Sector*) y garantiza un aislamiento de datos hermético mediante claves primarias compuestas alineadas con las políticas de Row Level Security (RLS).
+Esta especificación técnica define el diseño de persistencia y la lógica transaccional para el núcleo del sistema MES (Manufacturing Execution System) de Kavana Manufacturing. El modelo de datos está estructurado bajo una abstracción intersectorial (*Cross-Sector*) y garantiza un aislamiento de datos hermético mediante claves primarias compuestas alineadas con las políticas de Row Level Security (RLS).
 
 ---
 

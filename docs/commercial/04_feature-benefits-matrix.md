@@ -1,4 +1,4 @@
-# Kavana V3 - Matriz Funcionalidad / Beneficio
+# Kavana Manufacturing - Matriz Funcionalidad / Beneficio
 
 ## Estado del documento
 

@@ -5,6 +5,7 @@ import { ActivityFeed } from './components/ActivityFeed.js';
 import { WorkstationBoard } from './components/WorkstationBoard.js';
 import { HelpModal } from './components/HelpModal.js';
 import { SUPERVISOR_HELP } from './help-content.js';
+import { formatQuantity } from './utils/formatNumber.js';
 
 const statusColors: Record<string, string> = {
   pending: 'bg-yellow-500/20 text-yellow-300 ring-yellow-500/40',
@@ -104,7 +105,7 @@ export function SupervisorPanel() {
       <section className="mx-auto max-w-6xl rounded-[2rem] border border-kavana-steel/30 bg-kavana-panel/90 p-4 shadow-kavana-glow md:p-8">
         <header className="mb-8 flex flex-col gap-5 border-b border-kavana-steel/30 pb-6 md:flex-row md:items-center md:justify-between">
           <div>
-            <p className="text-sm font-bold uppercase tracking-[0.32em] text-kavana-orange-light">Kavana V3</p>
+            <p className="text-sm font-bold uppercase tracking-[0.32em] text-kavana-orange-light">Kavana Manufacturing</p>
             <h1 className="mt-2 text-3xl font-black tracking-tight text-white md:text-5xl">Panel Supervisor</h1>
           </div>
 
@@ -290,7 +291,7 @@ export function SupervisorPanel() {
                           <div className="mt-3">
                             <div className="flex items-center justify-between text-xs text-slate-400 mb-1">
                               <span>Progreso</span>
-                              <span>{Number(order.produced_quantity)} / {order.quantity} ({pct}%)</span>
+                              <span>{formatQuantity(order.produced_quantity)} / {formatQuantity(order.quantity)} ({pct}%)</span>
                             </div>
                             <div className="h-2 rounded-full bg-kavana-dark overflow-hidden">
                               <div
@@ -301,7 +302,7 @@ export function SupervisorPanel() {
                               />
                             </div>
                             {Number(order.defect_quantity) > 0 && (
-                              <p className="mt-1 text-xs text-rose-400">Defectos: {order.defect_quantity}</p>
+                              <p className="mt-1 text-xs text-rose-400">Defectos: {formatQuantity(order.defect_quantity)}</p>
                             )}
                           </div>
                         </div>

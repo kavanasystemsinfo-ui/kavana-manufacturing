@@ -1,4 +1,4 @@
-# Kavana V3 - Auditoría Multi-Tenancy y RLS
+# Kavana Manufacturing - Auditoría Multi-Tenancy y RLS
 
 ## Estado del documento
 

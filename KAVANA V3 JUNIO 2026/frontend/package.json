@@ -1,6 +1,6 @@
 {
   "name": "kavana-v3-frontend",
-  "version": "3.0.0-alpha",
+  "version": "1.0.0",
   "private": true,
   "type": "module",
   "scripts": {

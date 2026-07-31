@@ -98,11 +98,26 @@ function getTenantContextFromToken(): { tenantId: string; userId: string; role: 
 }
 
 function generateClientEventId() {
-  if (typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function') {
-    return crypto.randomUUID();
-  }
+  // Generar UUID v4 compatible con cualquier navegador
+  const hex = '0123456789abcdef';
+  const uuid = 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, (c) => {
+    const r = Math.random() * 16 | 0;
+    return c === 'x' ? hex[r] : hex[(r & 0x3) | 0x8];
+  });
+  return uuid;
+}
 
-  return `offline-${Date.now()}-${Math.random().toString(16).slice(2)}`;
+function getDeviceId(): string {
+  try {
+    let deviceId = localStorage.getItem('kavana_device_id');
+    if (!deviceId) {
+      deviceId = `device-${Date.now()}-${Math.random().toString(36).slice(2, 10)}`;
+      localStorage.setItem('kavana_device_id', deviceId);
+    }
+    return deviceId;
+  } catch {
+    return `device-${Date.now()}`;
+  }
 }
 
 async function loadQueueCounters() {
@@ -293,6 +308,8 @@ export const useHmiStore = create<HmiState>()((set, get) => ({
       defect_quantity: defectQuantity,
       is_offline_event: !state.isOnline,
       client_device_id: typeof navigator !== 'undefined' ? navigator.userAgent : 'unknown-device',
+      version: 1,                            // NUEVO: versión inicial
+      device_id: getDeviceId(),               // NUEVO: ID único del dispositivo
     };
 
     try {
@@ -351,6 +368,8 @@ export async function triggerSyncEngine() {
           defect_quantity: failedBlock.defect_quantity,
           is_offline_event: failedBlock.is_offline_event,
           client_device_id: failedBlock.client_device_id,
+          version: failedBlock.version ?? 1,
+          device_id: failedBlock.device_id ?? 'unknown',
           error: error instanceof Error ? error.message : String(error),
         });
         await localDb.offlineBlocks.delete(failedBlock.id);

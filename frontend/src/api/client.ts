@@ -1,4 +1,4 @@
-const API_TIMEOUT_MS = 4000;
+const API_TIMEOUT_MS = 15000;
 
 export async function callApiWithTimeout<T>(url: string, options: RequestInit = {}): Promise<T> {
   const controller = new AbortController();

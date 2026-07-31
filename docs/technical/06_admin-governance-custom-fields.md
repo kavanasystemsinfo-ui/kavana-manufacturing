@@ -1,4 +1,4 @@
-# Kavana V3 - Gobernanza JSONB y Custom Fields
+# Kavana Manufacturing - Gobernanza JSONB y Custom Fields
 
 ## Estado del documento
 

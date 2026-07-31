@@ -1,6 +1,6 @@
 # tools-ai / NotebookLM Bridge V3
 
-`tools-ai/` es una herramienta interna para orquestar Roo Code con Google NotebookLM mediante CDP y Playwright. No forma parte del backend, frontend ni database de Kavana V3.
+`tools-ai/` es una herramienta interna para orquestar Roo Code con Google NotebookLM mediante CDP y Playwright. No forma parte del backend, frontend ni database de Kavana Manufacturing.
 
 ## Archivos
 
@@ -44,7 +44,7 @@ El flujo V3 reutiliza un cuaderno permanente de NotebookLM. No crea cuadernos ni
    ```
 
 2. En la ventana nueva de Chrome, inicia sesión manualmente con la cuenta de Google que usará NotebookLM.
-3. Abre NotebookLM y confirma que el cuaderno permanente de Kavana V3 está disponible.
+3. Abre NotebookLM y confirma que el cuaderno permanente de Kavana Manufacturing está disponible.
 4. El script ya tiene configurado por defecto este cuaderno: `https://notebooklm.google.com/notebook/a8ef67a8-896b-463e-a522-eaae826b3b79`.
 
 ## Parámetros útiles
@@ -78,7 +78,7 @@ Opciones principales:
   --source-mode website ^
   --research-mode fast ^
   --artifact chat ^
-  --chat-prompt "Resume riesgos y decisiones de arquitectura para usar PgBouncer en Kavana V3 con multi-tenancy, RLS y tenant_id."
+  --chat-prompt "Resume riesgos y decisiones de arquitectura para usar PgBouncer en Kavana Manufacturing con multi-tenancy, RLS y tenant_id."
 ```
 
 Revisa el Markdown generado en la carpeta que el script imprima al finalizar. Por defecto:
@@ -101,7 +101,7 @@ Usa `--research-mode deep` solo cuando el problema sea abierto, abstracto o requ
 .venv\Scripts\python notebook_bridge.py ^
   --notebook-url "https://notebooklm.google.com/notebook/a8ef67a8-896b-463e-a522-eaae826b3b79" ^
   --artifact audio ^
-  --audio-prompt "Genera una guia de audio enfocada en multi-tenancy, RLS con tenant_id, PgBouncer, HMI offline-first y seguridad industrial de Kavana V3."
+  --audio-prompt "Genera una guia de audio enfocada en multi-tenancy, RLS con tenant_id, PgBouncer, HMI offline-first y seguridad industrial de Kavana Manufacturing."
 ```
 
 ## Ejemplo 3: limpieza de fuentes temporales

@@ -42,7 +42,7 @@ flowchart TD
     H --> I[Parada obligatoria: Roo Code presenta plan y espera confirmacion]
     I --> J{Desarrollador confirma procede}
     J -->|No| K[No se modifica codigo]
-    J -->|Si| L[Implementacion local en Kavana V3]
+    J -->|Si| L[Implementacion local en Kavana Manufacturing]
     L --> M[Desarrollador ejecuta --clean-temp-sources]
     M --> N[Limpieza de fuentes temporales]
     N --> O[Cuaderno permanente vuelve a estado base]

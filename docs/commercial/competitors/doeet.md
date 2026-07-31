@@ -16,7 +16,7 @@ Pendiente de completar con fuentes públicas verificables.
 - Seguimiento de órdenes.
 - Integración con ERP.
 - Dolor de usuarios.
-- Diferenciadores frente a Kavana V3.
+- Diferenciadores frente a Kavana Manufacturing.
 
 ## Regla
 

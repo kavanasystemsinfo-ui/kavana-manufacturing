@@ -4,7 +4,7 @@ Este archivo existe para que agentes de código como Cursor, Codex u otros pueda
 
 ## Objetivo
 
-KAVANA V3 no debe copiar ciegamente V2. Debe usar V2 como base de conocimiento validada.
+KAVANA MANUFACTURING no debe copiar ciegamente V2. Debe usar V2 como base de conocimiento validada.
 
 Regla principal:
 

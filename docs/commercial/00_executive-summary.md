@@ -1,13 +1,13 @@
-# Kavana V3 - Resumen Ejecutivo
+# Kavana Manufacturing - Resumen Ejecutivo
 
 ## Estado del documento
 
 - **Estado:** Portfolio comercial actualizado con módulos premium integrados en UI y 178 tests.
 - **Última actualización:** 2026-07-04.
 
-## Qué es Kavana V3
+## Qué es Kavana Manufacturing
 
-Kavana V3 es una plataforma MES SaaS diseñada para digitalizar la ejecución de producción industrial con una experiencia táctil simple, segura y resistente a caídas de red.
+Kavana Manufacturing es una plataforma MES SaaS diseñada para digitalizar la ejecución de producción industrial con una experiencia táctil simple, segura y resistente a caídas de red.
 
 Su objetivo es reemplazar procesos manuales, hojas de cálculo y sistemas rígidos por una aplicación moderna de planta que permita a operarios, supervisores y administradores trabajar con flujos rápidos, datos fiables y control multi-tenant.
 
@@ -25,7 +25,7 @@ Muchas plantas industriales necesitan registrar producción en tiempo real, pero
 
 ## Propuesta de valor
 
-Kavana V3 ofrece:
+Kavana Manufacturing ofrece:
 
 - **MES moderno:** gestión de órdenes, puestos, tiempos y estados.
 - **UX industrial:** botones grandes, flujos de 1 o 2 clics y visión de túnel.
@@ -38,7 +38,7 @@ Kavana V3 ofrece:
 
 ## Diferencial profesional
 
-Kavana V3 no es solo una aplicación de producción. Es un proyecto arquitectónicamente diseñado con estándares de seguridad, escalabilidad y experiencia de usuario industrial.
+Kavana Manufacturing no es solo una aplicación de producción. Es un proyecto arquitectónicamente diseñado con estándares de seguridad, escalabilidad y experiencia de usuario industrial.
 
 ### Dual Theme: GTA San Andreas + GTA 5
 

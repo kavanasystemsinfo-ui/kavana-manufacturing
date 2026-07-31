@@ -185,7 +185,7 @@ export function OperatorPanel() {
           <header className="mb-6 flex items-center gap-4 border-b border-kavana-steel/30 pb-6">
             <img src={logo} alt="Logo Kavana" className="h-14 w-14 rounded-2xl bg-kavana-surface object-cover p-2 ring-1 ring-kavana-orange/40" />
             <div>
-              <p className="text-sm font-bold uppercase tracking-[0.32em] text-kavana-orange-light">Kavana V3 HMI</p>
+              <p className="text-sm font-bold uppercase tracking-[0.32em] text-kavana-orange-light">Kavana Manufacturing HMI</p>
               <h1 className="mt-1 text-2xl font-black tracking-tight text-white md:text-3xl">Seleccionar Orden</h1>
             </div>
           </header>
@@ -268,7 +268,7 @@ export function OperatorPanel() {
               className="h-16 w-16 rounded-2xl bg-kavana-surface object-cover p-2 ring-1 ring-kavana-orange/40"
             />
             <div>
-              <p className="text-sm font-bold uppercase tracking-[0.32em] text-kavana-orange-light">Kavana V3 HMI</p>
+              <p className="text-sm font-bold uppercase tracking-[0.32em] text-kavana-orange-light">Kavana Manufacturing HMI</p>
               <h1 className="mt-2 text-3xl font-black tracking-tight text-white md:text-5xl">Panel de Operario</h1>
             </div>
           </div>

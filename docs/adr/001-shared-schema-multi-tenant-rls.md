@@ -3,7 +3,7 @@
 **Status:** Aceptada  
 **Fecha:** 2025-08  
 **Decisor:** Jorge Luis Parra (Consultor IT / Arquitecto)  
-**Contexto:** Primera fase de Kavana V3 — migración de estructura monolítica a SaaS multi-tenant  
+**Contexto:** Primera fase de Kavana Manufacturing — migración de estructura monolítica a SaaS multi-tenant  
 **Última actualización:** 2026-07-04
 
 ---

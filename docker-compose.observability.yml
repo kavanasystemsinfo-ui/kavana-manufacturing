@@ -1,0 +1,48 @@
+# =============================================================================
+# Stack de observabilidad — Kavana Manufacturing
+#
+# Levanta Prometheus + Grafana listos para monitorizar el backend.
+# El backend expone /metrics en :9464 vía OpenTelemetry PrometheusExporter.
+#
+# Uso:
+#   METRICS_PORT=9464 docker compose -f docker-compose.yml -f docker-compose.observability.yml up -d
+# =============================================================================
+
+version: '3.8'
+
+services:
+  prometheus:
+    image: prom/prometheus:v3.2.0
+    container_name: kavana-prometheus
+    ports:
+      - '9090:9090'
+    volumes:
+      - ./observability/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - prometheus_data:/prometheus
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--storage.tsdb.retention.time=30d'
+      - '--web.enable-lifecycle'
+    restart: unless-stopped
+    extra_hosts:
+      - 'host.docker.internal:host-gateway'
+
+  grafana:
+    image: grafana/grafana:11.6.0
+    container_name: kavana-grafana
+    ports:
+      - '3000:3000'
+    environment:
+      - GF_SECURITY_ADMIN_USER=${GRAFANA_USER:-admin}
+      - GF_SECURITY_ADMIN_PASSWORD=${GRAFANA_PASSWORD:-kavana2026}
+      - GF_INSTALL_PLUGINS=grafana-clock-panel
+    volumes:
+      - ./observability/grafana/dashboards:/etc/grafana/provisioning/dashboards:ro
+      - ./observability/grafana/datasources:/etc/grafana/provisioning/datasources:ro
+      - grafana_data:/var/lib/grafana
+    restart: unless-stopped
+
+volumes:
+  prometheus_data:
+  grafana_data:

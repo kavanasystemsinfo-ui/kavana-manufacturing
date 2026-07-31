@@ -31,7 +31,7 @@ export class QualityService {
       `INSERT INTO quality_checks (tenant_id, order_id, workstation_id, inspector_id, result, defect_count, defect_type, notes)
        VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
        RETURNING id, order_id, workstation_id, inspector_id, result, defect_count, defect_type, notes, checked_at`,
-      [context.tenantId, orderId, workstationId, context.userId, result, defectCount, defectType ?? null, notes ?? null],
+      [String(context.tenantId), orderId, workstationId, context.userId, result, defectCount, defectType ?? null, notes ?? null],
     );
     return r.rows[0];
   }
@@ -43,7 +43,7 @@ export class QualityService {
        FROM quality_checks
        WHERE tenant_id = $1 AND order_id = $2
        ORDER BY checked_at DESC`,
-      [context.tenantId, orderId],
+      [String(context.tenantId), orderId],
     );
     return r.rows;
   }
@@ -59,7 +59,7 @@ export class QualityService {
          COALESCE(SUM(defect_count), 0)::int as total_defects
        FROM quality_checks
        WHERE tenant_id = $1 AND order_id = $2`,
-      [context.tenantId, orderId],
+      [String(context.tenantId), orderId],
     );
     const row = r.rows[0];
     return {

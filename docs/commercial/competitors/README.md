@@ -23,7 +23,7 @@ Esta carpeta está reservada para fuentes de análisis competitivo que deben sin
 
 ## Objetivo del análisis
 
-Cruzar la información del "enemigo" con la arquitectura de Kavana V3 para identificar diferenciadores estratégicos:
+Cruzar la información del "enemigo" con la arquitectura de Kavana Manufacturing para identificar diferenciadores estratégicos:
 
 1. Fricción cero.
 2. IA reactiva.

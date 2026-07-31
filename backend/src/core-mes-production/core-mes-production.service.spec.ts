@@ -98,6 +98,6 @@ describe('CoreMesProductionService - syncWorkBlock', () => {
     const lockOrderCall = mockedClient.query.mock.calls.find(c => (c[0] as string).includes('FOR UPDATE'));
     expect(lockOrderCall).toBeDefined();
     const overlapCall = mockedClient.query.mock.calls.find(c => (c[0] as string).includes('OVERLAPS'));
-    expect(overlapCall?.[1]).toContain(10n);
+    expect(overlapCall?.[1]).toContain('10');
   });
 });

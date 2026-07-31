@@ -1,6 +1,6 @@
 # ESPECIFICACIÓN TÉCNICA: SISTEMA DE CONTROL DE INQUILINOS Y MATRIZ DE CARACTERÍSTICAS (FEATURE FLAGS JSONB)
 
-Esta especificación técnica detalla el diseño y la implementación del sistema de control de inquilinos y la matriz de características para Kavana V3, utilizando PostgreSQL JSONB como motor de persistencia principal para garantizar flexibilidad sin sacrificar el rendimiento transaccional.
+Esta especificación técnica detalla el diseño y la implementación del sistema de control de inquilinos y la matriz de características para Kavana Manufacturing, utilizando PostgreSQL JSONB como motor de persistencia principal para garantizar flexibilidad sin sacrificar el rendimiento transaccional.
 
 ---
 
@@ -76,7 +76,7 @@ Consideraciones de diseño:
 
 2. INDEXACIÓN Y RENDIMIENTO DE JSONB EN POSTGRESQL
 
-Para Kavana V3, la estrategia de indexación se divide según el tipo de acceso requerido: búsquedas de contención global o filtros de rutas específicas.
+Para Kavana Manufacturing, la estrategia de indexación se divide según el tipo de acceso requerido: búsquedas de contención global o filtros de rutas específicas.
 Operadores de Rutas Lógicas
 
     ->: Extrae un objeto JSON o elemento de array.
@@ -99,7 +99,7 @@ CREATE INDEX idx_feature_matrix_default ON tenants USING GIN (feature_matrix);
 
     Desventaja: Mayor tamaño en disco y mayor sobrecarga en escrituras (INSERT/UPDATE).
 
-B. GIN con jsonb_path_ops (Recomendado para Kavana V3)
+B. GIN con jsonb_path_ops (Recomendado para Kavana Manufacturing)
 
 Crea una firma hash para cada ruta completa hasta el valor.
 SQL
@@ -123,7 +123,7 @@ CREATE INDEX idx_max_users ON tenants (((feature_matrix->'resource_quotas'->'com
 Este índice permite al planificador de consultas resolver validaciones de límites en milisegundos mediante un escaneo B-Tree tradicional.
 3. INTERCEPTACIÓN Y CACHÉ DEL CONTEXTO MODULAR
 
-Para evitar latencias y saturación de la base de datos, Kavana V3 implementa un patrón de Inversión de Decisión y Evaluación Local.
+Para evitar latencias y saturación de la base de datos, Kavana Manufacturing implementa un patrón de Inversión de Decisión y Evaluación Local.
 Lado del Servidor: Middleware e Interceptores en NestJS/Node.js
 
 La arquitectura se basa en un Guard (Guardia) de NestJS que actúa como un "Gatekeeper". Este componente extrae la identidad del inquilino del JWT, resuelve la matriz de características (priorizando la caché distribuida) y valida el acceso antes de que el controlador procese la petición.
@@ -325,4 +325,4 @@ En el frontend, el mayor riesgo es el UI Flashing (parpadeo o renderizado incorr
 
     Inversión de Decisión en UI: Los componentes visuales no deben preguntar directamente por "flags", sino recibir capacidades específicas. Se utiliza un patrón FeatureAwareFactory o un Contexto global que envuelve la aplicación, permitiendo que componentes premium como <PremiumDashboard /> o módulos de OEE/Costes se rendericen u oculten de forma 100% determinista basándose en la matriz inyectada.
 
-Este enfoque híbrido e integrado garantiza que Kavana V3 mantenga una latencia de evaluación de características inferior a 1 ms, eliminando llamadas de red innecesarias y protegiendo la integridad física de PostgreSQL.
+Este enfoque híbrido e integrado garantiza que Kavana Manufacturing mantenga una latencia de evaluación de características inferior a 1 ms, eliminando llamadas de red innecesarias y protegiendo la integridad física de PostgreSQL.
