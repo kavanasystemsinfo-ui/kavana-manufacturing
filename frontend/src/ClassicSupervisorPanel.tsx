@@ -9,7 +9,7 @@ import { formatQuantity } from './utils/formatNumber.js';
 
 const statusColors: Record<string, string> = {
   pending: 'bg-amber-100 text-amber-800 border-amber-300',
-  in_progress: 'bg-blue-100 text-blue-800 border-blue-300',
+  in_progress: 'bg-orange-100 text-orange-800 border-orange-300',
   completed: 'bg-green-100 text-green-800 border-green-300',
   cancelled: 'bg-slate-100 text-slate-600 border-slate-300',
 };
@@ -98,21 +98,22 @@ export function ClassicSupervisorPanel() {
 
   return (
     <div className="min-h-screen bg-slate-50 text-slate-900">
-      <header className="border-b border-slate-200 bg-white shadow-sm">
-        <div className="mx-auto max-w-7xl px-4 py-3 sm:px-6 lg:px-8">
+      <header className="bg-kavana-dark text-white shadow-md">
+        <div className="px-4 py-3 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-blue-600 text-white font-bold text-sm">KV</div>
+              <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-white text-kavana-dark font-bold text-sm">KV</div>
               <div>
-                <h1 className="text-lg font-semibold text-slate-900">Panel de Supervisión</h1>
-                <p className="text-xs text-slate-500">{new Date().toLocaleDateString('es-ES', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}</p>
+                <p className="text-xs font-bold uppercase tracking-wider text-kavana-orange-light">Kavana Manufacturing HMI</p>
+                <h1 className="text-lg font-semibold text-white">Panel de Supervisión</h1>
+                <p className="text-xs text-gray-400">{new Date().toLocaleDateString('es-ES', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}</p>
               </div>
             </div>
             <div className="flex items-center gap-2">
               <HelpModal {...SUPERVISOR_HELP} theme="classic" />
               <button
                 onClick={() => setShowForm(!showForm)}
-                className="inline-flex items-center gap-2 rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-blue-700"
+                className="inline-flex items-center gap-2 rounded-md bg-kavana-orange px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-kavana-orange-light"
               >
                 {showForm ? 'Cancelar' : '+ Nueva Orden'}
               </button>
@@ -122,7 +123,7 @@ export function ClassicSupervisorPanel() {
         </div>
       </header>
 
-      <main className="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8">
+      <main className="mx-auto w-[90%] px-4 py-6 sm:px-6 lg:px-8">
         {error && (
           <div className="mb-4 rounded-md border border-red-200 bg-red-50 p-3 text-sm text-red-700">{error}</div>
         )}
@@ -136,21 +137,21 @@ export function ClassicSupervisorPanel() {
               <div className="grid grid-cols-1 gap-4 sm:grid-cols-4">
                 <div>
                   <label className="block text-sm font-medium text-slate-700">Modelo</label>
-                  <select value={selectedModel} onChange={(e) => setSelectedModel(e.target.value)} className="mt-1 block w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm shadow-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500" required>
+                  <select value={selectedModel} onChange={(e) => setSelectedModel(e.target.value)} className="mt-1 block w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm shadow-sm focus:border-kavana-orange focus:outline-none focus:ring-1 focus:ring-kavana-orange" required>
                     <option value="">Seleccionar...</option>
                     {models.map((m) => (<option key={m.id} value={m.id}>{m.name} ({m.unit_of_measure})</option>))}
                   </select>
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-slate-700">Puesto</label>
-                  <select value={selectedWorkstation} onChange={(e) => setSelectedWorkstation(e.target.value)} className="mt-1 block w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm shadow-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500" required>
+                  <select value={selectedWorkstation} onChange={(e) => setSelectedWorkstation(e.target.value)} className="mt-1 block w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm shadow-sm focus:border-kavana-orange focus:outline-none focus:ring-1 focus:ring-kavana-orange" required>
                     <option value="">Seleccionar...</option>
                     {workstations.filter(w => w.status === 'active').map((w) => (<option key={w.id} value={w.id}>{w.name}</option>))}
                   </select>
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-slate-700">Cantidad</label>
-                  <input type="number" value={quantity} onChange={(e) => setQuantity(e.target.value)} min="1" className="mt-1 block w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm shadow-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500" placeholder="Ej: 100" required />
+                  <input type="number" value={quantity} onChange={(e) => setQuantity(e.target.value)} min="1" className="mt-1 block w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm shadow-sm focus:border-kavana-orange focus:outline-none focus:ring-1 focus:ring-kavana-orange" placeholder="Ej: 100" required />
                 </div>
                 <div className="flex items-end gap-2">
                   <button type="submit" disabled={isLoading} className="inline-flex items-center gap-2 rounded-md bg-green-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-green-700 disabled:opacity-50">
@@ -164,19 +165,19 @@ export function ClassicSupervisorPanel() {
               <div className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-4">
                 <div>
                   <label className="block text-sm font-medium text-slate-700">N. de Orden</label>
-                  <input type="text" value={orderNumber} onChange={(e) => setOrderNumber(e.target.value)} className="mt-1 block w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm shadow-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500" placeholder="Ej: ORD-2026-001" />
+                  <input type="text" value={orderNumber} onChange={(e) => setOrderNumber(e.target.value)} className="mt-1 block w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm shadow-sm focus:border-kavana-orange focus:outline-none focus:ring-1 focus:ring-kavana-orange" placeholder="Ej: ORD-2026-001" />
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-slate-700">Medida</label>
-                  <input type="text" value={measurement} onChange={(e) => setMeasurement(e.target.value)} className="mt-1 block w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm shadow-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500" placeholder="Ej: 20x20mm" />
+                  <input type="text" value={measurement} onChange={(e) => setMeasurement(e.target.value)} className="mt-1 block w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm shadow-sm focus:border-kavana-orange focus:outline-none focus:ring-1 focus:ring-kavana-orange" placeholder="Ej: 20x20mm" />
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-slate-700">Material</label>
-                  <input type="text" value={material} onChange={(e) => setMaterial(e.target.value)} className="mt-1 block w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm shadow-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500" placeholder="Ej: Aluminio 6063" />
+                  <input type="text" value={material} onChange={(e) => setMaterial(e.target.value)} className="mt-1 block w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm shadow-sm focus:border-kavana-orange focus:outline-none focus:ring-1 focus:ring-kavana-orange" placeholder="Ej: Aluminio 6063" />
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-slate-700">Notas</label>
-                  <input type="text" value={notes} onChange={(e) => setNotes(e.target.value)} className="mt-1 block w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm shadow-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500" placeholder="Notas..." />
+                  <input type="text" value={notes} onChange={(e) => setNotes(e.target.value)} className="mt-1 block w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm shadow-sm focus:border-kavana-orange focus:outline-none focus:ring-1 focus:ring-kavana-orange" placeholder="Notas..." />
                 </div>
               </div>
             </form>
@@ -185,10 +186,10 @@ export function ClassicSupervisorPanel() {
 
         {/* Tabs */}
         <div className="mb-4 flex gap-1 rounded-lg border border-slate-200 bg-white p-1 shadow-sm">
-          <button onClick={() => setActiveTab('orders')} className={`flex-1 rounded-md px-4 py-2 text-sm font-medium transition ${activeTab === 'orders' ? 'bg-blue-600 text-white' : 'text-slate-600 hover:bg-slate-100'}`}>
+          <button onClick={() => setActiveTab('orders')} className={`flex-1 rounded-md px-4 py-2 text-sm font-medium transition ${activeTab === 'orders' ? 'bg-kavana-orange text-white' : 'text-slate-600 hover:bg-slate-100'}`}>
             Órdenes ({orders.length})
           </button>
-          <button onClick={() => setActiveTab('workstations')} className={`flex-1 rounded-md px-4 py-2 text-sm font-medium transition ${activeTab === 'workstations' ? 'bg-blue-600 text-white' : 'text-slate-600 hover:bg-slate-100'}`}>
+          <button onClick={() => setActiveTab('workstations')} className={`flex-1 rounded-md px-4 py-2 text-sm font-medium transition ${activeTab === 'workstations' ? 'bg-kavana-orange text-white' : 'text-slate-600 hover:bg-slate-100'}`}>
             Puestos ({workstationStatus.length})
           </button>
         </div>
@@ -228,7 +229,7 @@ export function ClassicSupervisorPanel() {
                             <div className="h-2 rounded-full bg-slate-100 overflow-hidden">
                               <div
                                 className={`h-full rounded-full transition-all duration-500 ${
-                                  pct >= 100 ? 'bg-green-500' : pct > 0 ? 'bg-blue-500' : 'bg-slate-200'
+                                  pct >= 100 ? 'bg-green-500' : pct > 0 ? 'bg-kavana-orange' : 'bg-slate-200'
                                 }`}
                                 style={{ width: `${pct}%` }}
                               />
@@ -241,7 +242,7 @@ export function ClassicSupervisorPanel() {
 
                         <div className="flex items-center gap-1 shrink-0">
                           {order.status === 'pending' && (
-                            <button onClick={() => void changeOrderStatus(order.id, 'in_progress')} className="rounded-md bg-blue-600 px-3 py-1.5 text-xs font-medium text-white hover:bg-blue-700">Iniciar</button>
+                            <button onClick={() => void changeOrderStatus(order.id, 'in_progress')} className="rounded-md bg-kavana-orange px-3 py-1.5 text-xs font-medium text-white hover:bg-kavana-orange-light">Iniciar</button>
                           )}
                           {order.status === 'in_progress' && (
                             <button onClick={() => void changeOrderStatus(order.id, 'completed')} className="rounded-md bg-green-600 px-3 py-1.5 text-xs font-medium text-white hover:bg-green-700">Completar</button>

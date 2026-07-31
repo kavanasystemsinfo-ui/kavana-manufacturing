@@ -102,8 +102,8 @@ export function SupervisorPanel() {
 
   return (
     <main className="min-h-screen bg-kavana-dark text-slate-100 p-4 md:p-8">
-      <section className="mx-auto max-w-6xl rounded-[2rem] border border-kavana-steel/30 bg-kavana-panel/90 p-4 shadow-kavana-glow md:p-8">
-        <header className="mb-8 flex flex-col gap-5 border-b border-kavana-steel/30 pb-6 md:flex-row md:items-center md:justify-between">
+      <section className="mx-auto w-[90%] rounded-[2rem] border-2 border-kavana-orange bg-kavana-panel/90 p-4 md:p-8">
+        <header className="mb-8 flex flex-col gap-5 border-b border-kavana-orange/30 pb-6 md:flex-row md:items-center md:justify-between">
           <div>
             <p className="text-sm font-bold uppercase tracking-[0.32em] text-kavana-orange-light">Kavana Manufacturing</p>
             <h1 className="mt-2 text-3xl font-black tracking-tight text-white md:text-5xl">Panel Supervisor</h1>
@@ -128,7 +128,7 @@ export function SupervisorPanel() {
         )}
 
         {showForm && (
-          <form onSubmit={handleSubmit} className="mb-8 rounded-2xl border border-kavana-steel/30 bg-kavana-surface/50 p-6">
+          <form onSubmit={handleSubmit} className="mb-8 rounded-2xl border-2 border-kavana-orange/40 bg-kavana-surface/50 p-6">
             <h2 className="mb-4 text-xl font-bold text-white">Crear Nueva Orden</h2>
             
             <div className="grid gap-4 md:grid-cols-3">

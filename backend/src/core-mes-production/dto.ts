@@ -34,6 +34,7 @@ export const syncWorkBlockSchema = z.object({
   downtime_reason: z.string().min(1).max(255).nullable().optional(),
   produced_quantity: z.number().int().nonnegative().optional(),
   defect_quantity: z.number().int().nonnegative().optional(),
+  observations: z.string().max(1000).nullable().optional(),
   is_offline_event: z.boolean().optional().default(false),
   client_device_id: z.string().max(500).nullable().optional(),
 }).refine((value) => value.type !== 'parada' || value.downtime_reason, {
