@@ -21,6 +21,8 @@ export function getSubdomain(): string | null {
 
   const parts = hostname.split('.');
   if (parts.length >= 3) {
+    // 'www' is never a tenant subdomain
+    if (parts[0] === 'www') return null;
     return parts[0];
   }
 

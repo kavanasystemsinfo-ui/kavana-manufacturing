@@ -47,7 +47,7 @@ describe('SupervisorStore (Zustand)', () => {
 
   it('addOrder creates order and refreshes list', async () => {
     const mockOrders = [{ id: 'o2', code: 'ORD-002', status: 'active' }];
-    vi.mocked(api.createOrder).mockResolvedValue(undefined);
+    vi.mocked(api.createOrder).mockResolvedValue(undefined as any);
     vi.mocked(api.fetchOrders).mockResolvedValue(mockOrders as any);
 
     await useSupervisorStore.getState().addOrder({ model_id: 'm1', workstation_id: 'w1', quantity: 100 });

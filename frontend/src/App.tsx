@@ -11,6 +11,7 @@ import { GlobalAdminPanel } from './GlobalAdminPanel.js';
 import { ClassicGlobalAdminPanel } from './ClassicGlobalAdminPanel.js';
 import { TenantLogin } from './TenantLogin.js';
 import { LoginPage } from './LoginPage.js';
+import { LandingPage } from './LandingPage.js';
 import { getSubdomain, getTenantFromUrl } from './utils/subdomain.js';
 
 interface AuthState {
@@ -112,8 +113,15 @@ export function App() {
     );
   }
 
-  // Default: show login page if not authenticated
+  // Default: show landing page or login
   if (!auth) {
+    if (path === '/' || path === '') {
+      // On manufacturing subdomain, show login directly
+      if (window.location.hostname === 'www.manufacturing.kavanasystems.com') {
+        return <LoginPage onLogin={handleLogin} />;
+      }
+      return <LandingPage />;
+    }
     return <LoginPage onLogin={handleLogin} />;
   }
 
