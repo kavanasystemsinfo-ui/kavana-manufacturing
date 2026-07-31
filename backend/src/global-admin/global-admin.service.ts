@@ -25,7 +25,7 @@ export interface TenantStats {
 export interface CreateTenantInput {
   id: number;
   name: string;
-  subdomain: string;
+  subdomain?: string;
   status?: 'active' | 'suspended' | 'trial';
   modules?: string[];
   admin_username?: string;

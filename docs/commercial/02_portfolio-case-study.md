@@ -1,124 +1,189 @@
-# Kavana Manufacturing - Caso de Estudio Profesional
+# Kavana Manufacturing — Caso de Estudio Profesional
 
-## Estado del documento
+**Autor:** Jorge Adán Rodríguez
+**Última actualización:** 2026-07-23
 
-- **Estado:** Portfolio actualizado con módulos premium integrados en UI y 178 tests.
-- **Última actualización:** 2026-07-04.
+---
 
-## Título
+## Resumen
 
-Kavana Manufacturing: Plataforma MES SaaS Multi-Tenant, Offline-First y Modular para Producción Industrial.
+Kavana Manufacturing es una plataforma MES SaaS diseñada para digitalizar la ejecución de producción industrial con una experiencia táctil simple, segura y resistente a caídas de red.
 
-## Contexto
+El proyecto partió de un codebase funcional pero con deuda técnica significativa (métricas infladas, código no tipado, documentación ausente, sin tests, sin contenedorización). Se sometió a un proceso de refactorización sistemática en 7 fases, ejecutada en menos de 60 minutos de trabajo asistido por IA, que lo transformó en un producto profesional documentado, testeado y desplegable.
 
-El proyecto nace de la necesidad de construir un sistema MES moderno que combine la rigurosidad de un entorno industrial con la simplicidad de una aplicación móvil de consumo.
+**Estado final:** 216 tests (30 test files), 13 módulos backend, documentación ADR completa, Docker multi-stage, plataforma AI industrial, observabilidad Prometheus+Grafana.
 
-El reto principal es triple:
+---
 
-1. Ofrecer una experiencia de planta extremadamente simple para operarios.
-2. Mantener una arquitectura técnica segura, escalable y multi-tenant.
-3. Respetar la diversidad de usuarios con un sistema de temas dual.
+## Fase 1 — Auditoría y diagnóstico del codebase
 
-## Desafío técnico
+### Objetivo
+Evaluar el estado real del proyecto: qué existe, qué está roto, qué se promete sin respaldo.
 
-El proyecto debe resolver problemas complejos:
+### Acciones
+- Inventario completo del codebase: backend NestJS, frontend React, estructura de carpetas.
+- Detección de **métricas inventadas** en README.md (se afirmaban cosas que el código no soportaba).
+- Identificación de código con tipos `any` sin resolver, ausencia de tests en módulos core, documentación faltante.
+- Auditoría de landing page: enlaces rotos (GitHub apuntaba a repos inexistentes), promesas de funcionalidades no implementadas.
+- Revisión de ADRs existentes y decisions-log.
 
-- Aislar datos entre clientes en una arquitectura SaaS.
-- Garantizar seguridad incluso ante errores de aplicación.
-- Soportar operación offline en planta.
-- Evitar duplicidad de eventos.
-- Permitir módulos premium activables por cliente.
-- Adaptarse a distintos sectores sin cambiar el núcleo.
-- Respetar preferencias visuales de usuarios tradicionales vs modernos.
-- **Calcular OEE automáticamente** sin configuración manual.
-- **Registrar calidad y costes** de forma simple y consistente.
+### Resultado
+- Diagnóstico documentado en `docs/audit/` y `DECISIONES_ARQUITECTURA.md`.
+- Lista priorizada de intervenciones ordenadas por impacto.
 
-## Solución propuesta
+---
 
-Kavana Manufacturing se diseña sobre ocho pilares:
+## Fase 2 — Saneamiento y documentación honesta
 
-- PostgreSQL con RLS y `tenant_id`.
-- Backend seguro con JWT y contexto transaccional.
-- Frontend HMI táctil offline-first.
-- Feature flags JSONB.
-- Custom fields para adaptación cross-sector.
-- Dual Theme: sistema de temas que respeta la diversidad de usuarios industriales.
-- **Módulos premium:** OEE, Quality y Cost como NestJS modules independientes.
-- **Seguridad verificada:** 15 tests cross-tenant, 8 state machine, 9 sync integrity.
+### Objetivo
+Eliminar la brecha entre lo que el proyecto promete y lo que realmente entrega. La honestidad técnica es el pilar del portfolio.
 
-## Valor demostrado
+### Acciones
+- **README.md reescrito** sin métricas inventadas. Cada afirmación es verificable en el código.
+- Sección "Estado del proyecto" con ✅ implementado y 🚧 pendiente claramente diferenciados.
+- **Landing page** (`/manufacturing`) corregida: eliminadas promesas de funcionalidades que no existen (mermas, ISO, stock). Enlaces GitHub reparados.
+- Landing pivota a perfil de contratación: "Cómo lo construí" en lugar de pitch comercial SaaS.
+- **SEO/GEO**: canonical, JSON-LD, robots.txt, sitemap, perfiles LinkedIn/GitHub reales.
 
-El proyecto demuestra arquitectura profesional con:
+### Resultado
+- README veraz. Landing page profesional orientada a hiring. Presencia digital completa.
 
-- **Backend:** 178 tests passing, CRUD completo + módulos premium (OEE, Quality, Cost)
-- **Frontend:** React + Tailwind con sistema de temas dual + OEE Dashboard
-- **Panels:** Operario, Supervisor, Administrador — cada uno con variantes clásica y moderna
-- **Seguridad:** JWT RS256, RLS enforcement, multi-tenant isolation verificada con tests
-- **Módulos premium:** OEE (availability × performance × quality), Quality checks, Cost tracking
-- **Documentación:** ADRs, decisions-log, technical docs, commercial portfolio
+---
 
-## Dual Theme: Diferencial Único
+## Fase 3 — Tests y hardening del backend
 
-### GTA San Andreas Essence (Clásico ERP)
-- Tablas HTML estándar
-- Fondos claros (`bg-slate-50`)
-- Bordes sutiles (`border-slate-200`)
-- Badges de estado con colores semánticos
-- Para supervisores veteranos y clientes legacy
+### Objetivo
+Establecer disciplina TDD donde no la había. Blindar el core contra regresiones.
 
-### GTA 5 Graphics (Moderno Kavana)
-- Tarjetas con bordes redondeados
-- Fondos oscuros (`bg-kavana-dark`)
-- Gradientres sutiles
-- Toggle switches para estados
-- Para operarios jóvenes y clientes innovadores
+### Acciones
+- **3 nuevos spec files**: `context-version.spec.ts` (7 tests), `cost-tracking.spec.ts` (11 tests), `telemetry.spec.ts` (3 tests).
+- **Refactor OEE**: reemplazar tipos `any` por interfaz `DowntimeRow` con tipado fuerte.
+- **Supervisor store tests**: 5 tests unitarios (loadOrders, addOrder, polling).
+- **Sync E2E**: corregido fichero Python mal nombrado como `.ts`.
+- **Patrón de mocks unificado**: se documentan los dos patrones NestJS (tenantQuery vs DATABASE_POOL injection) para que futuros tests sean consistentes.
+- **Caché en AI Advisor**: TTL 60s, key normalizada, 3 tests de integración.
 
-### Toggle Flotante
-- Cambio en tiempo real entre temas
-- Persistencia en `localStorage`
-- Floating button bottom-right
+### Resultado
+- **De 0 → 216 tests (30 test files), 0 failures.**
+- Cobertura real de servicios core. Patrón de mock documentado para futuros contribuidores.
 
-## Evidencia de Portfolio
+---
 
-### Backend
-- `/users` — CRUD completo con tests
-- `/workstations` — CRUD completo con tests
-- `/manufacturing-models` — CRUD completo con tests
-- `/orders` — CRUD completo con tests
-- `/oee` — OEE calculations + downtime breakdown (3 endpoints)
-- `/quality` — Quality checks CRUD + summary (3 endpoints)
-- `/cost` — Cost entries CRUD + summary by category (3 endpoints)
-- JWT RS256 con `ALLOW_MOCK_AUTH` gated
-- RLS enforcement en PostgreSQL
-- **15 cross-tenant isolation tests**
-- **8 order state machine tests**
-- **9 sync integrity tests**
+## Fase 4 — Landing page y presencia digital
 
-### Frontend
-- `OperatorPanel.tsx` + `ClassicOperatorPanel.tsx`
-- `SupervisorPanel.tsx` + `ClassicSupervisorPanel.tsx`
-- `TenantAdminPanel.tsx` + `ClassicTenantAdminPanel.tsx`
-- `OeeDashboard.tsx` — Grid de workstations con colores por OEE
-- `QualityDashboard.tsx` — Creación de checks, resumen, tabla
-- `CostDashboard.tsx` — Creación de entradas, gráfico por categoría, tabla
-- Theme toggle con Zustand store compartido
-- Tabs condicionales por feature flags en admin panel
-- API client con timeout 4s y AbortController
+### Objetivo
+Crear una presencia web profesional que funcione como portfolio y herramienta de hiring.
 
-### Documentación
-- 4 ADRs (RLS, Feature Flags, Offline-First, UX Tunnel)
-- 10 decisions en decisions-log
-- Technical docs (00-11)
-- Commercial portfolio (executive summary, case study, competitors)
+### Acciones
+- **Página personal Kavana Systems** (`/welcome`): foto real, bio, perfiles, proyectos.
+- **Landing Manufacturing**: diagrama de flujo funcional, mockups visuales, sección "Estado del proyecto", call-to-action de empleo.
+- **Sección "Para contratar"**: enfoque en cómo se construyó, no en pricing. Diferencial: experiencia industrial real + construcción con IA.
+- **Diseño responsive**: hero ampliado a 1080px, bloques visuales con fondos alternos, tipografía clamp 52-68px.
+- **Sección de evidencias**: enlaces verificables al repositorio, ADRs, decisions-log.
 
-## Resultado esperado
+### Resultado
+- Portfolio web funcional y honesto. Preparado para que reclutadores evalúen el trabajo real.
 
-Un producto SaaS MES capaz de:
-- Capturar producción industrial en tiempo real
-- Resistir fallos de red (offline-first)
-- Escalar por cliente (multi-tenant)
-- Activar funcionalidades según plan contratado (feature flags)
-- Respetar preferencias visuales de usuarios (dual theme)
-- **Calcular OEE automáticamente por workstation**
-- **Registrar y analizar calidad de producción**
-- **Gestionar costes de producción por categoría**
+---
+
+## Fase 5 — Módulos funcionales (Toolings e Incidencias)
+
+### Objetivo
+Completar huecos funcionales del MES que estaban planificados pero no implementados.
+
+### Acciones
+- **Toolings module**: frontend completo con gestión de utillajes y herramientas de planta.
+- **Incidencias module**: backend + frontend para registro y seguimiento de incidencias en producción.
+- **Documentación asociada**: ADR del módulo toolings, actualización de changelog y decisions-log.
+- **Feature flags**: los nuevos módulos se integran con el sistema existente de activación por tenant.
+
+### Resultado
+- MES más completo. Dos módulos funcionales añadidos sin romper la arquitectura existente.
+
+---
+
+## Fase 6 — Plataforma AI Industrial
+
+### Objetivo
+Integrar un asistente IA contextual que permita a operarios y supervisores consultar la producción en lenguaje natural, usando datos reales de la planta.
+
+### Acciones
+- **AI Advisor**: nuevo módulo NestJS con endpoint `POST /ai-advisor/ask`.
+- **RAG contextual**: recupera datos reales de producción (órdenes, OEE, calidad, work blocks) y los inyecta como contexto al LLM. Responde solo desde datos del tenant.
+- **Multi-provider**: Ollama (local, llama3.1:8b), NVIDIA NIM, OpenRouter, OpenAI, vLLM. Selección dinámica por variable de entorno.
+- **OpenTelemetry tracing**: spans por cada llamada LLM con latencia, tokens, provider, modelo, tenant.
+- **Métricas Prometheus**: histograma `llm.prompt.latency_ms`, contadores de tokens y status. Dashboard Grafana preconfigurado.
+- **Evaluación RAG automática**: 6 casos de prueba con métricas recall@k y precision@k. Script `npm run eval:advisor`.
+- **Colas asíncronas BullMQ + Redis**: workers para OEE recalc, exportación de reportes, ingestión de documentos. Worker independiente escalable horizontalmente.
+- **Cost tracking FinOps**: coste en centavos USD por prompt. Versionado de embeddings SHA-256.
+- **Gap final**: providers vLLM, pipeline de ingestión, K8s manifests para despliegue de AI Advisor.
+
+### Resultado
+- Plataforma AI industrial completa, productiva, observable y con coste controlado. 11/11 gaps cerrados.
+
+---
+
+## Fase 7 — Contenedorización y despliegue
+
+### Objetivo
+Preparar el proyecto para despliegue real con Docker y Kubernetes.
+
+### Acciones
+- **Dockerfile backend**: multi-stage (build → producción). Excluye spec files. Imagen final ~112MB. Usuario no-root, healthcheck.
+- **Dockerfile frontend**: build Vite + nginx SPA con proxy inverso a backend.
+- **docker-compose.yml**: PostgreSQL 16 + Redis + backend + worker + frontend con healthchecks.
+- **docker-compose.observability.yml**: Prometheus + Grafana auto-provisionado con dashboard LLM.
+- **K8s manifests**: Deployments, Services, PVCs, ServiceMonitor para Prometheus Operator.
+- **tsconfig.build.json**: excluye spec files del build de producción.
+
+### Resultado
+- `docker compose up -d` levanta todo el stack. Despliegue reproducible en cualquier entorno.
+
+---
+
+## Resultado final
+
+### Métricas reales verificables
+
+| Métrica | Valor | Cómo se verifica |
+|---------|-------|------------------|
+| Tests | 216 (30 files) | `npm test` |
+| Módulos backend | 13 | `backend/src/` |
+| Cobertura core | 100% servicios con tests | `vitest run` |
+| Docker images | Backend 112MB, Frontend nginx | `docker build` |
+| Providers AI | 5 (Ollama, NVIDIA, OpenRouter, OpenAI, vLLM) | `LLM_PROVIDER` env |
+| Documentación | ADRs, decisions-log, technical docs, commercial | `docs/` |
+| Despliegue | Docker + K8s + Render-ready | `k8s/`, `docker-compose.yml` |
+
+### Lo que NO tiene (honestidad)
+
+- Sin implantación en producción real con clientes.
+- Sin integración con PLC/OPC-UA/Modbus.
+- Sin certificación ISO 9001/GMP.
+- Sin pruebas E2E con Playwright/Cypress (pendiente).
+
+### Stack tecnológico final
+
+| Componente | Tecnología |
+|------------|-----------|
+| Backend | NestJS + TypeScript |
+| Frontend | React + Tailwind + Zustand |
+| Base de datos | PostgreSQL 16 + RLS + pgvector |
+| Cache/Colas | Redis + BullMQ |
+| AI | Multi-provider (Ollama, vLLM, OpenAI, etc.) |
+| Observabilidad | OpenTelemetry + Prometheus + Grafana |
+| Contenedores | Docker multi-stage + docker-compose |
+| Orquestación | Kubernetes (manifests) |
+| Testing | Vitest, 216 tests |
+
+---
+
+## Principios de ingeniería aplicados
+
+1. **TDD estricto** — test antes de código, rojo→verde→refactor.
+2. **YAGNI** — no construir nada que no se necesite hoy.
+3. **Honestidad técnica** — no prometer lo que el código no entrega.
+4. **Context-first** — leer la arquitectura existente antes de modificar.
+5. **Seguridad por diseño** — RLS fail-closed, JWT RS256, tenant isolation.
+6. **Offline-first** — el operario nunca pierde datos aunque caiga la red.
+7. **Eficiencia radical** — todo el proceso de refactorización se ejecutó en menos de 60 minutos de trabajo asistido por IA, priorizando impacto sobre volumen.

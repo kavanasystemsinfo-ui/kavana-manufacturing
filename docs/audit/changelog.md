@@ -1097,6 +1097,34 @@ El comando `$d` queda preparado para activar documentación, auditoría continua
 - `docs/decisions-log.md` — entrada del 2026-07-21
 - `frontend/vite.config.ts` — proxy `/ai-advisor` añadido
 
+
+## 2026-07-23 — Documentación comercial reescrita + E2E tests con Playwright
+
+### Added: Caso de estudio reestructurado por fases de refactorización
+- **Problema:** Case study narrado por "noches" de trabajo — poco profesional para portfolio.
+- **Solución:** Reescrito como 7 fases de refactorización (Auditoría → Saneamiento → Tests → Presencia digital → Módulos → Plataforma AI → Contenedorización).
+- **Archivos:** `docs/commercial/02_portfolio-case-study.md`, `docs/commercial/00_executive-summary.md`
+- **README.md:** Contacto corregido (Jorge Adán Rodríguez) + fecha actualizada.
+
+### Added: E2E tests con Playwright (sin backend real)
+- **Problema:** No existían tests E2E que verificaran la UI real en navegador.
+- **Solución:** 12 tests E2E con Playwright que corren contra el frontend Vite + mocks de API (sin Docker, sin BD, sin backend).
+- **Arquitectura:** Mocks con regex específicos para evitar interceptar fuentes Vite (`/src/api/*`).
+- **Cobertura:** Login, panel operario (selección de orden + formulario de parte), supervisor, admin (tabs + datos), theme toggle.
+- **Archivos:** `e2e/config.mjs`, `e2e/mocks/api.ts`, `e2e/specs/all.spec.ts`
+- **Script:** `npm run test:e2e`
+
+### Fixed: Error de sintaxis en `client.ts` y `admin.ts`
+- **Problema:** `Authorization: *** ${token}` — el `***` estaba literal en el código en vez del template literal correcto, rompiendo todos los paneles al cargar.
+- **Solución:** Reemplazado por `Authorization: *** ${token}`.
+- **Archivos:** `frontend/src/api/client.ts`, `frontend/src/api/admin.ts`
+
+### Tests
+- 216 tests backend + 12 tests E2E = 228 tests total.
+- Tests E2E: 12/12 pasan en 19s.
+
+---
+
 ## 2026-07-21 — Refactor UX Operario: formulario simplificado, tema Kavana, limpieza
 
 ### Modificado

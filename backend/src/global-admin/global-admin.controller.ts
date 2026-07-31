@@ -21,7 +21,7 @@ export class GlobalAdminController {
   }
 
   @Post('tenants')
-  async createTenant(@Body() body: { id: number; name: string; status?: 'active' | 'suspended' | 'trial'; modules?: string[] }) {
+  async createTenant(@Body() body: { id: number; name: string; status?: 'active' | 'suspended' | 'trial'; modules?: string[]; subdomain?: string }) {
     return this.globalAdminService.createTenant(body);
   }
 

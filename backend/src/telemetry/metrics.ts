@@ -48,7 +48,7 @@ let promptSeq = 0;
 export function tracePrompt(ctx: TracePromptCtx) {
   const seq = ++promptSeq;
   const startMs = Date.now();
-  const attrs = {
+  const attrs: Record<string, string | number> = {
     'llm.provider': ctx.provider,
     'llm.model': ctx.model,
     'llm.question_len': ctx.question.length,
