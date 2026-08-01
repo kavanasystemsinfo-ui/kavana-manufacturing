@@ -1,1 +1,0 @@
-docs/KAVANA_RULES.md

@@ -4,7 +4,11 @@
 
 - **Estado:** Auditoría de referencia actualizada con sistema de temas dual, guías de usuario, y OEE como módulo opcional, unificación completada, type casting hardening, Graphify integrado.
 - **Última actualización:** 2026-07-07.
-- **Fuente analizada:** [`KAVANA MANUFACTURING JUNIO 2026/`](KAVANA%20V3%20JUNIO%202026/README.md:1).
+- **Fuente analizada:** la carpeta `KAVANA V3 JUNIO 2026/` (V2 anterior, archivada fuera del repo público en 2026-08-01).
+
+> **Nota (2026-08-01):** documento histórico de lecciones extraídas de la V2.
+> La carpeta fuente se archivó fuera del repo; las conclusiones siguen siendo
+> válidas como referencia de diseño.
 
 ## Conclusión ejecutiva
 
@@ -38,13 +42,13 @@ Su riesgo principal es repetir el fallo anterior: construir demasiado completo d
 
 ## Referencias útiles de la extracción anterior
 
-Documentos que sí conviene mantener como referencia:
+Documentos que conviene conservar como referencia (archivados fuera del repo):
 
-- [`KAVANA MANUFACTURING JUNIO 2026/AUDITORIA_TECNICA_SENIOR_KAVANA_V3.md`](KAVANA%20V3%20JUNIO%202026/AUDITORIA_TECNICA_SENIOR_KAVANA_V3.md:1)
-- [`KAVANA MANUFACTURING JUNIO 2026/DOMAIN_KNOWLEDGE_MAP.md`](KAVANA%20V3%20JUNIO%202026/DOMAIN_KNOWLEDGE_MAP.md:1)
-- [`KAVANA MANUFACTURING JUNIO 2026/REUSABLE_ASSETS.md`](KAVANA%20V3%20JUNIO%202026/REUSABLE_ASSETS.md:1)
-- [`KAVANA MANUFACTURING JUNIO 2026/MIGRATION_PLAYBOOK.md`](KAVANA%20V3%20JUNIO%202026/MIGRATION_PLAYBOOK.md:1)
-- [`KAVANA MANUFACTURING JUNIO 2026/IMPLEMENTATION_PLAN.md`](KAVANA%20V3%20JUNIO%202026/IMPLEMENTATION_PLAN.md:1)
+- Auditoría técnica senior de la V2 (`AUDITORIA_TECNICA_SENIOR_KAVANA_V3.md`)
+- Mapa de conocimiento del dominio (`DOMAIN_KNOWLEDGE_MAP.md`)
+- Activos reutilizables (`REUSABLE_ASSETS.md`)
+- Playbook de migración (`MIGRATION_PLAYBOOK.md`)
+- Plan de implementación (`IMPLEMENTATION_PLAN.md`)
 
 ## Activos que sí deben rescatarse como conocimiento
 

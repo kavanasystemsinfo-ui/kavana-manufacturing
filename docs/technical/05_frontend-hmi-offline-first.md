@@ -4,7 +4,7 @@
 
 - **Estado:** Implementación completada con sistema de temas dual, guías de usuario en OperatorPanel (moderno + clásico), y status unificado en inglés.
 - **Última actualización:** 2026-07-07.
-- **Fuente maestra:** [`root/06_MASTER_FRONTEND_OfflineFirst_HMI_Operario.md`](root/06_MASTER_FRONTEND_OfflineFirst_HMI_Operario.md:1).
+- **Fuente:** ADR-004 (offline-first Dexie) y este documento.
 - **Documentación comercial relacionada:** [`docs/commercial/02_portfolio-case-study.md`](docs/commercial/02_portfolio-case-study.md:1).
 
 ## Objetivo

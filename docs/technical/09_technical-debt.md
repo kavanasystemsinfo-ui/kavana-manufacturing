@@ -52,7 +52,7 @@
 | Falta de script raíz para smoke SQL | Script npm `database:smoke` | [`package.json`](package.json:18) |
 | Documentación SQL dependiente de `psql` | README actualizado con modo sin `psql` | [`database/README.md`](database/README.md:47), [`database/tests/README.md`](database/tests/README.md:1) |
 | Migraciones y smoke tests no ejecutados contra PostgreSQL real | `npm run database:smoke` ejecutado contra PostgreSQL 16 en Docker | Validación final: migraciones `000..005`, grants y smoke tests `001..002` aprobados |
-| Grants insuficientes para `kavana_app` | Grants explícitos en `public` y default privileges | [`database/migrations/000_extensions_roles_rls.sql`](database/extensions_roles_rls.sql:20) |
+| Grants insuficientes para `kavana_app` | Grants explícitos en `public` y default privileges | [`database/migrations/000_extensions_roles_rls.sql`](database/migrations/000_extensions_roles_rls.sql:20) |
 | Trigger de auditoría apuntaba a `NEW.tenant_id` inexistente en `tenants` | Corregido a `NEW.id` | [`database/migrations/005_tenant_governance.sql`](database/migrations/005_tenant_governance.sql:256) |
 | Test de auditoría esperaba 3 eventos cuando solo se generan 2 cambios | Ajustado a mínimo 2 auditorías | [`database/tests/002_tenant_governance_smoke.sql`](database/tests/002_tenant_governance_smoke.sql:95) |
 | Feature matrix inconsistente entre tenants | Normalización DB con semilla y preservación de módulos existentes | [`database/migrations/005_tenant_governance.sql`](database/migrations/005_tenant_governance.sql:98) |
@@ -67,7 +67,7 @@
 | Endpoints premium accesibles sin licencia | Guard global `@RequireFeature()` con `APP_GUARD` | [`require-feature.guard.ts`](backend/src/tenant-capabilities/require-feature.guard.ts:1) |
 | Módulos desconocidos devuelven acceso | `KNOWN_MODULE_KEYS` set + fail-safe `false` | [`tenant-capabilities.service.ts`](backend/src/tenant-capabilities/tenant-capabilities.service.ts:11) |
 | Caché de capacidades inconsistente | Invalidación por `governance_version` + TTL 60s | [`capabilities-cache.ts`](backend/src/tenant-capabilities/capabilities-cache.ts:1) |
-| Transiciones inválidas | Tests de máquina de estados | [`backend/src/core-mes-production/state-machine.spec.ts`](backend/src/core-mes-production/state-machine.spec.ts:1) |
+| Transiciones inválidas | Tests de máquina de estados | [`backend/src/order-state-machine.spec.ts`](backend/src/order-state-machine.spec.ts:1) |
 | DTO offline inseguro | Validación Zod de tenant, UUID y motivo de parada | [`backend/src/core-mes-production/dto.spec.ts`](backend/src/core-mes-production/dto.spec.ts:1) |
 | Endpoints admin expuestos | RBAC con `@RequireRole('tenant_admin')` | [`roles.guard.ts`](backend/src/auth/roles.guard.ts:1) |
 | Dependencias frontend pesadas / rotas | Router nativo zero-dependencies (`window.location`) | [`App.tsx`](frontend/src/App.tsx:1) |

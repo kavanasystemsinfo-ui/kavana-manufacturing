@@ -4,7 +4,7 @@
 
 - **Estado:** Auditoría actualizada con dual theme, guías de usuario, y 136 tests, unificación completada, type casting hardening, Graphify integrado.
 - **Última actualización:** 2026-07-07.
-- **Fuente maestra:** [kavana-v3-qa-security-review-skill.md](root/skills/kavana-v3-qa-security-review-skill.md:1).
+- **Fuente:** este documento (auditoría de seguridad).
 
 > **Nota (2026-08-01):** los "136 tests" reflejan el estado en esa fecha. Hoy
 > la suite completa es **233 tests (216 backend + 17 frontend)**. El resto del

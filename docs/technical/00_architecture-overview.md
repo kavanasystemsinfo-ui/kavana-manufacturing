@@ -4,8 +4,8 @@
 
 - **Estado:** Diseño base documentado. Implementación en Fase 5.5.
 - **Última actualización:** 2026-07-04.
-- **Fuente principal:** [Blueprint del proyecto](root/📋%20BLUEPRINT%20DE%20PROYECTO_%20KAVANA%20V3.docx:1).
-- **Reglas globales:** [.clinerules](.clinerules:1).
+- **Fuente principal:** este documento es la vista de arquitectura del proyecto (el blueprint original se archivó fuera del repo).
+- **Reglas globales:** ver `CONTRIBUTING.md` y `docs/adr/`.
 
 ## Objetivo
 
@@ -38,8 +38,8 @@ Kavana Manufacturing se plantea como una plataforma de ejecución de producción
    - Índices liderados por `tenant_id`.
 
 4. **Documentación y gobernanza**
-   - Documentación maestra bajo [`root/`](root/01_MASTER_INFRA_PostgreSQL_MultiTenancy_y_RLS.md:1).
-   - Skills bajo [`root/skills/`](root/skills/README.md:1).
+   - Documentación de arquitectura en `docs/adr/` y `docs/technical/`.
+   - Skills de desarrollo archivadas fuera del repo.
    - Auditoría continua activable mediante `$d`.
 
 ## Módulos previstos

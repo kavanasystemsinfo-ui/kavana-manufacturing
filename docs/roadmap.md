@@ -230,7 +230,7 @@ Construir el flujo mínimo real de producción: puestos, órdenes, transiciones 
 - Migración `workstations`.
 - Migración `production_orders`.
 - Migración `production_time_logs`.
-- Revisión de la migración actual [`root/core-mes-production/001_production_orders.sql`](root/core-mes-production/001_production_orders.sql:1).
+- Revisión de la migración actual [`database/migrations/003_production_orders.sql`](database/migrations/003_production_orders.sql:1).
 - Máquina de estados.
 - Servicio backend de transiciones.
 - Logs lineales.
@@ -547,7 +547,7 @@ Excepción: se puede trabajar en documentación comercial o arquitectura de una 
 
 ## Guardrails heredados de V2
 
-La carpeta [`KAVANA MANUFACTURING JUNIO 2026/`](KAVANA%20V3%20JUNIO%202026/README.md:1) se usará como referencia de conocimiento, no como plano de implementación.
+La carpeta `KAVANA V3 JUNIO 2026/` (V2 anterior) se usó como referencia de conocimiento durante la refactorización; se archivó fuera del repo público en 2026-08-01.
 
 Reglas derivadas:
 

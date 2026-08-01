@@ -4,7 +4,7 @@
 
 - **Estado:** Auditoría actualizada con 136 tests, dual theme, y guías de usuario, unificación completada, type casting hardening, Graphify integrado.
 - **Última actualización:** 2026-07-07.
-- **Fuente maestra:** [01_MASTER_INFRA_PostgreSQL_MultiTenancy_y_RLS.md](root/01_MASTER_INFRA_PostgreSQL_MultiTenancy_y_RLS.md:1).
+- **Fuente:** ADR-001 (shared schema + RLS) y este documento.
 
 ## Objetivo
 

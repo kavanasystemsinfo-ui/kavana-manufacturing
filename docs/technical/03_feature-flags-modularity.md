@@ -4,7 +4,7 @@
 
 - **Estado:** Fase 5.5 completada. Dual theme + admin CRUD + guías de usuario + OEE como módulo opcional, unificación completada, type casting hardening, Graphify integrado.
 - **Última actualización:** 2026-07-07.
-- **Fuente maestra:** [03_MASTER_MODULARIDAD_FeatureFlags_JSONB.md](root/03_MASTER_MODULARIDAD_FeatureFlags_JSONB.md:1).
+- **Fuente:** ADR-002 (feature flags JSONB) y este documento.
 
 ## Objetivo
 

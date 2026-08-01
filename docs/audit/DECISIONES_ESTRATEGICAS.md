@@ -38,7 +38,7 @@ Este documento registra el "por qué" de las decisiones clave de arquitectura e 
 
 **Riesgos controlados:** robustez de selectores ante cambios de UI de Google mediante `get_by_text`/`get_by_role`, aislamiento del perfil de Chrome para no interferir con el navegador diario, y CDP estrictamente local en `127.0.0.1:9222`.
 
-**Trazabilidad:** la decisión completa está documentada en [`docs/ai/00_orquestacion_arquitectura_ia.md`](docs/ai/00_orquestacion_arquitectura_ia.md:1).
+**Trazabilidad:** la orquestación con NotebookLM se documentó internamente y se archivó fuera del repo público (2026-08-01).
 
 ## 2026-06-19 - NotebookLM Bridge V3: cuaderno permanente, fuentes temporales y Human-in-the-Loop
 

@@ -4,7 +4,7 @@
 
 - **Estado:** Backend completado con 136 tests. Dual theme + guías de usuario + OEE opcional implementados, unificación completada, type casting hardening, Graphify integrado.
 - **Última actualización:** 2026-07-07.
-- **Fuentes maestras:** [02_MASTER_BACKEND_Jwt_PgBouncer_Aislamiento.md](root/02_MASTER_BACKEND_Jwt_PgBouncer_Aislamiento.md:1), [04_MASTER_AUTENTICACION_Roles_y_Permisos.md](root/04_MASTER_AUTENTICACION_Roles_y_Permisos.md:1).
+- **Fuentes:** ADR-001/ADR-002 y este documento.
 
 ## Objetivo
 
@@ -57,7 +57,7 @@ El backend no necesita cambios para soportar dual theme:
 
 ## Riesgo documental detectado
 
-En [02_MASTER_BACKEND_Jwt_PgBouncer_Aislamiento.md](root/02_MASTER_BACKEND_Jwt_PgBouncer_Aislamiento.md:49) aparece un ejemplo con `authHeader.split(' ')[25]`, que es inconsistente con [04_MASTER_AUTENTICACION_Roles_y_Permisos.md](root/04_MASTER_AUTENTICACION_Roles_y_Permisos.md:136), donde se usa `split(' ')[1]`.
+Nota: se detectó una inconsistencia histórica entre masters de diseño (split [25] vs [1]); el código real usa `split(' ')[1]`.
 
 ## Criterio de aceptación futuro
 
