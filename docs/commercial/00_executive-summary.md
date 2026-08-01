@@ -58,7 +58,7 @@ Asistente IA contextual que responde preguntas sobre la producción usando datos
 
 El proyecto cuenta con:
 - **216 tests (30 test files)** en verde — TDD estricto desde la refactorización.
-- **13 módulos backend NestJS** con autenticación JWT + RLS multi-tenant.
+- **17 módulos backend NestJS** con autenticación JWT + RLS multi-tenant.
 - **Frontend React** con sistema de temas dual + dashboards (OEE, Quality, Cost).
 - **Panel de operario, supervisor y administrador** con variantes clásica y moderna.
 - **AI Advisor industrial** con RAG + pgvector + 5 proveedores LLM.

@@ -6,6 +6,10 @@
 - **Última actualización:** 2026-07-07.
 - **Fuente maestra:** [kavana-v3-qa-security-review-skill.md](root/skills/kavana-v3-qa-security-review-skill.md:1).
 
+> **Nota (2026-08-01):** los "136 tests" reflejan el estado en esa fecha. Hoy
+> la suite completa es **233 tests (216 backend + 17 frontend)**. El resto del
+> contenido (RLS, aislamiento, guards) sigue vigente.
+
 ## Objetivo
 
 Mantener una auditoría continua orientada a prevenir Data Bleeding, corrupción de estados y fallos offline.

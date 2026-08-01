@@ -1,0 +1,36 @@
+---
+description: KAVANA V3 - Reglas adicionales para dominios críticos
+globs: backend/src/modules/**/*,frontend/src/**/*
+alwaysApply: false
+---
+
+# Dominios críticos
+
+Esta regla aplica cuando se trabaja en producción, inventario, costes, trazabilidad, calidad, mantenimiento, permisos o secuencias.
+
+## Obligatorio antes de modificar
+
+Consultar:
+
+1. [`DOMAIN_KNOWLEDGE_MAP.md`](DOMAIN_KNOWLEDGE_MAP.md).
+2. [`REUSABLE_ASSETS.md`](REUSABLE_ASSETS.md).
+3. [`MIGRATION_PLAYBOOK.md`](MIGRATION_PLAYBOOK.md).
+4. La documentación específica del dominio en `_KAVANA_SYSTEMS_DOCS`.
+
+## No hacer
+
+- No copiar servicios monolíticos de V2.
+- No borrar eventos productivos.
+- No recalcular inventario sin transacción.
+- No hardcodear costes.
+- No mezclar IA con lógica crítica.
+- No poner lógica de negocio dentro de componentes UI.
+
+## Sí hacer
+
+- Extraer reglas.
+- Escribir tests.
+- Implementar en dominio separado.
+- Mantener eventos append-only.
+- Mantener FIFO y trazabilidad.
+- Separar UI de lógica de negocio.
