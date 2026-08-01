@@ -4,7 +4,7 @@
 
 - **Estado:** Unificación completada. `orders` como tabla canónica única. `production_work_blocks` creada con schema completo. Type casting SQL hardening aplicado. 185 tests pass.
 - **Última actualización:** 2026-07-07.
-- **Fuente maestra:** [05_MASTER_CORE_Modelos_De_Datos_Produccion.md](root/05_MASTER_CORE_Modelos_De_Datos_Produccion.md:1).
+- **Fuente:** ADR-003 y este documento.
 
 ## Objetivo
 
@@ -50,7 +50,7 @@ Estado: **Implementada** con 20 tests.
 
 ### `manufacturing_models`
 
-Implementada en [`database/migrations/006_manufacturing_models.sql`](database/migrations/006_manufacturing_models.sql:1) + [`database/migrations/010_replace_estimated_minutes_with_unit.sql`](database/migrations/010_replace_estimated_minutes_with_unit.sql:1).
+Implementada en [`database/migrations/007_manufacturing_models.sql`](database/migrations/007_manufacturing_models.sql:1) + [`database/migrations/010_replace_estimated_minutes_with_unit.sql`](database/migrations/010_replace_estimated_minutes_with_unit.sql:1).
 
 Campos:
 
@@ -66,7 +66,7 @@ Estado: **Implementada** con 18 tests. `estimated_minutes` eliminado, reemplazad
 
 ### `production_time_logs`
 
-Diseñada conceptualmente en [05_MASTER_CORE_Modelos_De_Datos_Produccion.md](root/05_MASTER_CORE_Modelos_De_Datos_Produccion.md:79).
+Diseñada conceptualmente en el ADR-003.
 
 Campos mínimos:
 

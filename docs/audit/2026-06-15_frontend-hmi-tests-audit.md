@@ -19,7 +19,7 @@ Auditoría técnica y documental de la implementación de la Fase 4: HMI táctil
 | Fallos pasan a dead-letter | Alto | [`frontend/src/store/hmi-store.ts`](frontend/src/store/hmi-store.ts:112) |
 | Backend valida tenant del evento offline | Crítico | [`backend/src/core-mes-production/core-mes-production.service.ts`](backend/src/core-mes-production/core-mes-production.service.ts:126) |
 | Idempotencia por `client_event_id` | Crítico | [`backend/src/core-mes-production/core-mes-production.service.ts`](backend/src/core-mes-production/core-mes-production.service.ts:216) |
-| Tests unitarios de transiciones y DTO | Alto | [`backend/src/core-mes-production/state-machine.spec.ts`](backend/src/core-mes-production/state-machine.spec.ts:1), [`backend/src/core-mes-production/dto.spec.ts`](backend/src/core-mes-production/dto.spec.ts:1) |
+| Tests unitarios de transiciones y DTO | Alto | [`backend/src/order-state-machine.spec.ts`](backend/src/order-state-machine.spec.ts:1), [`backend/src/core-mes-production/dto.spec.ts`](backend/src/core-mes-production/dto.spec.ts:1) |
 | Test IndexedDB FIFO/dead-letter | Alto | [`frontend/src/db/local-db.spec.ts`](frontend/src/db/local-db.spec.ts:1) |
 
 ## Riesgos de seguridad

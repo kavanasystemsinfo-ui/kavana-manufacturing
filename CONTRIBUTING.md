@@ -227,7 +227,6 @@ kavana-v3/
 │   ├── adr/                   # Architectural Decision Records
 │   ├── technical/             # Documentación técnica
 │   └── commercial/            # Documentación de negocio
-└── KAVANA_RULES.md            # Reglas del proyecto
 ```
 
 ---

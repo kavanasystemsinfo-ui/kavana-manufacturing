@@ -4,7 +4,7 @@
 
 - **Estado:** Fase 13 completada + UsersTab con campos V2 + guías de usuario en AdminPanel (moderno + clásico). 8 paneles con HelpModal integrado.
 - **Última actualización:** 2026-07-07.
-- **Fuente maestra:** [07_MASTER_ADMIN_Gobernanza_JSONB_y_CustomFields.md](root/07_MASTER_ADMIN_Gobernanza_JSONB_y_CustomFields.md:1).
+- **Fuente:** ADR-002 y este documento.
 
 ## Objetivo
 

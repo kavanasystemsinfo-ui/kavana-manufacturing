@@ -11,12 +11,8 @@ Esta auditoría revisa el estado inicial del proyecto Kavana Manufacturing desde
 
 ## Archivos revisados
 
-- [`.clinerules`](.clinerules:1).
 - [`README.md`](README.md:1).
-- [Blueprint del proyecto](root/📋%20BLUEPRINT%20DE%20PROYECTO_%20KAVANA%20V3.docx:1).
-- Documentos maestros bajo [`root/`](root/01_MASTER_INFRA_PostgreSQL_MultiTenancy_y_RLS.md:1).
-- Skills bajo [`root/skills/`](root/skills/README.md:1).
-- Migración SQL [`root/core-mes-production/001_production_orders.sql`](root/core-mes-production/001_production_orders.sql:1).
+- Migración SQL: `database/migrations/003_production_orders.sql`.
 
 ## Hallazgos principales
 

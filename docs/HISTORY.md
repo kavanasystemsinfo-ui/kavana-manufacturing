@@ -109,7 +109,7 @@
 **Objetivo:** Funcionalidades de valor añadido: AI Advisor, Toolings, Incidencias, BOM.
 
 **Decisiones:**
-- AI Advisor como módulo independiente con proveedores intercambiables (→ [docs/ai/](docs/ai/))
+- AI Advisor como módulo independiente con proveedores intercambiables (→ [Executive Summary](docs/commercial/00_executive-summary.md))
 - Toolings con estimación preventiva (→ [ADR-005](docs/adr/005-toolings-estimacion-preventiva.md))
 - BOM como feature flag `materials_management`
 

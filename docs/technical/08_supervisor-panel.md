@@ -4,7 +4,7 @@
 
 - **Estado:** Implementación completada con sistema de temas dual, barras de progreso, activity feed, workstation board Andon, polling 10s, y guía de usuario integrada (`SUPERVISOR_HELP`). Paridad completa moderno/clásico.
 - **Última actualización:** 2026-07-07.
-- **Fuente maestra:** `root/06_MASTER_FRONTEND_OfflineFirst_HMI_Operario.md`.
+- **Fuente:** ADR-004 y este documento.
 
 ## Objetivo
 

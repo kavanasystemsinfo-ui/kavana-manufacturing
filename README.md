@@ -222,7 +222,6 @@ docker compose up -d
 |-----------|-----------|
 | [Guía de Deploy](docs/deploy/deploy-kavana-manufacturing.md) | Vercel + Render + Neon + DNS |
 | [CONTRIBUTING](CONTRIBUTING.md) | Estándares de código, TDD, commits |
-| [KAVANA RULES](KAVANA_RULES.md) | Reglas del proyecto (YAGNI, context-first) |
 | [Arquitectura Técnica](docs/technical/00_architecture-overview.md) | Visión general del sistema |
 | [Multi-Tenancy & RLS](docs/technical/01_multi-tenancy-rls-audit.md) | Auditoría de aislamiento |
 | [Backend Auth](docs/technical/02_backend-auth-context.md) | JWT, roles, contexto de tenant |
@@ -242,7 +241,7 @@ Este proyecto demuestra capacidades técnicas aplicadas a un dominio industrial 
 | **Offline-first resiliente** | [ADR-003](docs/adr/003-offline-first-dexie.md) + implementación en frontend |
 | **UX industrial contextual** | [ADR-004](docs/adr/004-ux-tunnel-vision.md) + pantallas HMI |
 | **TDD y calidad** | [CONTRIBUTING](CONTRIBUTING.md) + 233 tests |
-| **AI aplicada a industria** | [AI Advisor](docs/ai/README.md) + RAG multi-provider |
+| **AI aplicada a industria** | [AI Advisor](docs/commercial/00_executive-summary.md) + RAG multi-provider |
 | **Feature flags como producto** | [ADR-002](docs/adr/002-feature-flags-jsonb.md) + módulo tenant-capabilities |
 | **Documentación como infraestructura** | ADRs, decisions log, technical docs |
 | **Proceso de ingeniería** | Commits convencionales, PR template, CI/CD |

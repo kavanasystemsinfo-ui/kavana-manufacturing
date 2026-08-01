@@ -28,7 +28,7 @@ Evaluar el estado real del proyecto: qué existe, qué está roto, qué se prome
 - Revisión de ADRs existentes y decisions-log.
 
 ### Resultado
-- Diagnóstico documentado en `docs/audit/` y `DECISIONES_ARQUITECTURA.md`.
+- Diagnóstico documentado en `docs/audit/`.
 - Lista priorizada de intervenciones ordenadas por impacto.
 
 ---
