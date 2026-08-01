@@ -13,6 +13,8 @@ yarn-debug.log*
 yarn-error.log*
 .DS_Store
 backend/test-keys/
+__pycache__/
+*.pyc
 
 # NotebookLM automation outputs must never become NotebookLM sources again.
 # These paths are ignored by Git; Google Drive Desktop must also exclude them

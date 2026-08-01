@@ -11,7 +11,7 @@ Kavana Manufacturing es una plataforma MES SaaS diseñada para digitalizar la ej
 
 El proyecto partió de un codebase funcional pero con deuda técnica significativa (métricas infladas, código no tipado, documentación ausente, sin tests, sin contenedorización). Se sometió a un proceso de refactorización sistemática en 7 fases, ejecutada en menos de 60 minutos de trabajo asistido por IA, que lo transformó en un producto profesional documentado, testeado y desplegable.
 
-**Estado final:** 216 tests (30 test files), 13 módulos backend, documentación ADR completa, Docker multi-stage, plataforma AI industrial, observabilidad Prometheus+Grafana.
+**Estado final:** 216 tests (30 test files), 17 módulos backend, documentación ADR completa, Docker multi-stage, plataforma AI industrial, observabilidad Prometheus+Grafana.
 
 ---
 

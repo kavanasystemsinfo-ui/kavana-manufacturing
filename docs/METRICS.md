@@ -13,7 +13,7 @@
 | **Lenguajes** | TypeScript, TSX, SQL, JSON, YAML, MD, Python, Bash |
 | **Commits** | +120 (rama `main`) |
 | **Tiempo de desarrollo** | ~4 semanas desde refactorización V2 |
-| **Tests** | 17 frontend + 208 backend = **225 tests** |
+| **Tests** | 17 frontend + 216 backend = **233 tests** |
 
 ## Cobertura por módulo
 
@@ -59,7 +59,7 @@
 | **Total** | **17** | **✅ Todos pasando** |
 
 ### Backend (Vitest — documentado)
-- **208 tests** en 30 archivos de test
+- **216 tests** en 30 archivos de test
 - Cobertura de módulos: auth, orders, OEE, quality, cost, workstations, manufacturing-models, users
 
 ## Desglose por Módulo (Backend)

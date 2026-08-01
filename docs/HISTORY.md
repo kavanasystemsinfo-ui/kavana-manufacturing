@@ -77,7 +77,7 @@
 - ✅ Módulo `cost` (costes de producción)
 - ✅ Colas asíncronas con workers independientes
 - ✅ Dashboard OEE visible en el panel de operario
-- ✅ 208 tests backend (Vitest)
+- ✅ 216 tests backend (Vitest)
 
 **Lo descartado:** Dashboard de coste en tiempo real por turno (pendiente para fase posterior).
 
