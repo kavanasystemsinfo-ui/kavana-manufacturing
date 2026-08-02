@@ -111,7 +111,7 @@ Cada decisión arquitectónica responde a un **problema concreto de planta** y s
 | **UX Tunnel Vision** | Operarios con guantes industriales | Botones 64px+, modo tunel, sin distracciones | UI estándar 44px (insuficiente) → [ADR-004](docs/adr/004-ux-tunnel-vision.md) |
 | **TDD desde el inicio** | Evitar deuda técnica temprana | 216 tests backend, 17 frontend = confianza para refactor | Testing post-hoc (falla) → [CONTRIBUTING](CONTRIBUTING.md) |
 
-> 📘 **Todas las decisiones documentadas en:** [`docs/adr/`](docs/adr/) · [`docs/decisions-log.md`](docs/decisions-log.md) · [`DECISIONES_ESTRATEGICAS.md`](DECISIONES_ESTRATEGICAS.md)
+> 📘 **Todas las decisiones documentadas en:** [`DECISIONS.md`](DECISIONS.md) (consolidado) · [`docs/adr/`](docs/adr/) · [`docs/decisions-log.md`](docs/decisions-log.md) · [`DECISIONES_ESTRATEGICAS.md`](DECISIONES_ESTRATEGICAS.md)
 
 ---
 
