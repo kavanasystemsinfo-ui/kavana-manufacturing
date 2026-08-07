@@ -1,6 +1,7 @@
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import logo from '../../logo.png';
-import { triggerSyncEngine, useHmiStore } from './store/hmi-store.js';
+import { useOperatorPanel } from './hooks/useOperatorPanel.js';
+import { useHmiStore } from './store/hmi-store.js';
 import { FailedEventsModal } from './components/operator/FailedEventsModal.js';
 import { ThemeToggle } from './components/ThemeToggle.js';
 import { HelpModal } from './components/HelpModal.js';
@@ -19,154 +20,24 @@ const statusLabels: Record<string, string> = {
 
 export function ClassicOperatorPanel() {
   const {
-    currentStatus,
-    isOnline,
-    isMutating,
-    isSyncing,
-    pendingCount,
-    failedCount,
-    capabilities,
-    orderId,
-    workstationId,
-    operatorId,
-    activeOrder,
-    registerWorkBlock,
-    loadCapabilities,
-    loadOperatorContext,
-    loadAvailableOrders,
-    selectOrder,
-    loadOrder,
-    updateCustomFields,
-    workstationName,
-    operatorName,
-    availableOrders,
-    isLoadingOrders,
-    selectedOrderCustomFields,
-  } = useHmiStore();
-  
-  const [isFailedLogsModalOpen, setIsFailedLogsModalOpen] = useState(false);
-  const [orderSearch, setOrderSearch] = useState('');
-
-  const today = new Date();
-  const dateLabel = today.toLocaleDateString('es-ES', { weekday: 'long', day: '2-digit', month: 'short' });
-
-  const [startTime, setStartTime] = useState('');
-  const [endTime, setEndTime] = useState('');
-  const [producedQuantity, setProducedQuantity] = useState('');
-  const [defectQuantity, setDefectQuantity] = useState('0');
-  const [observations, setObservations] = useState('');
-  const [errorMsg, setErrorMsg] = useState('');
-  const [editingCustomFields, setEditingCustomFields] = useState<Record<string, any>>({});
-  const [isSavingCustomFields, setIsSavingCustomFields] = useState(false);
-
-  useEffect(() => {
-    void loadOperatorContext();
-    void loadCapabilities();
-    void loadAvailableOrders();
-    void triggerSyncEngine();
-  }, []);
-
-  useEffect(() => {
-    if (orderId) {
-      void loadOrder(orderId);
-    }
-  }, [orderId]);
-
-  useEffect(() => {
-    if (activeOrder?.custom_fields) {
-      setEditingCustomFields({ ...activeOrder.custom_fields });
-    }
-  }, [activeOrder?.custom_fields]);
-
-  const handleTimeChange = (val: string, setter: (v: string) => void) => {
-    let clean = val.replace(/[^\d:]/g, '');
-    if (clean.length === 2 && !clean.includes(':') && val.length === 2) {
-      clean += ':';
-    } else if (clean.length > 2 && !clean.includes(':')) {
-      clean = clean.slice(0, 2) + ':' + clean.slice(2);
-    }
-    if (clean.length > 5) clean = clean.slice(0, 5);
-    setter(clean);
-  };
-
-  const parseTimeStr = (timeStr: string) => {
-    const [h, m] = timeStr.split(':').map(Number);
-    const d = new Date();
-    d.setHours(h || 0, m || 0, 0, 0);
-    return d;
-  };
-
-  async function handleRegisterBlock(e: React.FormEvent) {
-    e.preventDefault();
-    setErrorMsg('');
-
-    if (startTime.length < 5 || endTime.length < 5) {
-      setErrorMsg('Las horas deben tener formato HH:MM completo.');
-      return;
-    }
-
-    const startD = parseTimeStr(startTime);
-    const endD = parseTimeStr(endTime);
-    
-    if (endD < startD) {
-      endD.setDate(endD.getDate() + 1);
-    }
-
-    if (endD <= startD) {
-      setErrorMsg('La hora de fin debe ser posterior a la de inicio.');
-      return;
-    }
-
-    if (!producedQuantity || Number(producedQuantity) < 0) {
-      setErrorMsg('Debes introducir la cantidad producida.');
-      return;
-    }
-
-    await registerWorkBlock(
-      'produccion',
-      startD.toISOString(),
-      endD.toISOString(),
-      null,
-      Number(producedQuantity),
-      Number(defectQuantity),
-      observations.trim() || null
-    );
-    
-    setStartTime('');
-    setEndTime('');
-    setProducedQuantity('');
-    setDefectQuantity('0');
-    setObservations('');
-  }
-
-  const handleSaveCustomFields = async () => {
-    if (!orderId) return;
-    setIsSavingCustomFields(true);
-    try {
-      await updateCustomFields(orderId, editingCustomFields);
-    } finally {
-      setIsSavingCustomFields(false);
-    }
-  };
-
-  const activeOrderCustomFields = useHmiStore((state) => state.activeOrder?.custom_fields);
-
-  const schemaFields = Array.isArray((capabilities?.customFieldsSchema as any)?.production_orders?.fields) 
-    ? (capabilities?.customFieldsSchema as any).production_orders.fields 
-    : [];
-
-  const customFields = mapCustomFieldsToUI(activeOrderCustomFields, schemaFields);
-
-  const filteredOrders = availableOrders.filter((o) => {
-    const q = orderSearch.toLowerCase();
-    if (!q) return true;
-    return (
-      o.model_name?.toLowerCase().includes(q) ||
-      o.workstation_name?.toLowerCase().includes(q) ||
-      o.id.toLowerCase().includes(q)
-    );
-  });
-
+    currentStatus, isOnline, isMutating, isSyncing,
+    pendingCount, failedCount, capabilities,
+    orderId, workstationId, operatorId, activeOrder,
+    workstationName, operatorName,
+    availableOrders, isLoadingOrders, activeOrderCustomFields,
+    selectOrder, loadAvailableOrders,
+    isFailedLogsModalOpen, setIsFailedLogsModalOpen,
+    orderSearch, setOrderSearch,
+    startTime, setStartTime, endTime, setEndTime,
+    producedQuantity, setProducedQuantity,
+    defectQuantity, setDefectQuantity,
+    observations, setObservations, errorMsg, setErrorMsg,
+    editingCustomFields, setEditingCustomFields,
+    isSavingCustomFields,
+    handleTimeChange, handleRegisterBlock, handleSaveCustomFields,
+    schemaFields, customFields, filteredOrders,
+  } = useOperatorPanel();
+  const dateLabel = new Date().toLocaleDateString('es-ES', { weekday: 'long', day: '2-digit', month: 'short' });
   if (!orderId) {
     return (
       <div className="min-h-screen bg-gray-50 text-gray-900">
@@ -300,11 +171,11 @@ export function ClassicOperatorPanel() {
           </div>
         </div>
 
-        {selectedOrderCustomFields && Object.keys(selectedOrderCustomFields).length > 0 && (
+        {activeOrderCustomFields && Object.keys(activeOrderCustomFields).length > 0 && (
           <div className="mb-6 rounded-lg border border-slate-200 bg-white p-4 shadow-sm">
             <p className="text-xs font-bold uppercase tracking-wider text-slate-500 mb-3">Datos de la orden</p>
             <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
-              {Object.entries(selectedOrderCustomFields).map(([key, value]) => (
+              {Object.entries(activeOrderCustomFields).map(([key, value]) => (
                 <div key={key}>
                   <p className="text-xs text-slate-400 capitalize">{key.replace(/_/g, ' ')}</p>
                   <p className="text-sm font-medium text-slate-900">{String(value ?? '—')}</p>

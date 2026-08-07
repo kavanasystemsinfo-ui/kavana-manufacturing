@@ -9,16 +9,9 @@
 
 const { Client } = require('pg');
 const crypto = require('crypto');
+const { getClient } = require('./db.cjs');
 
-const c = new Client({
-  host: process.env.PGHOST,
-  port: parseInt(process.env.PGPORT || '5432', 10),
-  user: process.env.PGUSER || 'neondb_owner',
-  password: process.env.PGPASSWORD,
-  database: process.env.PGDATABASE || 'neondb',
-  ssl: String(process.env.PGSSLMODE || 'require').toLowerCase() !== 'disable'
-    ? { rejectUnauthorized: false } : false,
-});
+const c = getClient();
 
 // Contraseña PÚBLICA del visitante (documentada en la landing)
 const PASSWORD_VISITANTE = 'kavana';

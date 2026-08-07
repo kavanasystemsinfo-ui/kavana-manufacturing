@@ -7,18 +7,11 @@
 // Idempotente: si ya hay work_blocks históricos (>1500), NO duplica.
 // Semilla determinista (seedRnd=42): misma BD = mismos datos, reproducible.
 
-const pg = require('pg');
+('pg');
 const crypto = require('crypto');
+const { getClient } = require('./db.cjs');
 
-const POOL = new pg.Pool({
-  host: process.env.PGHOST,
-  port: parseInt(process.env.PGPORT || '5432', 10),
-  user: process.env.PGUSER || 'neondb_owner',
-  password: process.env.PGPASSWORD,
-  database: process.env.PGDATABASE || 'neondb',
-  ssl: String(process.env.PGSSLMODE || 'require').toLowerCase() !== 'disable'
-    ? { rejectUnauthorized: false } : false,
-});
+const c = getClient();
 
 function uuid() { return crypto.randomUUID(); }
 
@@ -61,13 +54,13 @@ async function main() {
   console.log('→ Seed HISTÓRICO Manufacturing (90 días) — Fábrica de Placas Solares DEMO...');
 
   // Idempotencia: si ya hay histórico real, no duplicar
-  const countRes = await POOL.query(
+  const countRes = await c.query(
     "SELECT COUNT(*) AS n FROM production_work_blocks WHERE start_time < NOW() - INTERVAL '1 day'"
   );
   const yaTieneHistorico = parseInt(countRes.rows[0].n, 10);
   if (yaTieneHistorico > 1500) {
     console.log(`  • Ya existe histórico (${yaTieneHistorico} bloques). No se duplica.`);
-    await POOL.end();
+    await c.end();
     return;
   }
   console.log(`  • Bloques históricos actuales: ${yaTieneHistorico}. Generando...`);
@@ -77,7 +70,7 @@ async function main() {
   hoy.setHours(0, 0, 0, 0);
 
   // Datos base: workstations, modelos, operario
-  const wsRes = await POOL.query(
+  const wsRes = await c.query(
     'SELECT id, code, name FROM workstations WHERE tenant_id=$1 AND status=$2 ORDER BY code',
     [TENANT, 'active']
   );
@@ -88,7 +81,7 @@ async function main() {
   }
   console.log(`  • ${workstations.length} workstations`);
 
-  const modRes = await POOL.query(
+  const modRes = await c.query(
     'SELECT id, name, target_rate FROM manufacturing_models WHERE tenant_id=$1 ORDER BY name',
     [TENANT]
   );
@@ -99,7 +92,7 @@ async function main() {
   }
   console.log(`  • ${models.length} modelos`);
 
-  const opRes = await POOL.query(
+  const opRes = await c.query(
     "SELECT id FROM users WHERE tenant_id=$1 AND role='operario' ORDER BY username",
     [TENANT]
   );
@@ -148,7 +141,7 @@ async function main() {
       // 1 orden por día y workstation (completada salvo la de hoy)
       const orderId = uuid();
       const qtyObjetivo = Math.round(targetRate * 8 * factorDia * entre(85, 105) / 100);
-      await POOL.query(
+      await c.query(
         `INSERT INTO orders (id, tenant_id, model_id, workstation_id, quantity, status,
            created_by, custom_fields, produced_quantity, defect_quantity, code, created_at, updated_at)
          VALUES ($1,$2,$3,$4,$5,$6,'system','{}',$7,$8,$9,$10,$10)`,
@@ -194,7 +187,7 @@ async function main() {
           const paradaStart = new Date(start.getTime() + entre(30, Math.max(60, (end - start) / 60000 - 60)) * 60000);
           const paradaEnd = new Date(Math.min(paradaStart.getTime() + durParadaMin * 60000, end.getTime()));
           if (paradaEnd > paradaStart && paradaEnd <= hoy) {
-            await POOL.query(
+            await c.query(
               `INSERT INTO production_work_blocks
                 (id, tenant_id, order_id, workstation_id, operator_id, type, start_time, end_time,
                  downtime_reason, produced_quantity, defect_quantity, created_at, updated_at)
@@ -231,7 +224,7 @@ async function main() {
           defectosTotal += defectos;
 
           if (bEnd > bStart) {
-            await POOL.query(
+            await c.query(
               `INSERT INTO production_work_blocks
                 (id, tenant_id, order_id, workstation_id, operator_id, type, start_time, end_time,
                  downtime_reason, produced_quantity, defect_quantity, created_at, updated_at)
@@ -246,7 +239,7 @@ async function main() {
 
       // Actualizar la orden con lo producido (solo días completados)
       if (!esHoy) {
-        await POOL.query(
+        await c.query(
           'UPDATE orders SET produced_quantity=$1, defect_quantity=$2 WHERE id=$3',
           [producidoTotal, defectosTotal, orderId]
         );
@@ -254,7 +247,7 @@ async function main() {
         // Control de calidad (~70% de órdenes): 1 check por orden
         if (rnd() < 0.7 && producidoTotal > 0) {
           const result = defectosTotal === 0 ? 'pass' : defectosTotal <= 5 ? 'conditional' : 'fail';
-          await POOL.query(
+          await c.query(
             `INSERT INTO quality_checks
               (id, tenant_id, order_id, workstation_id, inspector_id, result, defect_count,
                defect_type, notes, checked_at, created_at)
@@ -277,7 +270,7 @@ async function main() {
           ];
           for (const [cat, peso] of cats) {
             const base = producidoTotal * (0.8 + rnd() * 0.8); // coste unitario aproximado
-            await POOL.query(
+            await c.query(
               `INSERT INTO cost_entries (id, tenant_id, order_id, category, amount, currency, description, created_at)
                VALUES ($1,$2,$3,$4,$5,'EUR',$6,$7)`,
               [uuid(), TENANT, orderId, cat, Math.round(base * peso * 100) / 100,
@@ -299,7 +292,7 @@ async function main() {
   console.log(`  • Work blocks:  ${bloquesCreados}`);
   console.log(`  • Quality:      ${qualityCreados}`);
   console.log(`  • Cost entries: ${costCreados}`);
-  await POOL.end();
+  await c.end();
 }
 
 main().catch((e) => { console.error('FATAL:', e.message.slice(0, 300)); process.exit(1); });

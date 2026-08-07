@@ -3,6 +3,7 @@ import {
   listTenants, getTenantStats, createTenant, updateTenant, deleteTenant, toggleTenantModule,
   type GlobalTenant, type TenantStats,
 } from './api/admin-entities.js';
+import { useGlobalAdmin } from './hooks/useGlobalAdmin.js';
 import { ThemeToggle } from './components/ThemeToggle.js';
 import { HelpModal } from './components/HelpModal.js';
 import { GLOBAL_ADMIN_HELP } from './help-content.js';
@@ -18,24 +19,7 @@ const MODULE_LABELS: Record<string, string> = {
 type Tab = 'tenants' | 'create';
 
 export function GlobalAdminPanel() {
-  const [tab, setTab] = useState<Tab>('tenants');
-  const [tenants, setTenants] = useState<GlobalTenant[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-
-  const load = useCallback(async () => {
-    try {
-      setLoading(true);
-      const t = await listTenants();
-      setTenants(t);
-    } catch (e) {
-      setError(e instanceof Error ? e.message : String(e));
-    } finally {
-      setLoading(false);
-    }
-  }, []);
-
-  useEffect(() => { void load(); }, [load]);
+  const { tab, setTab, tenants, loading, error, setError, reload } = useGlobalAdmin();
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 text-white">
@@ -70,10 +54,10 @@ export function GlobalAdminPanel() {
         )}
 
         {tab === 'tenants' && (
-          <TenantsTab tenants={tenants} loading={loading} onReload={load} onError={setError} />
+          <TenantsTab tenants={tenants} loading={loading} onReload={reload} onError={setError} />
         )}
         {tab === 'create' && (
-          <CreateTenantTab onCreated={() => { setTab('tenants'); void load(); }} onError={setError} />
+          <CreateTenantTab onCreated={() => { setTab('tenants'); void reload(); }} onError={setError} />
         )}
       </main>
     </div>

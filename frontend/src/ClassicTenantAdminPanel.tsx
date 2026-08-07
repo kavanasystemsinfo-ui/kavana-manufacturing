@@ -1,12 +1,5 @@
-import { useEffect, useState } from 'react';
+import { useTenantAdmin } from './hooks/useTenantAdmin.js';
 import logo from '../../logo.png';
-import {
-  fetchCapabilities,
-  toggleModuleCapability,
-  updateCustomFieldsSchema,
-  type TenantCapabilities,
-} from './api/admin.js';
-import { useHmiStore } from './store/hmi-store.js';
 import { ThemeToggle } from './components/ThemeToggle.js';
 
 interface EditableField {
@@ -24,102 +17,13 @@ const moduleNames: Record<string, string> = {
 };
 
 export function ClassicTenantAdminPanel() {
-  const [capabilities, setCapabilities] = useState<TenantCapabilities | null>(null);
-  const [error, setError] = useState<string | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
-  const [isMutating, setIsMutating] = useState(false);
-  const { loadCapabilities } = useHmiStore();
-  const [editableFields, setEditableFields] = useState<EditableField[]>([]);
-
-  async function loadData() {
-    try {
-      setIsLoading(true);
-      setError(null);
-      const data = await fetchCapabilities();
-      setCapabilities(data);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : String(err));
-    } finally {
-      setIsLoading(false);
-    }
-  }
-
-  useEffect(() => {
-    void loadData();
-  }, []);
-
-  useEffect(() => {
-    if (capabilities) {
-      const orderSchema = capabilities.customFieldsSchema?.production_orders as any;
-      const fields = Array.isArray(orderSchema?.fields) ? orderSchema.fields : [];
-      setEditableFields(fields);
-    }
-  }, [capabilities]);
-
-  async function handleToggle(moduleKey: string, currentEnabled: boolean) {
-    if (moduleKey === 'core_mes') return;
-    try {
-      setIsMutating(true);
-      setError(null);
-      await toggleModuleCapability(moduleKey, !currentEnabled);
-      await loadCapabilities();
-      await loadData();
-    } catch (err) {
-      setError(err instanceof Error ? err.message : String(err));
-    } finally {
-      setIsMutating(false);
-    }
-  }
-
-  const handleKeyChange = (index: number, val: string) => {
-    const sanitized = val.toLowerCase().replace(/\s+/g, '_').replace(/[^a-z0-9_]/g, '');
-    const updated = [...editableFields];
-    updated[index].key = sanitized;
-    setEditableFields(updated);
-  };
-
-  const handleTypeChange = (index: number, val: 'string' | 'number' | 'boolean') => {
-    const updated = [...editableFields];
-    updated[index].type = val;
-    setEditableFields(updated);
-  };
-
-  const handleRequiredChange = (index: number, val: boolean) => {
-    const updated = [...editableFields];
-    updated[index].required = val;
-    setEditableFields(updated);
-  };
-
-  const handleAddField = () => {
-    setEditableFields([...editableFields, { key: '', label: '', type: 'string', required: false }]);
-  };
-
-  const handleRemoveField = (index: number) => {
-    setEditableFields(editableFields.filter((_, i) => i !== index));
-  };
-
-  const handleSaveSchema = async () => {
-    const keys = editableFields.map(f => f.key.trim());
-    if (keys.some(k => k === '')) {
-      setError('Todas las llaves de los campos personalizados deben tener un nombre.');
-      return;
-    }
-    if (new Set(keys).size !== keys.length) {
-      setError('No se permiten llaves de campos duplicados.');
-      return;
-    }
-    try {
-      setIsMutating(true);
-      setError(null);
-      await updateCustomFieldsSchema({ fields: editableFields });
-      await loadCapabilities();
-      await loadData();
-    } catch (err) {
-      setError(err instanceof Error ? err.message : String(err));
-    } finally {
-      setIsMutating(false);
-    }
-  };
+  const {
+    capabilities, error, setError, isLoading, isMutating,
+    editableFields, loadData, setEditableFields,
+    handleToggle, handleKeyChange, handleTypeChange, handleRequiredChange,
+    handleAddField, handleRemoveField, handleSaveSchema,
+    moduleNames,
+  } = useTenantAdmin();
 
   const maxCustomFields = Number((capabilities?.quotas as any)?.entities?.max_custom_fields ?? 5);
   const isQuotaExceeded = editableFields.length > maxCustomFields;
