@@ -1,6 +1,7 @@
 import { MiddlewareConsumer, Module, NestModule } from '@nestjs/common';
 import { HealthController } from './health/health.controller.js';
 import { TenantContextMiddleware } from './auth/tenant-context.middleware.js';
+import { DemoReadOnlyMiddleware } from './auth/demo-readonly.middleware.js';
 import { CoreMesProductionModule } from './core-mes-production/core-mes-production.module.js';
 import { TenantCapabilitiesModule } from './tenant-capabilities/tenant-capabilities.module.js';
 import { UsersModule } from './users/users.module.js';
@@ -27,6 +28,8 @@ import { JwtServiceWrapper } from './auth/jwt.service.js';
 })
 export class AppModule implements NestModule {
   configure(consumer: MiddlewareConsumer): void {
+    // ORDEN CRÍTICO: TenantContextMiddleware primero (establece el contexto),
+    // DemoReadOnlyMiddleware después (lo lee para blindar la demo).
     consumer.apply(TenantContextMiddleware).forRoutes(
       'users',
       'workstations',
@@ -42,6 +45,18 @@ export class AppModule implements NestModule {
       'toolings',
       'materials',
       'global-admin',
+    );
+    consumer.apply(DemoReadOnlyMiddleware).forRoutes(
+      'users',
+      'workstations',
+      'manufacturing-models',
+      'orders',
+      'quality',
+      'costs',
+      'production',
+      'incidencias',
+      'toolings',
+      'materials',
     );
   }
 }

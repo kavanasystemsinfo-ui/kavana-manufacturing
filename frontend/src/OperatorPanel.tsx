@@ -4,6 +4,7 @@ import { triggerSyncEngine, useHmiStore } from './store/hmi-store.js';
 import { FailedEventsModal } from './components/operator/FailedEventsModal.js';
 import { ThemeToggle } from './components/ThemeToggle.js';
 import { HelpModal } from './components/HelpModal.js';
+import { AiAdvisorFab } from './components/AiAdvisorFab.js';
 import { OPERATOR_HELP } from './help-content.js';
 import { mapCustomFieldsToUI, type CustomFieldUI } from './utils/customFieldsMapper.js';
 
@@ -245,7 +246,8 @@ export function OperatorPanel() {
   }
 
   return (
-    <main className="min-h-screen bg-kavana-dark text-slate-100 p-4 md:p-8">
+    <>
+      <main className="min-h-screen bg-kavana-dark text-slate-100 p-4 md:p-8">
       <section className="mx-auto w-[90%] rounded-[2rem] border-2 border-kavana-orange bg-kavana-panel/90 p-4 md:p-8">
         <header className="mb-8 flex flex-col gap-5 border-b border-kavana-orange/30 pb-6 md:flex-row md:items-center md:justify-between">
           <div className="flex items-center gap-4">
@@ -414,6 +416,8 @@ export function OperatorPanel() {
         )}
       </section>
     </main>
+    <AiAdvisorFab />
+    </>
   );
 }
 
