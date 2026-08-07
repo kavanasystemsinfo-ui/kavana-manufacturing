@@ -77,6 +77,18 @@ async function main() {
   );
   console.log(`  • Work blocks de hoy limpiados: ${del.rowCount}`);
 
+  // 1b) Limpiar órdenes de hoy creadas por el simulador O el visitante (1094).
+  //     Idempotente: no acumular en cada ejecución; el visitante de la demo
+  //     también caduca a las 24h (sus órdenes se regeneran con la simulación).
+  const delOrd = await POOL.query(
+    `DELETE FROM orders
+     WHERE tenant_id=$1 AND created_at >= $2
+       AND (created_by='system'
+            OR created_by = (SELECT id::text FROM users WHERE tenant_id=$1 AND username='1094'))`,
+    [TENANT, hoy]
+  );
+  console.log(`  • Órdenes de hoy limpiadas: ${delOrd.rowCount}`);
+
   // 2) Cerrar órdenes de días anteriores que quedaron in_progress
   const abiertas = await POOL.query(
     "UPDATE orders SET status='completed' WHERE tenant_id=$1 AND status='in_progress' AND updated_at < $2 RETURNING id",
@@ -96,13 +108,18 @@ async function main() {
   );
   const models = modRes.rows;
   const opRes = await POOL.query(
-    "SELECT id FROM users WHERE tenant_id=$1 AND role='operario' LIMIT 1",
+    "SELECT id FROM users WHERE tenant_id=$1 AND role='operario' ORDER BY username",
     [TENANT]
   );
-  const operarioId = opRes.rows[0]?.id;
-  if (!operarioId || workstations.length === 0 || models.length === 0) {
-    console.error('  ✗ Faltan datos base (workstations/modelos/operario).');
+  const operarios = opRes.rows.map((r) => r.id);
+  if (operarios.length === 0 || workstations.length === 0 || models.length === 0) {
+    console.error('  ✗ Faltan datos base (workstations/modelos/operarios).');
     process.exit(1);
+  }
+  // Operario de turno: rotativo determinista por (workstation + día)
+  const fechaSeed = hoy.getFullYear() * 10000 + (hoy.getMonth() + 1) * 100 + hoy.getDate();
+  function operarioPara(wi) {
+    return operarios[(wi + fechaSeed) % operarios.length];
   }
 
   const nTurnos = esDomingo ? 1 : esSabado ? 2 : 3;
@@ -151,7 +168,7 @@ async function main() {
               (id, tenant_id, order_id, workstation_id, operator_id, type, start_time, end_time,
                downtime_reason, produced_quantity, defect_quantity, created_at, updated_at)
              VALUES ($1,$2,$3,$4,$5,'parada',$6,$7,$8,0,0,$6,$7)`,
-            [uuid(), TENANT, orderId, ws.id, operarioId, paradaStart, paradaEnd,
+            [uuid(), TENANT, orderId, ws.id, operarioPara(wi), paradaStart, paradaEnd,
              elegir(DOWNTIME_REASONS)]
           );
           bloquesCreados++;
@@ -182,7 +199,7 @@ async function main() {
             (id, tenant_id, order_id, workstation_id, operator_id, type, start_time, end_time,
              downtime_reason, produced_quantity, defect_quantity, created_at, updated_at)
            VALUES ($1,$2,$3,$4,$5,'produccion',$6,$7,NULL,$8,$9,$6,$7)`,
-          [uuid(), TENANT, orderId, ws.id, operarioId, bStart, bEnd, producido, defectos]
+          [uuid(), TENANT, orderId, ws.id, operarioPara(wi), bStart, bEnd, producido, defectos]
         );
         bloquesCreados++;
         acum = bEnd.getTime();

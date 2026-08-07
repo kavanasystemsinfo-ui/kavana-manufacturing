@@ -100,18 +100,23 @@ async function main() {
   console.log(`  • ${models.length} modelos`);
 
   const opRes = await POOL.query(
-    "SELECT id FROM users WHERE tenant_id=$1 AND role='operario' LIMIT 1",
+    "SELECT id FROM users WHERE tenant_id=$1 AND role='operario' ORDER BY username",
     [TENANT]
   );
-  const operarioId = opRes.rows[0]?.id;
-  if (!operarioId) {
-    console.error('  ✗ No hay operario en tenant 1. Crear uno antes.');
+  const operarios = opRes.rows.map((r) => r.id);
+  if (operarios.length === 0) {
+    console.error('  ✗ No hay operarios en tenant 1. Ejecutar antes seed-operarios-demo.cjs');
     process.exit(1);
   }
+  console.log(`  • ${operarios.length} operarios en plantilla`);
 
   // Asignar modelo a cada workstation (rotativo pero determinista)
   function modeloParaWorkstation(wsIndex) {
     return models[wsIndex % models.length];
+  }
+  // Operario de turno: rotativo determinista por (día + workstation)
+  function operarioPara(wi, d) {
+    return operarios[(wi + d) % operarios.length];
   }
 
   let ordersCreadas = 0;
@@ -194,7 +199,7 @@ async function main() {
                 (id, tenant_id, order_id, workstation_id, operator_id, type, start_time, end_time,
                  downtime_reason, produced_quantity, defect_quantity, created_at, updated_at)
                VALUES ($1,$2,$3,$4,$5,'parada',$6,$7,$8,0,0,$6,$7)`,
-              [uuid(), TENANT, orderId, ws.id, operarioId, paradaStart, paradaEnd,
+              [uuid(), TENANT, orderId, ws.id, operarioPara(wi, d), paradaStart, paradaEnd,
                elegir(DOWNTIME_REASONS)]
             );
             bloquesCreados++;
@@ -231,7 +236,7 @@ async function main() {
                 (id, tenant_id, order_id, workstation_id, operator_id, type, start_time, end_time,
                  downtime_reason, produced_quantity, defect_quantity, created_at, updated_at)
                VALUES ($1,$2,$3,$4,$5,'produccion',$6,$7,NULL,$8,$9,$6,$7)`,
-              [uuid(), TENANT, orderId, ws.id, operarioId, bStart, bEnd, producido, defectos]
+              [uuid(), TENANT, orderId, ws.id, operarioPara(wi, d), bStart, bEnd, producido, defectos]
             );
             bloquesCreados++;
             acum = bEnd.getTime();
