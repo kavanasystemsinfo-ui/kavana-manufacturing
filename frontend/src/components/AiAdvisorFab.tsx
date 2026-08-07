@@ -1,13 +1,15 @@
 import { useState } from 'react';
-import { AiAdvisorChat } from './AiAdvisorChat.js';
+import { AiAdvisorChat, type AdvisorMode } from './AiAdvisorChat.js';
 import { useThemeStore } from '../store/theme-store.js';
 
-// Botón flotante "🤖 Asistente" que abre el chat IA en un modal.
+// Botón flotante "🤖 Asistente" que abre el chat IA en un modal con selector
+// de modo: MES (datos de producción) o Técnico (código/arquitectura).
 // Montado en los 3 paneles de rol (admin, supervisor, operario) y en el login.
 export function AiAdvisorFab() {
   const theme = useThemeStore((s) => s.theme);
   const isClassic = theme === 'classic';
   const [open, setOpen] = useState(false);
+  const [mode, setMode] = useState<AdvisorMode>('mes');
 
   return (
     <>
@@ -38,7 +40,29 @@ export function AiAdvisorFab() {
             >
               ✕
             </button>
-            <AiAdvisorChat />
+            <div className={`mb-2 flex gap-1 rounded-xl p-1 ${isClassic ? 'bg-slate-200' : 'bg-kavana-dark/80 ring-1 ring-kavana-steel/30'}`}>
+              <button
+                onClick={() => setMode('mes')}
+                className={`flex-1 rounded-lg px-3 py-2 text-xs font-bold transition ${
+                  mode === 'mes'
+                    ? (isClassic ? 'bg-blue-600 text-white' : 'bg-kavana-orange text-white shadow')
+                    : (isClassic ? 'text-slate-600 hover:bg-slate-300' : 'text-slate-400 hover:text-white')
+                }`}
+              >
+                🏭 Datos de producción
+              </button>
+              <button
+                onClick={() => setMode('tech')}
+                className={`flex-1 rounded-lg px-3 py-2 text-xs font-bold transition ${
+                  mode === 'tech'
+                    ? (isClassic ? 'bg-blue-600 text-white' : 'bg-kavana-orange text-white shadow')
+                    : (isClassic ? 'text-slate-600 hover:bg-slate-300' : 'text-slate-400 hover:text-white')
+                }`}
+              >
+                📐 Código y arquitectura
+              </button>
+            </div>
+            <AiAdvisorChat mode={mode} />
           </div>
         </div>
       )}

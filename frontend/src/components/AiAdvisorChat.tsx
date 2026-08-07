@@ -26,16 +26,31 @@ interface Message {
   contextVersion?: string;
 }
 
-const suggestedQuestions = [
+const suggestedQuestionsMES = [
   '¿Cuántas órdenes están activas?',
   '¿Cuál es el OEE promedio de la planta?',
   '¿Hay incidencias de calidad recientes?',
   '¿Qué puesto tiene más producción?',
 ];
 
-export function AiAdvisorChat() {
+const suggestedQuestionsTech = [
+  '¿Por qué elegiste offline-first para el HMI?',
+  '¿Cómo funciona la sincronización con el servidor?',
+  '¿Cómo proteges los datos entre clientes (multi-tenant)?',
+  '¿Qué decisiones de arquitectura documentaste?',
+];
+
+export type AdvisorMode = 'mes' | 'tech';
+
+interface AiAdvisorChatProps {
+  mode?: AdvisorMode;
+}
+
+export function AiAdvisorChat({ mode = 'mes' }: AiAdvisorChatProps) {
   const theme = useThemeStore((s) => s.theme);
   const isClassic = theme === 'classic';
+  const isTech = mode === 'tech';
+  const suggestedQuestions = isTech ? suggestedQuestionsTech : suggestedQuestionsMES;
 
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState('');
@@ -59,9 +74,10 @@ export function AiAdvisorChat() {
       const controller = new AbortController();
       const timeout = setTimeout(() => controller.abort(), 30000);
       const token = localStorage.getItem('kavana_dev_token') || 'mock-token';
-      const res = await fetch('/api/ai-advisor/ask', {
+      const endpoint = isTech ? '/api/ai-advisor/ask-tech' : '/api/ai-advisor/ask';
+      const res = await fetch(endpoint, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+        headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + token },
         body: JSON.stringify({ question: q }),
         signal: controller.signal,
       });
@@ -97,10 +113,12 @@ export function AiAdvisorChat() {
   return (
     <div className={`flex flex-col rounded-xl border ${containerBg}`} style={{ height: '520px' }}>
       <div className={`flex items-center gap-2 border-b px-5 py-3 ${isClassic ? 'border-slate-200 bg-slate-50' : 'border-kavana-steel/20 bg-kavana-dark/50'}`}>
-        <span className="text-lg">🤖</span>
+        <span className="text-lg">{isTech ? '📐' : '🤖'}</span>
         <div>
-          <p className={`text-sm font-bold ${textPrimary}`}>Asistente IA</p>
-          <p className={`text-xs ${textSecondary}`}>Consulta datos de producción en lenguaje natural</p>
+          <p className={`text-sm font-bold ${textPrimary}`}>{isTech ? 'Asistente técnico' : 'Asistente MES'}</p>
+          <p className={`text-xs ${textSecondary}`}>
+            {isTech ? 'Pregunta sobre el código, la arquitectura y las decisiones' : 'Consulta los datos de producción en lenguaje natural'}
+          </p>
         </div>
       </div>
 
