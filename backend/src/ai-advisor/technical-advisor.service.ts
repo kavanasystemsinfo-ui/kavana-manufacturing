@@ -14,8 +14,8 @@ import { fileURLToPath } from 'node:url';
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const REPO_ROOT = path.resolve(__dirname, '../../..');
 
-const MODELO_PRO = process.env.ASSISTANT_MODEL_PRO || 'deepseek/deepseek-chat';
-const MODELO_FREE = process.env.ASSISTANT_MODEL_FREE || 'openai/gpt-oss-20b:free';
+const MODELO_PRO = process.env.ASSISTANT_MODEL_PRO || 'poolside/laguna-s-2.1:free';
+const MODELO_FREE = process.env.ASSISTANT_MODEL_FREE || 'poolside/laguna-s-2.1:free';
 
 @Injectable()
 export class TechnicalAdvisorService {

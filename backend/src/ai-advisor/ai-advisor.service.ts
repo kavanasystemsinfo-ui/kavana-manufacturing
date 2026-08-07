@@ -232,13 +232,13 @@ export class AiAdvisorService {
       ollama: 'llama3.1:8b',
       vllm: 'mistralai/Mistral-7B-Instruct-v0.3',
       nvidia: 'meta/llama-3.1-8b-instruct',
-      openrouter: 'deepseek/deepseek-chat',
+      openrouter: 'poolside/laguna-s-2.1:free',
       openai: 'gpt-4o-mini',
-    }[provider] || 'deepseek/deepseek-chat';
+    }[provider] || 'poolside/laguna-s-2.1:free';
 
     // Modelo gratuito de respaldo (mismo patrón que RouteAI/Warehouse: si el
-    // principal falla, reintentar con gpt-oss-20b:free antes de rendirse).
-    const MODELO_FREE = process.env.LLM_MODEL_FREE || 'openai/gpt-oss-20b:free';
+    // principal falla, reintentar con el modelo free antes de rendirse).
+    const MODELO_FREE = process.env.LLM_MODEL_FREE || 'poolside/laguna-s-2.1:free';
 
     if (!apiKey) {
       throw new Error(`API key no configurada para provider "${provider}". Configura ${provider.toUpperCase()}_API_KEY en .env`);
