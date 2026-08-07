@@ -45,7 +45,7 @@ export class OeeRecalcProcessor extends WorkerHost {
           date_trunc('day', wb.start_time) as period_start,
           date_trunc('day', wb.start_time) + INTERVAL '1 day' as period_end,
           COALESCE(
-            SUM(CASE WHEN wb.type = 'production' THEN EXTRACT(EPOCH FROM (wb.end_time - wb.start_time)) ELSE 0 END)
+            SUM(CASE WHEN wb.type = 'produccion' THEN EXTRACT(EPOCH FROM (wb.end_time - wb.start_time)) ELSE 0 END)
             / NULLIF(SUM(EXTRACT(EPOCH FROM (wb.end_time - wb.start_time))), 0), 0
           ) as availability,
           0.85 as performance,
@@ -54,7 +54,7 @@ export class OeeRecalcProcessor extends WorkerHost {
             1.0
           ) as quality,
           COALESCE(
-            (SUM(CASE WHEN wb.type = 'production' THEN EXTRACT(EPOCH FROM (wb.end_time - wb.start_time)) ELSE 0 END)
+            (SUM(CASE WHEN wb.type = 'produccion' THEN EXTRACT(EPOCH FROM (wb.end_time - wb.start_time)) ELSE 0 END)
              / NULLIF(SUM(EXTRACT(EPOCH FROM (wb.end_time - wb.start_time))), 0))
             * 0.85
             * (1.0 - (SUM(wb.defect_quantity)::float / NULLIF(SUM(wb.produced_quantity), 0))),

@@ -136,7 +136,7 @@ export class AiAdvisorService {
     // Quality issues
     const quality = await tenantQuery(
       pool,
-      `SELECT qc.id, qc.order_id, qc.defect_type, qc.quantity, qc.notes, qc.created_at,
+      `SELECT qc.id, qc.order_id, qc.defect_type, qc.defect_count, qc.notes, qc.created_at,
               o.code as order_code
        FROM quality_checks qc
        JOIN orders o ON o.tenant_id = qc.tenant_id AND o.id = qc.order_id
