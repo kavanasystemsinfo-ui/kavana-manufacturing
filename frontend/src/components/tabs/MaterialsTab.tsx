@@ -1,7 +1,9 @@
 import { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import { listManufacturingModels, listMaterials, createMaterial, updateMaterial, deleteMaterial, deleteBomItem } from '../../api/admin-entities.js';
 
-export function MaterialsTab() {
+interface Props { isClassic?: boolean; }
+
+export function MaterialsTab({ isClassic }: Props) {
   const [materials, setMaterials] = useState<any[]>([]);
   const [models, setModels] = useState<any[]>([]);
   const [bom, setBom] = useState<any[]>([]);
@@ -56,6 +58,12 @@ export function MaterialsTab() {
 
   const mats = materials;
   const cats = [...new Set(mats.filter(m => m.category).map(m => m.category))];
+
+  const btn = isClassic ? "text-xs font-medium px-2 py-1 rounded transition-colors" : "text-sm";
+  const btnPrimary = isClassic ? btn + " bg-kavana-orange text-white hover:bg-kavana-orange-light" : "px-4 py-2 bg-indigo-600 hover:bg-indigo-700 rounded-lg text-sm font-medium transition-colors";
+  const btnSuccess = isClassic ? btn + " bg-green-600 text-white hover:bg-green-700" : "px-4 py-2 bg-green-600 hover:bg-green-700 rounded-lg text-sm font-medium transition-colors";
+  const btnGhost = isClassic ? btn + " text-gray-500 hover:text-gray-700 hover:bg-gray-100" : "px-4 py-2 bg-gray-600 hover:bg-gray-700 rounded-lg text-sm font-medium transition-colors";
+  const btnDanger = isClassic ? btn + " text-red-600 hover:text-red-800 hover:bg-red-50" : "text-red-400 hover:text-red-300 text-sm";
 
   return (
     <div>

@@ -4,7 +4,9 @@ import { listUsers, createUser, updateUser, deleteUser, listWorkstations } from 
 import { HelpModal } from '../HelpModal.js';
 import { USERS_HELP } from '../../help-content.js';
 
-export function UsersTab() {
+interface Props { isClassic?: boolean; }
+
+export function UsersTab({ isClassic }: Props) {
   const [users, setUsers] = useState<User[]>([]);
   const [workstations, setWorkstations] = useState<Workstation[]>([]);
   const [loading, setLoading] = useState(true);
@@ -88,25 +90,31 @@ export function UsersTab() {
 
   const inputStyle = 'bg-gray-900 text-white border border-gray-600 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-indigo-500 focus:border-transparent';
 
+  const btn = isClassic ? "text-xs font-medium px-2 py-1 rounded transition-colors" : "text-sm";
+  const btnPrimary = isClassic ? btn + " bg-kavana-orange text-white hover:bg-kavana-orange-light" : "px-4 py-2 bg-indigo-600 hover:bg-indigo-700 rounded-lg text-sm font-medium transition-colors";
+  const btnSuccess = isClassic ? btn + " bg-green-600 text-white hover:bg-green-700" : "px-4 py-2 bg-green-600 hover:bg-green-700 rounded-lg text-sm font-medium transition-colors";
+  const btnGhost = isClassic ? btn + " text-gray-500 hover:text-gray-700 hover:bg-gray-100" : "px-4 py-2 bg-gray-600 hover:bg-gray-700 rounded-lg text-sm font-medium transition-colors";
+  const btnDanger = isClassic ? btn + " text-red-600 hover:text-red-800 hover:bg-red-50" : "text-red-400 hover:text-red-300 text-sm";
+
   return (
-    <div className="space-y-4">
+    <div className={isClassic ? "bg-white rounded-lg border border-gray-200 shadow-sm" : "space-y-4"}>
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
-          <h2 className="text-lg font-semibold">Usuarios</h2>
-          <HelpModal {...USERS_HELP} />
+          <h2 className={isClassic ? "text-sm font-semibold text-gray-700" : "text-lg font-semibold"}>Usuarios</h2>
+          <HelpModal {...USERS_HELP} theme={isClassic ? "classic" : undefined} />
         </div>
         <button
           onClick={() => { setShowCreate(!showCreate); setEditing(null); setForm(emptyForm); }}
-          className="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 rounded-lg text-sm font-medium transition-colors"
+          className={isClassic ? btnPrimary : "px-4 py-2 bg-indigo-600 hover:bg-indigo-700 rounded-lg text-sm font-medium transition-colors"}
         >
           + Nuevo Usuario
         </button>
       </div>
 
-      {error && <div className="bg-red-900/50 border border-red-700 rounded-lg p-3 text-red-300 text-sm">{error}</div>}
+      {error && <div className={isClassic ? "bg-red-50 border border-red-200 rounded px-3 py-2 text-red-700 text-sm" : "bg-red-900/50 border border-red-700 rounded-lg p-3 text-red-300 text-sm"}>{error}</div>}
 
       {showCreate && (
-        <div className="bg-gray-800/80 backdrop-blur-sm rounded-xl border border-gray-700 p-4 space-y-3">
+        <div className={isClassic ? "bg-white border border-gray-200 rounded-lg p-4 shadow-sm" : "bg-gray-800/80 backdrop-blur-sm rounded-xl border border-gray-700 p-4 space-y-3"}>
           <div className="grid grid-cols-3 gap-3">
             <input placeholder="Nombre" value={form.first_name} onChange={(e) => setForm({ ...form, first_name: e.target.value })} className={inputStyle} />
             <input placeholder="Apellidos" value={form.last_name} onChange={(e) => setForm({ ...form, last_name: e.target.value })} className={inputStyle} />
@@ -132,16 +140,16 @@ export function UsersTab() {
             </select>
           </div>
           <div className="flex gap-2">
-            <button onClick={handleCreate} className="px-4 py-2 bg-green-600 hover:bg-green-700 rounded-lg text-sm font-medium transition-colors">Guardar</button>
-            <button onClick={() => setShowCreate(false)} className="px-4 py-2 bg-gray-600 hover:bg-gray-700 rounded-lg text-sm font-medium transition-colors">Cancelar</button>
+            <button onClick={handleCreate} className={isClassic ? btnSuccess : "px-4 py-2 bg-green-600 hover:bg-green-700 rounded-lg text-sm font-medium transition-colors"}>Guardar</button>
+            <button onClick={() => setShowCreate(false)} className={isClassic ? btnGhost : "px-4 py-2 bg-gray-600 hover:bg-gray-700 rounded-lg text-sm font-medium transition-colors"}>Cancelar</button>
           </div>
         </div>
       )}
 
       {loading ? (
-        <div className="text-center py-8 text-gray-400">Cargando...</div>
+        <div className={isClassic ? "px-4 py-8 text-center text-sm text-gray-400" : "text-center py-8 text-gray-400"}>Cargando...</div>
       ) : (
-        <div className="bg-gray-800/80 backdrop-blur-sm rounded-xl border border-gray-700 overflow-hidden">
+        <div className={isClassic ? "overflow-x-auto" : "bg-gray-800/80 backdrop-blur-sm rounded-xl border border-gray-700 overflow-hidden"}>
           <table className="w-full">
             <thead>
               <tr className="border-b border-gray-700 text-left text-sm text-gray-400">

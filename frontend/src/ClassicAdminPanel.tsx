@@ -19,15 +19,15 @@ import { CostDashboard } from './components/CostDashboard.js';
 import { USERS_HELP, WORKSTATIONS_HELP, MODELS_HELP, ORDERS_HELP, MODULES_HELP, CUSTOM_FIELDS_HELP } from './help-content.js';
 
 
-import { UsersTab } from './components/tabs/classic/UsersTab.js';
-import { WorkstationsTab } from './components/tabs/classic/WorkstationsTab.js';
-import { ModelsTab } from './components/tabs/classic/ModelsTab.js';
-import { OrdersTab } from './components/tabs/classic/OrdersTab.js';
-import { ModulesTab } from './components/tabs/classic/ModulesTab.js';
-import { CustomFieldsTab } from './components/tabs/classic/CustomFieldsTab.js';
-import { ToolingsTab } from './components/tabs/classic/ToolingsTab.js';
-import { IncidenciasTab } from './components/tabs/classic/IncidenciasTab.js';
-import { MaterialsTab } from './components/tabs/classic/MaterialsTab.js';
+import { UsersTab } from './components/tabs/UsersTab.js';
+import { WorkstationsTab } from './components/tabs/WorkstationsTab.js';
+import { ModelsTab } from './components/tabs/ModelsTab.js';
+import { OrdersTab } from './components/tabs/OrdersTab.js';
+import { ModulesTab } from './components/tabs/ModulesTab.js';
+import { CustomFieldsTab } from './components/tabs/CustomFieldsTab.js';
+import { ToolingsTab } from './components/tabs/ToolingsTab.js';
+import { IncidenciasTab } from './components/tabs/IncidenciasTab.js';
+import { MaterialsTab } from './components/tabs/MaterialsTab.js';
 type Tab = 'users' | 'workstations' | 'models' | 'orders' | 'modules' | 'custom-fields' | 'oee' | 'quality' | 'cost' | 'toolings' | 'incidencias' | 'materials';
 
 interface EditableField {
@@ -97,18 +97,18 @@ export function ClassicAdminPanel() {
       </header>
 
       <main className="w-[90%] mx-auto px-4 py-5">
-        {tab === 'users' && <UsersTab />}
-        {tab === 'workstations' && <WorkstationsTab />}
-        {tab === 'models' && <ModelsTab />}
-        {tab === 'orders' && <OrdersTab />}
-        {tab === 'toolings' && <ToolingsTab />}
-        {tab === 'incidencias' && <IncidenciasTab />}
-        {tab === 'modules' && <ModulesTab />}
-        {tab === 'custom-fields' && <CustomFieldsTab />}
+        {tab === 'users' && <UsersTab isClassic />}
+        {tab === 'workstations' && <WorkstationsTab isClassic />}
+        {tab === 'models' && <ModelsTab isClassic />}
+        {tab === 'orders' && <OrdersTab isClassic />}
+        {tab === 'toolings' && <ToolingsTab isClassic />}
+        {tab === 'incidencias' && <IncidenciasTab isClassic />}
+        {tab === 'modules' && <ModulesTab isClassic />}
+        {tab === 'custom-fields' && <CustomFieldsTab isClassic />}
         {tab === 'oee' && <OeeDashboard />}
         {tab === 'quality' && <QualityDashboard />}
         {tab === 'cost' && <CostDashboard />}
-        {tab === 'materials' && <MaterialsTab />}
+        {tab === 'materials' && <MaterialsTab isClassic />}
       </main>
     </div>
   );
