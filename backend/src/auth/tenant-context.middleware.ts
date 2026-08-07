@@ -19,7 +19,9 @@ export class TenantContextMiddleware implements NestMiddleware {
     } catch (error) {
       // El asistente IA del LOGIN (demo pública) funciona sin token: usa el
       // tenant demo (1) por defecto. El resto de rutas exigen auth.
-      const isAdvisorRoute = request.path.startsWith('/ai-advisor');
+      // (originalUrl cubre el caso de proxy que añada prefijo base)
+      const fullPath = `${request.originalUrl ?? request.path ?? ''}`;
+      const isAdvisorRoute = fullPath.includes('/ai-advisor');
       if (isAdvisorRoute) {
         tenantContextStorage.run(
           { tenantId: 1n, userId: 'demo-visitor', role: 'tenant_admin' },

@@ -14,7 +14,7 @@ import { TenantContextMiddleware } from './tenant-context.middleware.js';
 import { tenantContextStorage } from './tenant-context.storage.js';
 
 function createMocks(authHeader?: string, path = '/orders') {
-  const request = { headers: { authorization: authHeader }, path } as any;
+  const request = { headers: { authorization: authHeader }, path, originalUrl: path } as any;
   const response = {
     status: vi.fn().mockReturnThis(),
     json: vi.fn().mockReturnThis(),
