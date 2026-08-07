@@ -1,11 +1,13 @@
--- Migration: Create quality_checks table
+-- Migration 012 adapted to real production schema (Neon, 2026-08-07)
+-- Original failed: FK to workstations(id) requires unique(id) but PK is (tenant_id,id).
+-- Real schema (orders) uses NOT NULL constraints without FKs; mirror that.
 -- Supports quality assurance module (quality_assurance feature flag)
 
 CREATE TABLE IF NOT EXISTS quality_checks (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   tenant_id INTEGER NOT NULL REFERENCES tenants(id) ON DELETE CASCADE,
-  order_id UUID NOT NULL REFERENCES orders(id) ON DELETE CASCADE,
-  workstation_id UUID NOT NULL REFERENCES workstations(id) ON DELETE CASCADE,
+  order_id UUID NOT NULL,
+  workstation_id UUID NOT NULL,
   inspector_id TEXT NOT NULL,
   result TEXT NOT NULL CHECK (result IN ('pass', 'fail', 'conditional')),
   defect_count INTEGER NOT NULL DEFAULT 0 CHECK (defect_count >= 0),
