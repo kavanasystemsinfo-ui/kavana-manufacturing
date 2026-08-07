@@ -13,8 +13,8 @@ vi.mock('./jwt.service.js', () => ({
 import { TenantContextMiddleware } from './tenant-context.middleware.js';
 import { tenantContextStorage } from './tenant-context.storage.js';
 
-function createMocks(authHeader?: string) {
-  const request = { headers: { authorization: authHeader } };
+function createMocks(authHeader?: string, path = '/orders') {
+  const request = { headers: { authorization: authHeader }, path } as any;
   const response = {
     status: vi.fn().mockReturnThis(),
     json: vi.fn().mockReturnThis(),
@@ -45,8 +45,8 @@ describe('TenantContextMiddleware', () => {
     expect(response.status).not.toHaveBeenCalled();
   });
 
-  it('debería devolver 401 si el token es inválido', () => {
-    const { request, response, next } = createMocks('Bearer invalid-token');
+  it('debería devolver 401 si el token es inválido (ruta no-ai-advisor)', () => {
+    const { request, response, next } = createMocks('Bearer invalid-token', '/orders');
     verifyBearerTokenMock.mockImplementation(() => {
       throw new Error('Invalid token');
     });
@@ -58,8 +58,8 @@ describe('TenantContextMiddleware', () => {
     expect(response.json).toHaveBeenCalledWith({ statusCode: 401, message: 'Invalid token' });
   });
 
-  it('debería devolver 401 si no hay header de autorización', () => {
-    const { request, response, next } = createMocks(undefined);
+  it('debería devolver 401 si no hay header de autorización (ruta no-ai-advisor)', () => {
+    const { request, response, next } = createMocks(undefined, '/orders');
     verifyBearerTokenMock.mockImplementation(() => {
       throw new Error('Missing or malformed Authorization header.');
     });
@@ -70,8 +70,8 @@ describe('TenantContextMiddleware', () => {
     expect(response.status).toHaveBeenCalledWith(401);
   });
 
-  it('debería devolver 401 con mensaje genérico si el error no es Error', () => {
-    const { request, response, next } = createMocks('Bearer bad-token');
+  it('debería devolver 401 con mensaje genérico si el error no es Error (ruta no-ai-advisor)', () => {
+    const { request, response, next } = createMocks('Bearer bad-token', '/orders');
     verifyBearerTokenMock.mockImplementation(() => {
       throw 'string error';
     });
@@ -80,6 +80,25 @@ describe('TenantContextMiddleware', () => {
 
     expect(response.status).toHaveBeenCalledWith(401);
     expect(response.json).toHaveBeenCalledWith({ statusCode: 401, message: 'Unauthorized' });
+  });
+
+  it('debería permitir la ruta ai-advisor SIN token usando el tenant demo (1)', () => {
+    const { request, response, next } = createMocks(undefined, '/ai-advisor/ask');
+    verifyBearerTokenMock.mockImplementation(() => {
+      throw new Error('Missing or malformed Authorization header.');
+    });
+
+    let contextInsideNext: ReturnType<typeof tenantContextStorage.getStore> | undefined;
+    next.mockImplementation(() => {
+      contextInsideNext = tenantContextStorage.getStore();
+    });
+
+    middleware.use(request as any, response as any, next);
+
+    expect(response.status).not.toHaveBeenCalled();
+    expect(next).toHaveBeenCalled();
+    expect(contextInsideNext?.tenantId).toBe(1n);
+    expect(contextInsideNext?.userId).toBe('demo-visitor');
   });
 
   it('debería ejecutar next dentro de AsyncLocalStorage.run()', () => {

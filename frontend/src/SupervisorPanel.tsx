@@ -4,6 +4,7 @@ import { ThemeToggle } from './components/ThemeToggle.js';
 import { ActivityFeed } from './components/ActivityFeed.js';
 import { WorkstationBoard } from './components/WorkstationBoard.js';
 import { HelpModal } from './components/HelpModal.js';
+import { AiAdvisorFab } from './components/AiAdvisorFab.js';
 import { SUPERVISOR_HELP } from './help-content.js';
 import { formatQuantity } from './utils/formatNumber.js';
 
@@ -101,7 +102,8 @@ export function SupervisorPanel() {
   };
 
   return (
-    <main className="min-h-screen bg-kavana-dark text-slate-100 p-4 md:p-8">
+    <>
+      <main className="min-h-screen bg-kavana-dark text-slate-100 p-4 md:p-8">
       <section className="mx-auto w-[90%] rounded-[2rem] border-2 border-kavana-orange bg-kavana-panel/90 p-4 md:p-8">
         <header className="mb-8 flex flex-col gap-5 border-b border-kavana-orange/30 pb-6 md:flex-row md:items-center md:justify-between">
           <div>
@@ -357,5 +359,7 @@ export function SupervisorPanel() {
         )}
       </section>
     </main>
+    <AiAdvisorFab />
+    </>
   );
 }

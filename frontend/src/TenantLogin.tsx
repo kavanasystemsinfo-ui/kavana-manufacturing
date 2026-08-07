@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useThemeStore } from './store/theme-store.js';
 import { ThemeToggle } from './components/ThemeToggle.js';
+import { AiAdvisorFab } from './components/AiAdvisorFab.js';
 
 interface TenantLoginProps {
   subdomain: string;
@@ -88,8 +89,9 @@ export function TenantLogin({ subdomain, onLogin }: TenantLoginProps) {
   }
 
   return (
-    <div className={`min-h-screen flex items-center justify-center ${isClassic ? 'bg-gray-50' : 'bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900'}`}>
-      <div className="absolute top-4 right-4">
+    <>
+      <div className={`min-h-screen flex items-center justify-center ${isClassic ? 'bg-gray-50' : 'bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900'}`}>
+        <div className="absolute top-4 right-4">
         <ThemeToggle />
       </div>
 
@@ -142,6 +144,26 @@ export function TenantLogin({ subdomain, onLogin }: TenantLoginProps) {
             />
           </div>
 
+          <div className={`rounded-lg border p-4 text-xs ${isClassic ? 'bg-blue-50 border-blue-200 text-gray-700' : 'bg-gray-900/50 border-gray-600 text-gray-300'}`}>
+            <p className={`mb-2 font-bold ${isClassic ? 'text-blue-800' : 'text-indigo-300'}`}>🎯 Credenciales demo (tenant: demo)</p>
+            <table className="w-full text-left">
+              <tbody>
+                <tr>
+                  <td className="py-0.5 pr-2">👔 Admin:</td>
+                  <td className="font-mono">admin / admin123</td>
+                </tr>
+                <tr>
+                  <td className="py-0.5 pr-2">🛠️ Supervisor:</td>
+                  <td className="font-mono">047 / kavana</td>
+                </tr>
+                <tr>
+                  <td className="py-0.5 pr-2">🏭 Operario:</td>
+                  <td className="font-mono">1094 / kavana</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
           <button
             type="submit"
             disabled={submitting || !username.trim() || !password.trim()}
@@ -160,5 +182,7 @@ export function TenantLogin({ subdomain, onLogin }: TenantLoginProps) {
         </div>
       </div>
     </div>
+    <AiAdvisorFab />
+    </>
   );
 }

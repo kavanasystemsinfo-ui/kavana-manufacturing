@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useThemeStore } from './store/theme-store.js';
 import { ThemeToggle } from './components/ThemeToggle.js';
+import { AiAdvisorFab } from './components/AiAdvisorFab.js';
 
 interface LoginPageProps {
   onLogin: (token: string, tenantId: string, userId: string, role: string, tenantName: string) => void;
@@ -57,7 +58,8 @@ export function LoginPage({ onLogin }: LoginPageProps) {
   }
 
   return (
-    <div className={`min-h-screen flex items-center justify-center p-4 font-sans ${isClassic ? 'bg-gray-50 text-gray-900' : 'bg-gray-900 text-gray-100'}`}>
+    <>
+      <div className={`min-h-screen flex items-center justify-center p-4 font-sans ${isClassic ? 'bg-gray-50 text-gray-900' : 'bg-gray-900 text-gray-100'}`}>
       <div className="absolute top-4 right-4 z-50">
         <ThemeToggle />
       </div>
@@ -143,6 +145,26 @@ export function LoginPage({ onLogin }: LoginPageProps) {
               />
             </div>
 
+            <div className={`rounded-lg border p-4 text-xs ${isClassic ? 'bg-blue-50 border-blue-200 text-gray-700' : 'bg-kavana-surface/60 border-kavana-orange/30 text-slate-300'}`}>
+              <p className={`mb-2 font-bold ${isClassic ? 'text-blue-800' : 'text-kavana-orange-light'}`}>🎯 Credenciales demo (tenant: demo)</p>
+              <table className="w-full text-left">
+                <tbody>
+                  <tr>
+                    <td className="py-0.5 pr-2">👔 Admin:</td>
+                    <td className="font-mono">admin / admin123</td>
+                  </tr>
+                  <tr>
+                    <td className="py-0.5 pr-2">🛠️ Supervisor:</td>
+                    <td className="font-mono">047 / kavana</td>
+                  </tr>
+                  <tr>
+                    <td className="py-0.5 pr-2">🏭 Operario:</td>
+                    <td className="font-mono">1094 / kavana</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+
             <button
               type="submit"
               disabled={submitting || !username.trim() || !password.trim() || !tenantSlug.trim()}
@@ -171,5 +193,7 @@ export function LoginPage({ onLogin }: LoginPageProps) {
         </div>
       </div>
     </div>
+    <AiAdvisorFab />
+    </>
   );
 }

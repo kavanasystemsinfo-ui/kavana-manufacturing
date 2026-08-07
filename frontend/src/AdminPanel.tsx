@@ -16,6 +16,7 @@ import { ThemeToggle } from './components/ThemeToggle.js';
 import { OeeDashboard } from './components/OeeDashboard.js';
 import { QualityDashboard } from './components/QualityDashboard.js';
 import { CostDashboard } from './components/CostDashboard.js';
+import { AiAdvisorFab } from './components/AiAdvisorFab.js';
 import { USERS_HELP, WORKSTATIONS_HELP, MODELS_HELP, ORDERS_HELP, MODULES_HELP, CUSTOM_FIELDS_HELP } from './help-content.js';
 
 type Tab = 'users' | 'workstations' | 'models' | 'orders' | 'modules' | 'custom-fields' | 'oee' | 'quality' | 'cost' | 'toolings' | 'incidencias' | 'materials';
@@ -55,7 +56,8 @@ export function AdminPanel() {
   const visibleTabs = tabs.filter((t) => !t.module || isModuleEnabled(t.module));
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 text-white">
+    <>
+      <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 text-white">
       <header className="bg-gray-800/80 backdrop-blur-sm border-b border-gray-700 sticky top-0 z-50">
         <div className="max-w-7xl mx-auto px-4 py-4 flex items-center justify-between">
           <h1 className="text-xl font-bold text-indigo-400">Panel de Administración</h1>
@@ -95,6 +97,8 @@ export function AdminPanel() {
         {tab === 'materials' && <MaterialsTab />}
       </main>
     </div>
+    <AiAdvisorFab />
+    </>
   );
 }
 

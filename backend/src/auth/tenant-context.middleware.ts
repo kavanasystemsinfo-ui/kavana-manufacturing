@@ -17,6 +17,18 @@ export class TenantContextMiddleware implements NestMiddleware {
         next();
       });
     } catch (error) {
+      // El asistente IA del LOGIN (demo pública) funciona sin token: usa el
+      // tenant demo (1) por defecto. El resto de rutas exigen auth.
+      const isAdvisorRoute = request.path.startsWith('/ai-advisor');
+      if (isAdvisorRoute) {
+        tenantContextStorage.run(
+          { tenantId: 1n, userId: 'demo-visitor', role: 'tenant_admin' },
+          () => {
+            next();
+          },
+        );
+        return;
+      }
       const msg = error instanceof Error ? error.message : 'Unauthorized';
       response.status(401).json({ statusCode: 401, message: msg });
     }
