@@ -1,12 +1,5 @@
-import { useEffect, useState } from 'react';
+import { useTenantAdmin } from './hooks/useTenantAdmin.js';
 import logo from '../../logo.png';
-import {
-  fetchCapabilities,
-  toggleModuleCapability,
-  updateCustomFieldsSchema,
-  type TenantCapabilities,
-} from './api/admin.js';
-import { useHmiStore } from './store/hmi-store.js';
 import { ThemeToggle } from './components/ThemeToggle.js';
 
 interface EditableField {
@@ -17,120 +10,13 @@ interface EditableField {
 }
 
 export function TenantAdminPanel() {
-  const [capabilities, setCapabilities] = useState<TenantCapabilities | null>(null);
-  const [error, setError] = useState<string | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
-  const [isMutating, setIsMutating] = useState(false);
-
-  // Zustand hook
-  const { loadCapabilities } = useHmiStore();
-
-  // Local state for schema editor
-  const [editableFields, setEditableFields] = useState<EditableField[]>([]);
-
-  async function loadData() {
-    try {
-      setIsLoading(true);
-      setError(null);
-      const data = await fetchCapabilities();
-      setCapabilities(data);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : String(err));
-    } finally {
-      setIsLoading(false);
-    }
-  }
-
-  useEffect(() => {
-    void loadData();
-  }, []);
-
-  // Sync capabilities custom_fields_schema with local state
-  useEffect(() => {
-    if (capabilities) {
-      const orderSchema = capabilities.customFieldsSchema?.production_orders as any;
-      const fields = Array.isArray(orderSchema?.fields) ? orderSchema.fields : [];
-      setEditableFields(fields);
-    }
-  }, [capabilities]);
-
-  async function handleToggle(moduleKey: string, currentEnabled: boolean) {
-    if (moduleKey === 'core_mes') return; // Cannot disable
-
-    try {
-      setIsMutating(true);
-      setError(null);
-      await toggleModuleCapability(moduleKey, !currentEnabled);
-      await loadCapabilities(); // Refresh Zustand capabilities store
-      await loadData(); // Reload to get updated governance_version
-    } catch (err) {
-      setError(err instanceof Error ? err.message : String(err));
-    } finally {
-      setIsMutating(false);
-    }
-  }
-
-  // Schema Editor Handlers
-  const handleKeyChange = (index: number, val: string) => {
-    // Dynamically sanitize key to lowercase and replace spaces/specials with underscores
-    const sanitized = val.toLowerCase().replace(/\s+/g, '_').replace(/[^a-z0-9_]/g, '');
-    const updated = [...editableFields];
-    updated[index].key = sanitized;
-    setEditableFields(updated);
-  };
-
-  const handleTypeChange = (index: number, val: 'string' | 'number' | 'boolean') => {
-    const updated = [...editableFields];
-    updated[index].type = val;
-    setEditableFields(updated);
-  };
-
-  const handleRequiredChange = (index: number, val: boolean) => {
-    const updated = [...editableFields];
-    updated[index].required = val;
-    setEditableFields(updated);
-  };
-
-  const handleAddField = () => {
-    setEditableFields([...editableFields, { key: '', label: '', type: 'string', required: false }]);
-  };
-
-  const handleRemoveField = (index: number) => {
-    const updated = editableFields.filter((_, i) => i !== index);
-    setEditableFields(updated);
-  };
-
-  const handleSaveSchema = async () => {
-    // Basic local validation
-    const keys = editableFields.map(f => f.key.trim());
-    if (keys.some(k => k === '')) {
-      setError('Todas las llaves de los campos personalizados deben tener un nombre.');
-      return;
-    }
-    if (new Set(keys).size !== keys.length) {
-      setError('No se permiten llaves de campos duplicados.');
-      return;
-    }
-
-    try {
-      setIsMutating(true);
-      setError(null);
-      await updateCustomFieldsSchema({ fields: editableFields });
-      await loadCapabilities(); // Refresh Zustand capabilities store
-      await loadData(); // Reload to get updated governance_version
-    } catch (err) {
-      setError(err instanceof Error ? err.message : String(err));
-    } finally {
-      setIsMutating(false);
-    }
-  };
-
-  const moduleNames: Record<string, string> = {
-    core_mes: 'Core MES Production',
-    oee_monitoring: 'OEE & Machine Monitoring',
-    quality_assurance: 'Quality Assurance',
-    cost_management: 'Cost & Capex Management',
-  };
+  const {
+    capabilities, error, setError, isLoading, isMutating,
+    editableFields, loadData,
+    handleToggle, handleKeyChange, handleTypeChange, handleRequiredChange,
+    handleAddField, handleRemoveField, handleSaveSchema,
+    moduleNames, setEditableFields,
+  } = useTenantAdmin();
 
   // Quotas checking
   const maxCustomFields = Number((capabilities?.quotas as any)?.entities?.max_custom_fields ?? 5);

@@ -1,5 +1,4 @@
-import { useEffect, useState } from 'react';
-import { useSupervisorStore } from './store/supervisor-store.js';
+import { useSupervisorPanel } from './hooks/useSupervisorPanel.js';
 import { ThemeToggle } from './components/ThemeToggle.js';
 import { ActivityFeed } from './components/ActivityFeed.js';
 import { WorkstationBoard } from './components/WorkstationBoard.js';
@@ -25,76 +24,13 @@ type Tab = 'orders' | 'workstations';
 
 export function ClassicSupervisorPanel() {
   const {
-    orders,
-    models,
-    workstations,
-    workstationStatus,
-    activity,
-    isLoading,
-    error,
-    loadOrders,
-    loadModels,
-    loadWorkstations,
-    loadWorkstationStatus,
-    loadOrderActivity,
-    addOrder,
-    changeOrderStatus,
-    removeOrder,
-    startPolling,
-    stopPolling,
-  } = useSupervisorStore();
-
-  const [showForm, setShowForm] = useState(false);
-  const [selectedModel, setSelectedModel] = useState('');
-  const [selectedWorkstation, setSelectedWorkstation] = useState('');
-  const [quantity, setQuantity] = useState('');
-  const [orderNumber, setOrderNumber] = useState('');
-  const [measurement, setMeasurement] = useState('');
-  const [material, setMaterial] = useState('');
-  const [notes, setNotes] = useState('');
-  const [activeTab, setActiveTab] = useState<Tab>('orders');
-  const [expandedOrder, setExpandedOrder] = useState<string | null>(null);
-
-  useEffect(() => {
-    void loadOrders();
-    void loadModels();
-    void loadWorkstations();
-    void loadWorkstationStatus();
-    startPolling();
-    return () => stopPolling();
-  }, []);
-
-  useEffect(() => {
-    if (expandedOrder) {
-      void loadOrderActivity(expandedOrder);
-    }
-  }, [expandedOrder]);
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!selectedModel || !selectedWorkstation || !quantity) return;
-
-    await addOrder({
-      model_id: selectedModel,
-      workstation_id: selectedWorkstation,
-      quantity: Number(quantity),
-      custom_fields: {
-        ...(orderNumber ? { numero_orden: orderNumber } : {}),
-        ...(measurement ? { medida: measurement } : {}),
-        ...(material ? { material } : {}),
-        ...(notes ? { notas: notes } : {}),
-      },
-    });
-
-    setSelectedModel('');
-    setSelectedWorkstation('');
-    setQuantity('');
-    setOrderNumber('');
-    setMeasurement('');
-    setMaterial('');
-    setNotes('');
-    setShowForm(false);
-  };
+    orders, models, workstations, workstationStatus, activity,
+    isLoading, error, showForm, setShowForm, selectedModel, setSelectedModel,
+    selectedWorkstation, setSelectedWorkstation, quantity, setQuantity,
+    orderNumber, setOrderNumber, measurement, setMeasurement, material,
+    setMaterial, notes, setNotes, activeTab, setActiveTab, expandedOrder,
+    setExpandedOrder, handleSubmit, changeOrderStatus, removeOrder,
+  } = useSupervisorPanel();
 
   return (
     <div className="min-h-screen bg-slate-50 text-slate-900">

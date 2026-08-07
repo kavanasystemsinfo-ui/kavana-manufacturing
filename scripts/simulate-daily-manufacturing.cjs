@@ -7,18 +7,11 @@
 // Cron: 06:00 cada día (VPS UTC). Idempotente: borra los work_blocks de hoy y
 // los regenera. El histórico de días anteriores NO se toca.
 
-const pg = require('pg');
+('pg');
 const crypto = require('crypto');
+const { getClient } = require('./db.cjs');
 
-const POOL = new pg.Pool({
-  host: process.env.PGHOST,
-  port: parseInt(process.env.PGPORT || '5432', 10),
-  user: process.env.PGUSER || 'neondb_owner',
-  password: process.env.PGPASSWORD,
-  database: process.env.PGDATABASE || 'neondb',
-  ssl: String(process.env.PGSSLMODE || 'require').toLowerCase() !== 'disable'
-    ? { rejectUnauthorized: false } : false,
-});
+const c = getClient();
 
 function uuid() { return crypto.randomUUID(); }
 
@@ -71,7 +64,7 @@ async function main() {
   console.log(`→ Simulación diaria Manufacturing (${fechaISO}, ${esDomingo ? 'domingo' : esSabado ? 'sábado' : 'laborable'})`);
 
   // 1) Limpiar work_blocks de hoy (idempotente: regenera, no duplica)
-  const del = await POOL.query(
+  const del = await c.query(
     'DELETE FROM production_work_blocks WHERE tenant_id=$1 AND start_time >= $2',
     [TENANT, hoy]
   );
@@ -80,7 +73,7 @@ async function main() {
   // 1b) Limpiar órdenes de hoy creadas por el simulador O el visitante (1094).
   //     Idempotente: no acumular en cada ejecución; el visitante de la demo
   //     también caduca a las 24h (sus órdenes se regeneran con la simulación).
-  const delOrd = await POOL.query(
+  const delOrd = await c.query(
     `DELETE FROM orders
      WHERE tenant_id=$1 AND created_at >= $2
        AND (created_by='system'
@@ -90,24 +83,24 @@ async function main() {
   console.log(`  • Órdenes de hoy limpiadas: ${delOrd.rowCount}`);
 
   // 2) Cerrar órdenes de días anteriores que quedaron in_progress
-  const abiertas = await POOL.query(
+  const abiertas = await c.query(
     "UPDATE orders SET status='completed' WHERE tenant_id=$1 AND status='in_progress' AND updated_at < $2 RETURNING id",
     [TENANT, hoy]
   );
   console.log(`  • Órdenes de ayer cerradas: ${abiertas.rowCount}`);
 
   // Datos base
-  const wsRes = await POOL.query(
+  const wsRes = await c.query(
     'SELECT id, code, name FROM workstations WHERE tenant_id=$1 AND status=$2 ORDER BY code',
     [TENANT, 'active']
   );
   const workstations = wsRes.rows;
-  const modRes = await POOL.query(
+  const modRes = await c.query(
     'SELECT id, name, target_rate FROM manufacturing_models WHERE tenant_id=$1 ORDER BY name',
     [TENANT]
   );
   const models = modRes.rows;
-  const opRes = await POOL.query(
+  const opRes = await c.query(
     "SELECT id FROM users WHERE tenant_id=$1 AND role='operario' ORDER BY username",
     [TENANT]
   );
@@ -139,7 +132,7 @@ async function main() {
     // Orden de hoy (in_progress, se cierra mañana)
     const orderId = uuid();
     const qtyObjetivo = Math.round(targetRate * 8 * factorDia * entre(85, 105) / 100);
-    await POOL.query(
+    await c.query(
       `INSERT INTO orders (id, tenant_id, model_id, workstation_id, quantity, status,
          created_by, custom_fields, produced_quantity, defect_quantity, code, created_at, updated_at)
        VALUES ($1,$2,$3,$4,$5,'in_progress','system','{}',0,0,$6,$7,$7)`,
@@ -163,7 +156,7 @@ async function main() {
         const paradaStart = new Date(start.getTime() + entre(30, Math.max(60, (end - start) / 60000 - 60)) * 60000);
         const paradaEnd = new Date(Math.min(paradaStart.getTime() + durParadaMin * 60000, end.getTime()));
         if (paradaEnd > paradaStart) {
-          await POOL.query(
+          await c.query(
             `INSERT INTO production_work_blocks
               (id, tenant_id, order_id, workstation_id, operator_id, type, start_time, end_time,
                downtime_reason, produced_quantity, defect_quantity, created_at, updated_at)
@@ -194,7 +187,7 @@ async function main() {
         const producido = Math.round(targetRate * horasBloque * rendimiento);
         const defectos = Math.round(producido * (0.005 + rnd() * 0.025));
 
-        await POOL.query(
+        await c.query(
           `INSERT INTO production_work_blocks
             (id, tenant_id, order_id, workstation_id, operator_id, type, start_time, end_time,
              downtime_reason, produced_quantity, defect_quantity, created_at, updated_at)
@@ -210,7 +203,7 @@ async function main() {
   console.log(`\n✅ Simulación diaria completada:`);
   console.log(`  • Órdenes de hoy:  ${ordersCreadas}`);
   console.log(`  • Work blocks hoy: ${bloquesCreados}`);
-  await POOL.end();
+  await c.end();
 }
 
 main().catch((e) => { console.error('FATAL:', e.message.slice(0, 300)); process.exit(1); });
