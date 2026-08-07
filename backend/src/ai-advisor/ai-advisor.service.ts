@@ -232,9 +232,13 @@ export class AiAdvisorService {
       ollama: 'llama3.1:8b',
       vllm: 'mistralai/Mistral-7B-Instruct-v0.3',
       nvidia: 'meta/llama-3.1-8b-instruct',
-      openrouter: 'gpt-4o-mini',
+      openrouter: 'deepseek/deepseek-chat',
       openai: 'gpt-4o-mini',
-    }[provider] || 'gpt-4o-mini';
+    }[provider] || 'deepseek/deepseek-chat';
+
+    // Modelo gratuito de respaldo (mismo patrón que RouteAI/Warehouse: si el
+    // principal falla, reintentar con gpt-oss-20b:free antes de rendirse).
+    const MODELO_FREE = process.env.LLM_MODEL_FREE || 'openai/gpt-oss-20b:free';
 
     if (!apiKey) {
       throw new Error(`API key no configurada para provider "${provider}". Configura ${provider.toUpperCase()}_API_KEY en .env`);
@@ -280,6 +284,30 @@ export class AiAdvisorService {
       this.logger.log(`LLM call: provider=${provider}, tokens=${tokensIn}/${tokensOut}, cost=${formatCost(costCents)}`);
       return answer;
     } catch (err) {
+      // Fallback al modelo gratuito (mismo patrón que RouteAI/Warehouse): si el
+      // principal falla (rate limit, saturación), reintentar con gpt-oss-20b:free
+      if (model !== MODELO_FREE) {
+        this.logger.warn(`LLM ${model} falló (${err instanceof Error ? err.message : String(err)}), reintentando con ${MODELO_FREE}`);
+        try {
+          const { default: openai } = await import('openai');
+          const client = new openai.OpenAI({ apiKey, baseURL: baseUrl });
+          const response = await client.chat.completions.create({
+            model: MODELO_FREE,
+            messages: [
+              { role: 'system', content: prompt.split('=== PREGUNTA DEL OPERARIO ===')[0] },
+              { role: 'user', content: prompt.split('=== PREGUNTA DEL OPERARIO ===')[1] || prompt },
+            ],
+            temperature: 0.2,
+            max_tokens: 800,
+          });
+          const answer = response.choices[0]?.message?.content || 'No se pudo generar una respuesta.';
+          tp.ok({ tokensIn: 0, tokensOut: 0, costCents: 0 });
+          return answer;
+        } catch (err2) {
+          tp.error(err2);
+          throw err2;
+        }
+      }
       tp.error(err);
       throw err;
     }
