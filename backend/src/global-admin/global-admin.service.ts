@@ -32,6 +32,16 @@ export interface CreateTenantInput {
   admin_password?: string;
 }
 
+// Módulos que un tenant nuevo activa POR DEFECTO (2026-08-07: antes solo
+// core_mes; la demo debe nacer con todo el potencial visible).
+export const DEFAULT_MODULES = [
+  'core_mes',
+  'oee_monitoring',
+  'cost_management',
+  'quality_assurance',
+  'materials_management',
+];
+
 @Injectable()
 export class GlobalAdminService {
   async listTenants(): Promise<Tenant[]> {
@@ -106,7 +116,7 @@ export class GlobalAdminService {
       }
     }
 
-    const modules = input.modules ?? ['core_mes'];
+    const modules = input.modules && input.modules.length > 0 ? input.modules : DEFAULT_MODULES;
     const featureMatrix = {
       modular_matrix: Object.fromEntries(
         modules.map((m) => [m, { enabled: true, features: {} }])
