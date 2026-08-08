@@ -126,7 +126,7 @@ Cada decisión arquitectónica responde a un **problema concreto de planta** y s
 | **Colas** | BullMQ + Redis | Jobs desacoplados (OEE, informes, ingestión de documentos) |
 | **AI Advisor** | RAG multi-provider (Ollama, vLLM, OpenAI, OpenRouter) | Asistente industrial contextualizado con datos reales |
 | **Observabilidad** | OpenTelemetry + Prometheus + Grafana | Trazabilidad de principio a fin, métricas por provider/modelo |
-| **Tests** | Vitest + Testing Library | TDD: 17 frontend + 216 backend tests |
+| **Tests** | Vitest + Testing Library | TDD: 17 frontend + 229 API tests |
 | **CI/CD** | GitHub Actions → Vercel + Render | Deploy automático en push a main |
 | **Infra** | Vercel (frontend) · Render (backend) · Neon (PostgreSQL) · Upstash (Redis) |
 
@@ -151,7 +151,7 @@ cd frontend && npm install && npm run dev      # http://localhost:5173
 
 # 5. Tests
 npm run test                                   # 17 frontend tests
-cd backend && npm run test                     # 216 backend tests
+cd backend && npm run test                     # 229 API tests
 
 # 6. Docker (stack completo)
 docker compose up -d
@@ -171,7 +171,7 @@ docker compose up -d
 - [x] Feature flags JSONB (cada cliente activa solo lo que necesita)
 - [x] AI Advisor industrial (RAG con datos reales de planta)
 - [x] Fábrica demo completa (18 modelos solares, 15 puestos, 17 materias primas con BOM)
-- [x] Tests automatizados: 17 frontend + 216 backend
+- [x] Tests automatizados: 17 frontend + 229 API
 - [x] ADRs documentados con alternativas evaluadas
 - [x] Despliegue automatizado (Vercel + Render + Neon)
 - [x] Tema dual (Kavana + Clásico) para diferentes perfiles de usuario

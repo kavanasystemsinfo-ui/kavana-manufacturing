@@ -3,9 +3,13 @@ import pkg from 'jsonwebtoken';
 const { verify } = pkg;
 import { createHmac } from 'node:crypto';
 import type { JwtPayload } from './jwt-payload.interface.js';
-import type { TenantContext } from './tenant-context.interface.js';
+import { createHmac, timingSafeEqual } from 'node:crypto';
 
-const HMAC_SECRET=process.env.JWT_HMAC_SECRET || 'kavana-dev-secret-change-me';
+const JWT_HMAC_SECRET = process.env.JWT_HMAC_SECRET;
+if (!JWT_HMAC_SECRET) {
+  if (process.env.NODE_ENV === 'production') throw new Error('JWT_HMAC_SECRET is required');
+  console.warn('⚠ JWT_HMAC_SECRET not set — using dev fallback (not for production)');
+}
 
 @Injectable()
 export class JwtServiceWrapper {
@@ -70,13 +74,18 @@ export class JwtServiceWrapper {
     }
 
     const [headerB64, payloadB64, signatureB64] = parts;
-    const expectedSig = createHmac('sha256', HMAC_SECRET).update(`${headerB64}.${payloadB64}`).digest('base64url');
+    const expectedSig = createHmac('sha256', JWT_HMAC_SECRET).update(`${headerB64}.${payloadB64}`).digest('base64url');
 
-    if (signatureB64 !== expectedSig) {
+    if (!signatureB64 || !timingSafeEqual(Buffer.from(signatureB64), Buffer.from(expectedSig))) {
       throw new Error('Invalid HMAC signature');
     }
 
     const payload = JSON.parse(Buffer.from(payloadB64, 'base64url').toString()) as JwtPayload;
+
+    // Check expiration
+    if (payload.exp && Math.floor(Date.now() / 1000) > payload.exp) {
+      throw new UnauthorizedException('Token expired');
+    }
 
     if (!payload.tenant_id || !payload.role || !payload.sub) {
       throw new UnauthorizedException('Token missing required Kavana claims.');
