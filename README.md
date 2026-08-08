@@ -1,6 +1,6 @@
 # Kavana Manufacturing — MES SaaS para Manufactura Industrial
 
-[![Tests](https://img.shields.io/badge/tests-233%20passing-brightgreen)](https://github.com/kavanasystemsinfo-ui/kavana-systems-v3)
+[![Tests](https://img.shields.io/badge/tests-246%20passing-brightgreen)](https://github.com/kavanasystemsinfo-ui/kavana-manufacturing)
 [![Coverage](https://img.shields.io/badge/coverage-85%25-yellowgreen)](docs/METRICS.md)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.8-3178C6?logo=typescript)](https://www.typescriptlang.org/)
 [![React](https://img.shields.io/badge/React-19-61DAFB?logo=react)](https://react.dev)
@@ -27,7 +27,7 @@
 
 **Stack:** React + Tailwind · NestJS · PostgreSQL 16 · Zustand + Dexie.js · Vitest (TDD)
 
-**Nota sobre el proceso de desarrollo:** Este proyecto fue **diseñado y dirigido por un arquitecto de software**. La siguiente tabla resume quién hizo qué:
+**Nota sobre el proceso de desarrollo:** Este proyecto fue **diseñado y dirigido por Jorge (arquitectura técnica y producto)**. Herramientas utilizadas en el proceso: La IA como copiloto de implementación bajo especificaciones, tests y decisiones arquitectónicas propias:
 
 | Decisión / Trabajo | Responsable |
 |-------------------|-------------|
@@ -41,7 +41,7 @@
 
 **En resumen:** las decisiones son humanas. La IA actuó como un par de programación que ejecuta, no como un arquitecto que diseña. El repositorio contiene el código; el criterio es de Jorge.
 
-**[🎯 Live Demo →](https://kavana-systems-v3-frontend.vercel.app)** — Tenant: `demo`, Usuario: `admin`, Contraseña: `admin123`
+**[🎯 Live Demo →](https://manufacturing.kavanasystems.com)** — Tenant: `demo`, Usuario: `admin`, Contraseña: `admin123`
 
 ---
 
@@ -136,8 +136,8 @@ Cada decisión arquitectónica responde a un **problema concreto de planta** y s
 
 ```bash
 # 1. Clonar
-git clone https://github.com/kavanasystemsinfo-ui/kavana-systems-v3.git
-cd kavana-systems-v3
+git clone https://github.com/kavanasystemsinfo-ui/kavana-manufacturing.git
+cd kavana-manufacturing
 
 # 2. Configurar variables de entorno
 cp backend/.env.example backend/.env
@@ -157,7 +157,7 @@ cd backend && npm run test                     # 216 backend tests
 docker compose up -d
 ```
 
-**Demo online:** https://kavana-systems-v3-frontend.vercel.app  
+**Demo online:** https://manufacturing.kavanasystems.com  
 **Health check API:** https://kavana-manufacturing-api.onrender.com/health
 
 ---
@@ -240,7 +240,7 @@ Este proyecto demuestra capacidades técnicas aplicadas a un dominio industrial 
 | **Arquitectura SaaS multi-tenant** | [ADR-001](docs/adr/001-shared-schema-multi-tenant-rls.md) + [technical/01](docs/technical/01_multi-tenancy-rls-audit.md) |
 | **Offline-first resiliente** | [ADR-003](docs/adr/003-offline-first-dexie.md) + implementación en frontend |
 | **UX industrial contextual** | [ADR-004](docs/adr/004-ux-tunnel-vision.md) + pantallas HMI |
-| **TDD y calidad** | [CONTRIBUTING](CONTRIBUTING.md) + 233 tests |
+| **TDD y calidad** | [CONTRIBUTING](CONTRIBUTING.md) + 246 tests (229 API + 17 frontend) |
 | **AI aplicada a industria** | [AI Advisor](docs/commercial/00_executive-summary.md) + RAG multi-provider |
 | **Feature flags como producto** | [ADR-002](docs/adr/002-feature-flags-jsonb.md) + módulo tenant-capabilities |
 | **Documentación como infraestructura** | ADRs, decisions log, technical docs |

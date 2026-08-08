@@ -1,4 +1,4 @@
-name: CI
+name: CI — KAVANA Manufacturing
 
 on:
   push:
@@ -30,6 +30,31 @@ jobs:
         env:
           DATABASE_URL: postgresql://kavana:kavana_test@localhost:5432/kavana_test
 
+  build-backend:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - run: npm ci
+        working-directory: backend
+      - run: npm run build
+        working-directory: backend
+
+  lint-backend:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - run: npm ci
+        working-directory: backend
+      - run: npm run lint
+        working-directory: backend
+        continue-on-error: true
+
   test-frontend:
     runs-on: ubuntu-latest
     steps:
@@ -42,7 +67,19 @@ jobs:
       - run: npm test
         working-directory: frontend
 
-  lint:
+  build-frontend:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - run: npm ci
+        working-directory: frontend
+      - run: npm run build
+        working-directory: frontend
+
+  lint-frontend:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -53,3 +90,21 @@ jobs:
         working-directory: frontend
       - run: npx tsc --noEmit
         working-directory: frontend
+
+  database-smoke:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_DB: kavana_test
+          POSTGRES_USER: kavana
+          POSTGRES_PASSWORD: kavana_test
+        ports:
+          - 5432:5432
+    steps:
+      - uses: actions/checkout@v4
+      - run: |
+          node database/scripts/run-postgres-smoke.js
+        env:
+          DATABASE_URL: postgresql://kavana:kavana_test@localhost:5432/kavana_test

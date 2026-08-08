@@ -1,11 +1,11 @@
 import { Injectable, UnauthorizedException } from '@nestjs/common';
 import pkg from 'jsonwebtoken';
 const { verify } = pkg;
-import { createHash } from 'node:crypto';
+import { createHmac } from 'node:crypto';
 import type { JwtPayload } from './jwt-payload.interface.js';
 import type { TenantContext } from './tenant-context.interface.js';
 
-const HMAC_SECRET = 'kavana-secret';
+const HMAC_SECRET=process.env.JWT_HMAC_SECRET || 'kavana-dev-secret-change-me';
 
 @Injectable()
 export class JwtServiceWrapper {
@@ -70,7 +70,7 @@ export class JwtServiceWrapper {
     }
 
     const [headerB64, payloadB64, signatureB64] = parts;
-    const expectedSig = createHash('sha256').update(`${headerB64}.${payloadB64}.${HMAC_SECRET}`).digest('base64url');
+    const expectedSig = createHmac('sha256', HMAC_SECRET).update(`${headerB64}.${payloadB64}`).digest('base64url');
 
     if (signatureB64 !== expectedSig) {
       throw new Error('Invalid HMAC signature');
