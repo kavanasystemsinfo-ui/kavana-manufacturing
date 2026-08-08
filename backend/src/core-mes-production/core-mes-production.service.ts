@@ -232,27 +232,30 @@ private async insertWorkBlock(
         client_event_id, type, start_time, end_time, downtime_reason,
         produced_quantity, defect_quantity, observations, is_offline_event, client_device_id, version
       )
-      VALUES (
-        ${tenantId.toString()},
-        '${dto.id}'::uuid,
-        '${dto.order_id}'::uuid,
-        '${dto.workstation_id}'::uuid,
-        '${dto.operator_id}'::uuid,
-        '${dto.id}'::uuid,
-        '${dto.type}',
-        '${dto.start_time}'::timestamptz,
-        '${dto.end_time}'::timestamptz,
-        ${dto.type === 'parada' ? `'${dto.downtime_reason ?? ''}'` : 'NULL'},
-        ${dto.type === 'produccion' ? (dto.produced_quantity ?? 0) : 0},
-        ${dto.type === 'produccion' ? (dto.defect_quantity ?? 0) : 0},
-        ${dto.observations ? `'${dto.observations.replace(/'/g, "''")}'` : 'NULL'},
-        ${dto.is_offline_event ?? false},
-        ${dto.client_device_id ? `'${dto.client_device_id}'` : 'NULL'},
-        ${(dto as any).version ?? 1}
-      )
+      VALUES ($1, $2::uuid, $3::uuid, $4::uuid, $5::uuid,
+              $6::uuid, $7, $8::timestamptz, $9::timestamptz, $10,
+              $11, $12, $13, $14, $15, $16)
       RETURNING id
     `;
-    const result = await client.query(sql);
+    const values = [
+      tenantId.toString(),
+      dto.id,
+      dto.order_id,
+      dto.workstation_id,
+      dto.operator_id,
+      dto.id,
+      dto.type,
+      dto.start_time,
+      dto.end_time,
+      dto.type === 'parada' ? (dto.downtime_reason ?? null) : null,
+      dto.type === 'produccion' ? (dto.produced_quantity ?? 0) : 0,
+      dto.type === 'produccion' ? (dto.defect_quantity ?? 0) : 0,
+      dto.observations || null,
+      dto.is_offline_event ?? false,
+      dto.client_device_id || null,
+      (dto as any).version ?? 1,
+    ];
+    const result = await client.query(sql, values);
     return result.rowCount !== null && result.rowCount > 0;
   }
 }

@@ -11,7 +11,7 @@ COPY package.json package-lock.json ./
 COPY backend/ ./backend/
 
 # Instalar dependencias y build
-RUN npm install && \
+RUN npm ci && \
     cd backend && \
     npx tsc -p tsconfig.build.json --skipLibCheck 2>&1
 

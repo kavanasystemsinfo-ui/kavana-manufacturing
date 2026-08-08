@@ -10,7 +10,7 @@ backend/.env.example     ← Template de variables necesarias
 
 ## Autenticación y Autorización
 
-- **JWT** con firma HMAC (configurable via `JWT_SECRET`)
+- **JWT** con firma HMAC (configurable via `JWT_HMAC_SECRET`)
 - **Roles:** `global_admin` → `tenant_admin` → `supervisor` → `operator`
 - **Contexto de tenant** inyectado en cada request via `AsyncLocalStorage`
 - **Guards de NestJS** verifican rol + tenant antes de cada operación

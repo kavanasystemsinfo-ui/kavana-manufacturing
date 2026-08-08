@@ -63,7 +63,8 @@ services:
       REDIS_PORT: '6379'
       METRICS_PORT: '9464'
       JWT_SECRET: ${JWT_SECRET:-dev-secret-change-in-production}
-      ALLOW_MOCK_AUTH: ${ALLOW_MOCK_AUTH:-true}
+      ALLOW_MOCK_AUTH: ${ALLOW_MOCK_AUTH:-false}
+      JWT_HMAC_SECRET: ${JWT_HMAC_SECRET:-kavana-hmac-dev-only}
       LLM_PROVIDER: ${LLM_PROVIDER:-openrouter}
       OPENROUTER_API_KEY: ${OPENROUTER_API_KEY:-}
       NVIDIA_API_KEY: ${NVIDIA_API_KEY:-}
