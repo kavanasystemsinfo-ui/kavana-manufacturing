@@ -5,7 +5,12 @@ import { createHmac } from 'node:crypto';
 import type { JwtPayload } from './jwt-payload.interface.js';
 import { createHmac, timingSafeEqual } from 'node:crypto';
 
-const JWT_HMAC_SECRET = process.env.JWT_HMAC_SECRET;
+// Fuente de verdad del secret, SIMÉTRICA con auth-login.service.ts (FIX 2026-08-09):
+// el login firmaba con JWT_SECRET (o fallback dev) pero el guard verificaba solo
+// con JWT_HMAC_SECRET → ningún token del login era válido (401 en todas las rutas,
+// el operario 1094 veía el panel de órdenes vacío). Ambos lados usan la misma
+// cadena de fallback: JWT_HMAC_SECRET (nuevo nombre) → JWT_SECRET (nombre legacy).
+const JWT_HMAC_SECRET = process.env.JWT_HMAC_SECRET || process.env.JWT_SECRET;
 if (!JWT_HMAC_SECRET) {
   if (process.env.NODE_ENV === 'production') throw new Error('JWT_HMAC_SECRET is required');
   console.warn('⚠ JWT_HMAC_SECRET not set — using dev fallback (not for production)');
