@@ -40,6 +40,19 @@ async function main() {
   await c.connect();
   const TENANT = 1;
 
+  // 0) Workstations de la línea solar (para asignar default_workstation_id a cada
+  //    operario). FIX 2026-08-09: sin esta asignación, /api/orders/available filtra
+  //    por default_workstation_id y los operarios (NULL) veían el panel vacío.
+  const wsRes = await c.query(
+    "SELECT id FROM workstations WHERE tenant_id=$1 ORDER BY name",
+    [TENANT]
+  );
+  const workstations = wsRes.rows.map((r) => r.id);
+  if (workstations.length === 0) {
+    console.error('FATAL: no hay workstations en el tenant demo, no se puede asignar default_workstation_id');
+    process.exit(1);
+  }
+
   // 1) Asegurar que el 1094 tiene la contraseña pública (idempotente: si cambia
   //    la variable PASSWORD_VISITANTE, actualiza el hash)
   const r1094 = await c.query(
@@ -61,6 +74,13 @@ async function main() {
     console.log('  • 1094 actualizado con contraseña pública');
   }
 
+  // 1b) Asignar default_workstation_id al 1094 (reparto determinista: la primera
+  //     workstation de la lista). Sin esto, el visitante ve el panel de órdenes vacío.
+  await c.query(
+    "UPDATE users SET default_workstation_id=$1 WHERE tenant_id=$2 AND username='1094'",
+    [workstations[0], TENANT]
+  );
+
   // 2) Crear los 9 operarios extra si no existen (contraseñas aleatorias)
   const exist = await c.query(
     "SELECT username FROM users WHERE tenant_id=$1 AND username LIKE '1%' AND username != '1094'",
@@ -80,6 +100,20 @@ async function main() {
     creados++;
   }
   console.log(`  • ${creados} operarios extra creados`);
+
+  // 2b) Asignar default_workstation_id a TODOS los operarios que no tengan una
+  //     (reparto rotativo por la línea solar). FIX 2026-08-09: el panel de
+  //     órdenes del operario depende de este campo.
+  const sinWs = await c.query(
+    "SELECT id, username FROM users WHERE tenant_id=$1 AND role='operario' AND default_workstation_id IS NULL ORDER BY username",
+    [TENANT]
+  );
+  let asignados = 0;
+  for (const [i, op] of sinWs.rows.entries()) {
+    await c.query("UPDATE users SET default_workstation_id=$1 WHERE id=$2", [workstations[i % workstations.length], op.id]);
+    asignados++;
+  }
+  if (asignados > 0) console.log(`  • default_workstation_id asignado a ${asignados} operarios`);
 
   const total = await c.query(
     "SELECT count(*) FROM users WHERE tenant_id=$1 AND role='operario'",
