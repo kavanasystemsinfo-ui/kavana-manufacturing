@@ -1,9 +1,9 @@
 import { Injectable, UnauthorizedException } from '@nestjs/common';
 import pkg from 'jsonwebtoken';
 const { verify } = pkg;
-import { createHmac } from 'node:crypto';
-import type { JwtPayload } from './jwt-payload.interface.js';
 import { createHmac, timingSafeEqual } from 'node:crypto';
+import type { JwtPayload } from './jwt-payload.interface.js';
+import type { TenantContext } from './tenant-context.interface.js';
 
 // Fuente de verdad del secret, SIMÉTRICA con auth-login.service.ts (FIX 2026-08-09):
 // el login firmaba con JWT_SECRET (o fallback dev) pero el guard verificaba solo
