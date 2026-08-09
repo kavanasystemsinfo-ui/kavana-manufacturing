@@ -2,7 +2,11 @@ import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { postgresPool } from '../db/postgres.provider.js';
 import { createHash, createHmac, randomBytes, timingSafeEqual, scryptSync } from 'node:crypto';
 
-const JWT_SECRET = process.env.JWT_SECRET || 'kavana-jwt-dev-secret-change-me';
+// El guard (jwt.service.ts) verifica con JWT_HMAC_SECRET. El login DEBE firmar
+// con el mismo secret o ningún token del login es válido (401 en todas las rutas).
+// FIX 2026-08-09: antes firmaba con JWT_SECRET (variable distinta, o fallback dev)
+// → el operario 1094 veía el panel de órdenes vacío (401 capturado como []).
+const JWT_SECRET = process.env.JWT_HMAC_SECRET || process.env.JWT_SECRET || 'kavana-jwt-dev-secret-change-me';
 
 @Injectable()
 export class AuthLoginService {
