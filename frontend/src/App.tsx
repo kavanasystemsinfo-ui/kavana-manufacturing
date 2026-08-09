@@ -1,6 +1,5 @@
 import { useState, useEffect } from 'react';
 import { useThemeStore } from './store/theme-store.js';
-import { ThemeToggle } from './components/ThemeToggle.js';
 import { OperatorPanel } from './OperatorPanel.js';
 import { AdminPanel } from './AdminPanel.js';
 import { SupervisorPanel } from './SupervisorPanel.js';
@@ -60,7 +59,6 @@ export function App() {
     return (
       <>
         {theme === 'classic' ? <ClassicGlobalAdminPanel /> : <GlobalAdminPanel />}
-        <ThemeToggle variant="floating" />
       </>
     );
   }
@@ -78,7 +76,6 @@ export function App() {
             ? (theme === 'classic' ? <ClassicSupervisorPanel /> : <SupervisorPanel />)
             : (theme === 'classic' ? <ClassicAdminPanel /> : <AdminPanel />)
         }
-        <ThemeToggle variant="floating" />
         <button
           onClick={handleLogout}
           className="fixed bottom-4 left-4 px-3 py-1.5 bg-gray-600 hover:bg-gray-500 text-white text-xs rounded-lg z-50"
@@ -102,7 +99,6 @@ export function App() {
             ? (theme === 'classic' ? <ClassicSupervisorPanel /> : <SupervisorPanel />)
             : (theme === 'classic' ? <ClassicAdminPanel /> : <AdminPanel />)
         }
-        <ThemeToggle variant="floating" />
         <button
           onClick={handleLogout}
           className="fixed bottom-4 left-4 px-3 py-1.5 bg-gray-600 hover:bg-gray-500 text-white text-xs rounded-lg z-50"
@@ -126,7 +122,6 @@ export function App() {
     return (
       <>
         {theme === 'classic' ? <ClassicAdminPanel /> : <AdminPanel />}
-        <ThemeToggle variant="floating" />
       </>
     );
   }
@@ -135,7 +130,6 @@ export function App() {
     return (
       <>
         {theme === 'classic' ? <ClassicSupervisorPanel /> : <SupervisorPanel />}
-        <ThemeToggle variant="floating" />
       </>
     );
   }
@@ -143,7 +137,6 @@ export function App() {
   return (
     <>
       {theme === 'classic' ? <ClassicOperatorPanel /> : <OperatorPanel />}
-      <ThemeToggle variant="floating" />
       <button
         onClick={handleLogout}
         className="fixed bottom-4 left-4 px-3 py-1.5 bg-gray-600 hover:bg-gray-500 text-white text-xs rounded-lg z-50"
