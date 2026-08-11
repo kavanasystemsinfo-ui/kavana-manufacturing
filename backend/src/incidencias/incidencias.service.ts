@@ -75,6 +75,8 @@ export class IncidenciasService {
       if (!finalized) {
         throw new BadRequestException('No se pudo adjuntar la foto a la incidencia');
       }
+      // finalize copió la foto a la fila: recargar para devolver photo_data_url.
+      return this.getById(tenantId, incidencia.id);
     }
     return this.mapRow(incidencia);
   }
