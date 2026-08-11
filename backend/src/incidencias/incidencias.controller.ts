@@ -26,6 +26,14 @@ interface UploadedImageFile {
   originalname: string;
 }
 
+const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
+function requireUuid(value: string): void {
+  if (!UUID_RE.test(value)) {
+    throw new BadRequestException('Identificador de sesión inválido');
+  }
+}
+
 @Controller('incidencias')
 export class IncidenciasController {
   /** Rate limit en memoria por IP para el endpoint público de subida móvil. */
@@ -68,6 +76,7 @@ export class IncidenciasController {
     @Req() req: Request,
   ) {
     this.enforceUploadRateLimit(req.ip ?? 'unknown');
+    requireUuid(sessionId);
     if (!file || !file.buffer) {
       throw new BadRequestException('No se ha subido ningún archivo (campo "foto")');
     }
@@ -77,6 +86,7 @@ export class IncidenciasController {
   /** Polling del modal del operario (auth): estado de la sesión, sin bytes. */
   @Get('upload-session/:sessionId')
   async getUploadSession(@Param('sessionId') sessionId: string) {
+    requireUuid(sessionId);
     const session = await this.uploads.getSession(getTenantContext().tenantId, sessionId);
     if (!session) throw new NotFoundException('Sesión de subida no encontrada');
     return session;
@@ -85,6 +95,7 @@ export class IncidenciasController {
   /** Bytes de la foto para el preview del modal (auth, tenant aislado). */
   @Get('upload-session/:sessionId/photo')
   async getUploadPhoto(@Param('sessionId') sessionId: string, @Res() res: Response) {
+    requireUuid(sessionId);
     const photo = await this.uploads.getPhoto(getTenantContext().tenantId, sessionId);
     if (!photo) throw new NotFoundException('Foto no encontrada');
     res.setHeader('Content-Type', photo.mime);
