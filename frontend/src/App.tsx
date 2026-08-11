@@ -12,6 +12,7 @@ import { TenantLogin } from './TenantLogin.js';
 import { LoginPage } from './LoginPage.js';
 import { LandingPage } from './LandingPage.js';
 import { getSubdomain, getTenantFromUrl } from './utils/subdomain.js';
+import { MobilePhotoUpload } from './pages/MobilePhotoUpload.js';
 
 interface AuthState {
   token: string;
@@ -52,6 +53,13 @@ export function App() {
     localStorage.removeItem('kavana_role');
     localStorage.removeItem('kavana_tenant_name');
     setAuth(null);
+  }
+
+  // Ruta pública de subida de foto de incidencia (flujo QR + móvil).
+  // El sessionId (uuid v4) es la credencial de un solo uso; no requiere login.
+  if (path.startsWith('/mobile-upload/')) {
+    const sessionId = path.split('/')[2] ?? '';
+    return <MobilePhotoUpload sessionId={sessionId} />;
   }
 
   // Global Admin route

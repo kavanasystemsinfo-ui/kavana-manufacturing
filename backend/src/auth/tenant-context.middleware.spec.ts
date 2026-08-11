@@ -101,6 +101,36 @@ describe('TenantContextMiddleware', () => {
     expect(contextInsideNext?.userId).toBe('demo-visitor');
   });
 
+  it('debería permitir la subida móvil de foto de incidencia SIN token (tenant demo por defecto)', () => {
+    const { request, response, next } = createMocks(undefined, '/incidencias/upload-mobile/abc-123');
+    verifyBearerTokenMock.mockImplementation(() => {
+      throw new Error('Missing or malformed Authorization header.');
+    });
+
+    let contextInsideNext: ReturnType<typeof tenantContextStorage.getStore> | undefined;
+    next.mockImplementation(() => {
+      contextInsideNext = tenantContextStorage.getStore();
+    });
+
+    middleware.use(request as any, response as any, next);
+
+    expect(response.status).not.toHaveBeenCalled();
+    expect(next).toHaveBeenCalled();
+    expect(contextInsideNext?.tenantId).toBe(1n);
+  });
+
+  it('NO debería permitir GET upload-session SIN token (solo el móvil es público)', () => {
+    const { request, response, next } = createMocks(undefined, '/incidencias/upload-session/abc-123');
+    verifyBearerTokenMock.mockImplementation(() => {
+      throw new Error('Missing or malformed Authorization header.');
+    });
+
+    middleware.use(request as any, response as any, next);
+
+    expect(next).not.toHaveBeenCalled();
+    expect(response.status).toHaveBeenCalledWith(401);
+  });
+
   it('debería ejecutar next dentro de AsyncLocalStorage.run()', () => {
     const { request, response, next } = createMocks('Bearer valid-token');
     verifyBearerTokenMock.mockReturnValue({ tenantId: 5n, userId: 'user-5', role: 'supervisor' });

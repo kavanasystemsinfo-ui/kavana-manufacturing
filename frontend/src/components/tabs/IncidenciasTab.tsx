@@ -184,6 +184,18 @@ export function IncidenciasTab({ isClassic }: Props) {
                 {inc.description && (
                   <div className="text-sm text-gray-300 mb-2">{inc.description}</div>
                 )}
+                {inc.photo_data_url && (
+                  <div className="mt-3">
+                    <p className="mb-1 text-[10px] font-bold uppercase tracking-wider text-gray-500">
+                      📷 Evidencia fotográfica
+                    </p>
+                    <img
+                      src={inc.photo_data_url}
+                      alt="Evidencia de la incidencia"
+                      className="max-h-44 w-full rounded-lg border border-gray-700 object-cover"
+                    />
+                  </div>
+                )}
               </div>
               <div className="flex gap-1 ml-4">
                 <button onClick={() => startEdit(inc)} className="text-gray-500 hover:text-indigo-400 text-sm px-1">✏️</button>

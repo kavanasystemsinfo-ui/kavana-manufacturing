@@ -9,6 +9,8 @@ export const createIncidenciaSchema = z.object({
   title: z.string().min(1).max(255),
   description: z.string().optional(),
   assigned_to: z.string().uuid().optional(),
+  // Sesión de foto subida desde el móvil vía QR (flujo evidencia fotográfica).
+  photo_session_id: z.string().uuid().optional(),
 });
 
 export const updateIncidenciaSchema = z.object({
