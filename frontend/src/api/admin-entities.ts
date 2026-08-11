@@ -430,6 +430,8 @@ export interface Incidencia {
   resolved_at: string | null;
   created_at: string;
   updated_at: string;
+  /** data URL de la evidencia fotográfica (si la incidencia lleva foto). */
+  photo_data_url?: string | null;
 }
 
 export interface IncidenciaStats {
@@ -455,6 +457,7 @@ export async function createIncidencia(data: {
   title: string;
   description?: string;
   assigned_to?: string;
+  photo_session_id?: string;
 }): Promise<Incidencia> {
   return callApiWithTimeout<Incidencia>(`${API_BASE}/incidencias`, {
     method: 'POST',

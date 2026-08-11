@@ -22,7 +22,11 @@ export class TenantContextMiddleware implements NestMiddleware {
       // (originalUrl cubre el caso de proxy que añada prefijo base)
       const fullPath = `${request.originalUrl ?? request.path ?? ''}`;
       const isAdvisorRoute = fullPath.includes('/ai-advisor');
-      if (isAdvisorRoute) {
+      // La subida de foto de incidencia desde el móvil también es pública: el
+      // session_id (uuid v4) es la credencial de un solo uso y el service
+      // resuelve el tenant desde la propia sesión (nunca del contexto).
+      const isIncidentUploadRoute = fullPath.includes('/incidencias/upload-mobile');
+      if (isAdvisorRoute || isIncidentUploadRoute) {
         tenantContextStorage.run(
           { tenantId: 1n, userId: 'demo-visitor', role: 'tenant_admin' },
           () => {

@@ -32,6 +32,8 @@ export interface OperatorPanelState {
   // Local state
   isFailedLogsModalOpen: boolean;
   setIsFailedLogsModalOpen: (v: boolean) => void;
+  isIncidenciaModalOpen: boolean;
+  setIsIncidenciaModalOpen: (v: boolean) => void;
   orderSearch: string;
   setOrderSearch: (v: string) => void;
   startTime: string;
@@ -64,6 +66,7 @@ export function useOperatorPanel(): OperatorPanelState {
   const hmi = useHmiStore();
 
   const [isFailedLogsModalOpen, setIsFailedLogsModalOpen] = useState(false);
+  const [isIncidenciaModalOpen, setIsIncidenciaModalOpen] = useState(false);
   const [orderSearch, setOrderSearch] = useState('');
   const [startTime, setStartTime] = useState('');
   const [endTime, setEndTime] = useState('');
@@ -161,6 +164,7 @@ export function useOperatorPanel(): OperatorPanelState {
     selectedOrderCustomFields: hmi.selectedOrderCustomFields,
     triggerSyncEngine: triggerSyncEngine,
     isFailedLogsModalOpen, setIsFailedLogsModalOpen,
+    isIncidenciaModalOpen, setIsIncidenciaModalOpen,
     orderSearch, setOrderSearch,
     startTime, setStartTime, endTime, setEndTime,
     producedQuantity, setProducedQuantity,

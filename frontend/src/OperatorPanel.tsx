@@ -3,6 +3,7 @@ import logo from '../../logo.png';
 import { useOperatorPanel } from './hooks/useOperatorPanel.js';
 import { useHmiStore } from './store/hmi-store.js';
 import { FailedEventsModal } from './components/operator/FailedEventsModal.js';
+import { IncidenciaModal } from './components/operator/IncidenciaModal.js';
 import { ThemeToggle } from './components/ThemeToggle.js';
 import { HelpModal } from './components/HelpModal.js';
 import { AiAdvisorFab } from './components/AiAdvisorFab.js';
@@ -28,6 +29,7 @@ export function OperatorPanel() {
     availableOrders, isLoadingOrders, activeOrderCustomFields,
     selectOrder, loadAvailableOrders,
     isFailedLogsModalOpen, setIsFailedLogsModalOpen,
+    isIncidenciaModalOpen, setIsIncidenciaModalOpen,
     orderSearch, setOrderSearch,
     startTime, setStartTime, endTime, setEndTime,
     producedQuantity, setProducedQuantity,
@@ -151,6 +153,12 @@ export function OperatorPanel() {
               }`}
             >
               Fallos: {failedCount}
+            </button>
+            <button
+              onClick={() => setIsIncidenciaModalOpen(true)}
+              className="rounded-full bg-kavana-surface px-4 py-3 text-sm font-bold text-kavana-orange ring-1 ring-kavana-orange/40 transition hover:bg-kavana-orange hover:text-white"
+            >
+              ⚠ Incidencia
             </button>
             <HelpModal {...OPERATOR_HELP} />
             <ThemeToggle />
@@ -287,6 +295,16 @@ export function OperatorPanel() {
             }}
           />
         )}
+        <IncidenciaModal
+          isOpen={isIncidenciaModalOpen}
+          onClose={(created) => {
+            setIsIncidenciaModalOpen(false);
+            if (created) void loadAvailableOrders();
+          }}
+          operatorId={operatorId}
+          workstationId={workstationId}
+          orderId={orderId}
+        />
       </section>
     </main>
     <AiAdvisorFab />

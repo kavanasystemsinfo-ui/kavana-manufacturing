@@ -1,25 +1,42 @@
-import { Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable } from '@nestjs/common';
 import { postgresPool } from '../db/postgres.provider.js';
 import { tenantQuery } from '../db/tenant-query.js';
+import { IncidenciaUploadsService } from './incidencia-uploads.service.js';
 
 @Injectable()
 export class IncidenciasService {
+  constructor(private readonly uploads: IncidenciaUploadsService) {}
   async list(tenantId: bigint) {
     const res = await tenantQuery(
       postgresPool,
-      'SELECT * FROM incidencias WHERE tenant_id = $1 ORDER BY created_at DESC',
+      `SELECT i.*,
+              CASE WHEN i.photo IS NOT NULL THEN encode(i.photo, 'base64') ELSE NULL END AS photo_b64
+       FROM incidencias i WHERE i.tenant_id = $1 ORDER BY i.created_at DESC`,
       [tenantId]
     );
-    return res.rows;
+    return res.rows.map((row) => this.mapRow(row));
   }
 
   async getById(tenantId: bigint, id: string) {
     const res = await tenantQuery(
       postgresPool,
-      'SELECT * FROM incidencias WHERE tenant_id = $1 AND id = $2',
+      `SELECT i.*,
+              CASE WHEN i.photo IS NOT NULL THEN encode(i.photo, 'base64') ELSE NULL END AS photo_b64
+       FROM incidencias i WHERE i.tenant_id = $1 AND i.id = $2`,
       [tenantId, id]
     );
-    return res.rows[0] || null;
+    return res.rows[0] ? this.mapRow(res.rows[0]) : null;
+  }
+
+  /** Quita los bytes crudos y expone la foto como data URL para el frontend. */
+  private mapRow(row: any) {
+    const { photo, photo_b64, ...rest } = row;
+    return {
+      ...rest,
+      photo_data_url: photo_b64
+        ? `data:${row.photo_mime ?? 'image/png'};base64,${photo_b64}`
+        : null,
+    };
   }
 
   async create(tenantId: bigint, data: {
@@ -31,14 +48,35 @@ export class IncidenciasService {
     title: string;
     description?: string;
     assigned_to?: string;
+    photo_session_id?: string;
   }) {
+    // Si la incidencia lleva evidencia fotográfica, la sesión debe existir, ser
+    // del tenant y tener la foto ya subida. Se marca 'used' tras crear la fila.
+    if (data.photo_session_id) {
+      const session = await this.uploads.getSession(tenantId, data.photo_session_id);
+      if (!session) {
+        throw new BadRequestException('Sesión de foto no encontrada para este tenant');
+      }
+      if (session.status !== 'uploaded') {
+        throw new BadRequestException('La foto no se ha subido todavía. Escanea el QR y adjunta la imagen.');
+      }
+    }
+
     const res = await tenantQuery(
       postgresPool,
       `INSERT INTO incidencias (tenant_id, workstation_id, order_id, reported_by, type, severity, title, description, assigned_to)
        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9) RETURNING *`,
       [tenantId, data.workstation_id || null, data.order_id || null, data.reported_by, data.type, data.severity, data.title, data.description || null, data.assigned_to || null]
     );
-    return res.rows[0];
+    const incidencia = res.rows[0];
+
+    if (data.photo_session_id) {
+      const finalized = await this.uploads.finalize(tenantId, data.photo_session_id, incidencia.id);
+      if (!finalized) {
+        throw new BadRequestException('No se pudo adjuntar la foto a la incidencia');
+      }
+    }
+    return this.mapRow(incidencia);
   }
 
   async update(tenantId: bigint, id: string, data: {
