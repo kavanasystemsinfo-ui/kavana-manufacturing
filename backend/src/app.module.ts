@@ -54,7 +54,6 @@ export class AppModule implements NestModule {
       'quality',
       'costs',
       'production',
-      'incidencias',
       'toolings',
       'materials',
     );

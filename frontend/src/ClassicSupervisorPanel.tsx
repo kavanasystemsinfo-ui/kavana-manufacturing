@@ -31,7 +31,7 @@ export function ClassicSupervisorPanel() {
     orderNumber, setOrderNumber, measurement, setMeasurement, material,
     setMaterial, notes, setNotes, activeTab, setActiveTab, expandedOrder,
     setExpandedOrder, incidencias, incidenciasLoading, incidenciasError,
-    handleSubmit, changeOrderStatus, removeOrder,
+    handleSubmit, changeOrderStatus, removeOrder, changeIncidenciaStatus, removeIncidencia,
   } = useSupervisorPanel();
 
   return (
@@ -210,7 +210,7 @@ export function ClassicSupervisorPanel() {
         ) : activeTab === 'workstations' ? (
           <WorkstationBoard workstations={workstationStatus} />
         ) : (
-          <IncidenciasList incidencias={incidencias} loading={incidenciasLoading} error={incidenciasError} isClassic />
+          <IncidenciasList incidencias={incidencias} loading={incidenciasLoading} error={incidenciasError} isClassic onStatusChange={changeIncidenciaStatus} onDelete={removeIncidencia} />
         )}
       </main>
     </div>

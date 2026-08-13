@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useSupervisorStore } from '../store/supervisor-store.js';
-import { listIncidencias } from '../api/admin-entities.js';
+import { listIncidencias, updateIncidencia, deleteIncidencia } from '../api/admin-entities.js';
 import type { Incidencia } from '../api/admin-entities.js';
 
 export type SupervisorTab = 'orders' | 'workstations' | 'incidencias';
@@ -44,6 +44,8 @@ export interface SupervisorPanelState {
   handleToggleExpand: (orderId: string) => void;
   changeOrderStatus: (orderId: string, status: string) => Promise<void>;
   removeOrder: (orderId: string) => Promise<void>;
+  changeIncidenciaStatus: (id: string, status: string) => Promise<void>;
+  removeIncidencia: (id: string) => Promise<void>;
   loadOrders: () => Promise<void>;
 }
 
@@ -75,6 +77,19 @@ export function useSupervisorPanel(): SupervisorPanelState {
       .finally(() => { if (!cancelled) setIncidenciasLoading(false); });
     return () => { cancelled = true; };
   }, [activeTab]);
+
+  // Carga inicial al montar: el contador de la pestaña debe ser real desde el
+  // primer render (antes nacía en 0 y solo se rellenaba al entrar en la pestaña).
+  useEffect(() => {
+    let cancelled = false;
+    setIncidenciasLoading(true);
+    setIncidenciasError(null);
+    listIncidencias()
+      .then((data) => { if (!cancelled) setIncidencias(data); })
+      .catch(() => { if (!cancelled) setIncidenciasError('Error al cargar incidencias'); })
+      .finally(() => { if (!cancelled) setIncidenciasLoading(false); });
+    return () => { cancelled = true; };
+  }, []);
 
   useEffect(() => {
     void store.loadOrders();
@@ -119,6 +134,34 @@ export function useSupervisorPanel(): SupervisorPanelState {
     setExpandedOrder(expandedOrder === orderId ? null : orderId);
   };
 
+  const reloadIncidencias = async () => {
+    try {
+      const data = await listIncidencias();
+      setIncidencias(data);
+      setIncidenciasError(null);
+    } catch {
+      setIncidenciasError('Error al recargar incidencias');
+    }
+  };
+
+  const changeIncidenciaStatus = async (id: string, status: string) => {
+    try {
+      await updateIncidencia(id, { status });
+      await reloadIncidencias();
+    } catch {
+      setIncidenciasError('No se pudo cambiar el estado de la incidencia');
+    }
+  };
+
+  const removeIncidencia = async (id: string) => {
+    try {
+      await deleteIncidencia(id);
+      await reloadIncidencias();
+    } catch {
+      setIncidenciasError('No se pudo eliminar la incidencia');
+    }
+  };
+
   return {
     orders: store.orders,
     models: store.models,
@@ -142,6 +185,8 @@ export function useSupervisorPanel(): SupervisorPanelState {
     handleToggleExpand,
     changeOrderStatus: store.changeOrderStatus,
     removeOrder: store.removeOrder,
+    changeIncidenciaStatus,
+    removeIncidencia,
     loadOrders: store.loadOrders,
   };
 }
