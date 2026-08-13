@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { uploadMobilePhoto } from '../api/incidencias.js';
+import { compressImage, needsCompression } from '../utils/imageCompress.js';
 
 interface Props {
   sessionId: string;
@@ -10,26 +11,31 @@ type PageStatus = 'idle' | 'uploading' | 'success' | 'error';
 /**
  * Página pública /mobile-upload/:sessionId — la abre el operario escaneando el
  * QR del modal de incidencias. Sube UNA foto como evidencia; el sessionId actúa
- * como credencial de un solo uso (caduca en 15 min, valida magic bytes y 5MB).
+ * como credencial de un solo uso (caduca en 15 min, valida magic bytes y 10MB).
+ * Las fotos modernas pesan más de 10MB: se comprimen en el móvil antes de
+ * subir (imageCompress) para que la subida no dependa del tamaño de cámara.
  */
 export function MobilePhotoUpload({ sessionId }: Props) {
   const [file, setFile] = useState<File | null>(null);
   const [preview, setPreview] = useState('');
   const [status, setStatus] = useState<PageStatus>('idle');
   const [errorMessage, setErrorMessage] = useState('');
+  const [optimized, setOptimized] = useState(false);
 
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const selected = e.target.files?.[0];
     if (!selected) return;
-    if (selected.size > 5 * 1024 * 1024) {
-      setErrorMessage('La imagen es demasiado grande (máximo 5MB).');
+    try {
+      const finalFile = needsCompression(selected.size) ? await compressImage(selected) : selected;
+      setOptimized(finalFile !== selected);
+      setFile(finalFile);
+      setPreview(URL.createObjectURL(finalFile));
+      setStatus('idle');
+      setErrorMessage('');
+    } catch (err) {
+      setErrorMessage(err instanceof Error ? err.message : 'No se pudo procesar la imagen. Inténtalo de nuevo.');
       setStatus('error');
-      return;
     }
-    setFile(selected);
-    setPreview(URL.createObjectURL(selected));
-    setStatus('idle');
-    setErrorMessage('');
   };
 
   const handleUpload = async () => {
@@ -111,8 +117,13 @@ export function MobilePhotoUpload({ sessionId }: Props) {
         ) : (
           <div className="relative w-full max-w-sm overflow-hidden rounded-2xl border-4 border-kavana-steel/40 shadow-2xl">
             <img src={preview} alt="Vista previa" className="aspect-square w-full object-cover" />
+            {optimized && (
+              <div className="absolute bottom-4 left-4 rounded-lg bg-black/60 px-3 py-1.5 text-[10px] font-bold uppercase tracking-widest text-emerald-300 backdrop-blur">
+                Foto optimizada
+              </div>
+            )}
             <button
-              onClick={() => { setFile(null); setPreview(''); }}
+              onClick={() => { setFile(null); setPreview(''); setOptimized(false); }}
               className="absolute right-4 top-4 rounded-full bg-black/60 p-2.5 text-white backdrop-blur transition hover:bg-red-600"
               aria-label="Quitar foto"
             >

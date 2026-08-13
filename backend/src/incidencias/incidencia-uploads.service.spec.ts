@@ -106,9 +106,9 @@ describe('IncidenciaUploadsService', () => {
       );
     });
 
-    it('rechaza con 400 si supera 5MB', async () => {
+    it('rechaza con 400 si supera el tamaño máximo', async () => {
       const big = Buffer.concat([PNG_1PX, Buffer.alloc(MAX_PHOTO_BYTES)]);
-      await expect(service.attachPhoto('sess-1', big)).rejects.toThrow('5MB');
+      await expect(service.attachPhoto('sess-1', big)).rejects.toThrow('tamaño máximo');
     });
 
     it('libera el cliente del pool siempre (también en error)', async () => {
