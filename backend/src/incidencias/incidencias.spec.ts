@@ -124,12 +124,15 @@ describe('IncidenciasService', () => {
   });
 
   describe('delete', () => {
-    it('borra la incidencia del tenant', async () => {
+    it('borra primero las sesiones de subida y luego la incidencia', async () => {
       (tenantQuery as any).mockResolvedValue({ rowCount: 1 });
       await service.delete(1n, 'inc-1');
-      const call = (tenantQuery as any).mock.calls[0];
-      expect(call[1]).toContain('DELETE FROM incidencias');
-      expect(call[2]).toEqual([1n, 'inc-1']);
+      const calls = (tenantQuery as any).mock.calls;
+      expect(calls).toHaveLength(2);
+      expect(calls[0][1]).toContain('DELETE FROM incidencia_uploads');
+      expect(calls[0][1]).toContain('incidencia_id = $2');
+      expect(calls[1][1]).toContain('DELETE FROM incidencias');
+      expect(calls[1][2]).toEqual([1n, 'inc-1']);
     });
   });
 });

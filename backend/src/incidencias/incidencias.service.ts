@@ -116,6 +116,17 @@ export class IncidenciasService {
   }
 
   async delete(tenantId: bigint, id: string) {
+    // Las sesiones de subida referencian la incidencia con una FK
+    // ON DELETE SET NULL sobre (tenant_id, incidencia_id), pero tenant_id es
+    // NOT NULL en incidencia_uploads: el SET NULL viola la constraint y el
+    // DELETE de una incidencia con foto revienta con 500. La foto ya está
+    // copiada en incidencias.photo, así que la sesión es metadata y se borra
+    // antes que la incidencia.
+    await tenantQuery(
+      postgresPool,
+      'DELETE FROM incidencia_uploads WHERE tenant_id = $1 AND incidencia_id = $2',
+      [tenantId, id]
+    );
     await tenantQuery(
       postgresPool,
       'DELETE FROM incidencias WHERE tenant_id = $1 AND id = $2',
