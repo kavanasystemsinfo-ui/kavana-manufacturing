@@ -12,10 +12,10 @@ import { getTenantContext } from '../auth/tenant-context.storage.js';
 import { RequireRole } from '../auth/roles.decorator.js';
 import { RolesGuard } from '../auth/roles.guard.js';
 
-// Límite de multer algo por encima de la validación real (5MB en el service)
+// Límite de multer algo por encima de la validación real (10MB en el service)
 // para que los errores de tamaño lleguen como 400 con mensaje claro, no como
 // el 413 genérico de multer.
-const MULTER_FILE_LIMIT_BYTES = 6 * 1024 * 1024;
+const MULTER_FILE_LIMIT_BYTES = 11 * 1024 * 1024;
 
 // Tipo mínimo del archivo que inyecta FileInterceptor (evita depender de
 // @types/multer solo por un tipo).

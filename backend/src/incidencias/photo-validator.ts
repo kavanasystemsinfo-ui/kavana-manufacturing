@@ -1,8 +1,13 @@
 // Validación de imágenes por MAGIC BYTES en vez de confiar en el mimetype
 // declarado por el cliente (que es falseable). Cubre los formatos que acepta
 // la demo: PNG, JPEG, WebP y GIF.
+//
+// 10MB: el móvil comprime la foto antes de subir (canvas, máx 1600px, JPEG),
+// así que el límite real suele ser <1MB; los 10MB son red de seguridad para
+// móviles antiguos o navegadores donde la compresión falle y la foto suba
+// tal cual desde la cámara.
 
-export const MAX_PHOTO_BYTES = 5 * 1024 * 1024; // 5MB
+export const MAX_PHOTO_BYTES = 10 * 1024 * 1024; // 10MB
 
 export type DetectedImageType = 'png' | 'jpeg' | 'webp' | 'gif';
 
@@ -49,7 +54,7 @@ export function validatePhoto(buffer: Buffer | null | undefined): PhotoValidatio
     return { ok: false, reason: 'No se ha subido ningún archivo' };
   }
   if (buffer.length > MAX_PHOTO_BYTES) {
-    return { ok: false, reason: `La imagen supera el tamaño máximo de 5MB` };
+    return { ok: false, reason: `La imagen supera el tamaño máximo de ${MAX_PHOTO_BYTES / (1024 * 1024)}MB` };
   }
   const type = detectImageType(buffer);
   if (!type) {

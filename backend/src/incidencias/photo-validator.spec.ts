@@ -58,11 +58,17 @@ describe('validatePhoto', () => {
     expect(result.ok).toBe(false);
   });
 
-  it('rechaza archivos de más de 5MB', () => {
+  it('rechaza archivos que superan MAX_PHOTO_BYTES', () => {
     const big = Buffer.concat([PNG_1PX, Buffer.alloc(MAX_PHOTO_BYTES)]);
     const result = validatePhoto(big);
     expect(result.ok).toBe(false);
-    if (!result.ok) expect(result.reason).toContain('5MB');
+    if (!result.ok) expect(result.reason).toContain(String(MAX_PHOTO_BYTES / (1024 * 1024)));
+  });
+
+  it('acepta un archivo justo por debajo de MAX_PHOTO_BYTES', () => {
+    const ok = Buffer.concat([PNG_1PX, Buffer.alloc(MAX_PHOTO_BYTES - PNG_1PX.length - 1)]);
+    const result = validatePhoto(ok);
+    expect(result.ok).toBe(true);
   });
 
   it('rechaza null/undefined', () => {
