@@ -32,7 +32,8 @@ export function SupervisorPanel() {
     orderNumber, setOrderNumber, measurement, setMeasurement, material,
     setMaterial, notes, setNotes, activeTab, setActiveTab, expandedOrder,
     incidencias, incidenciasLoading, incidenciasError,
-    handleSubmit, handleToggleExpand, changeOrderStatus, removeOrder, loadOrders,
+    handleSubmit, handleToggleExpand, changeOrderStatus, removeOrder,
+    changeIncidenciaStatus, removeIncidencia, loadOrders,
   } = useSupervisorPanel();
 
   const model = models.find((m: any) => m.id === selectedModel);
@@ -160,7 +161,7 @@ export function SupervisorPanel() {
 
         {/* Tabs */}
         <div className="mb-6 flex gap-2">
-          {(['orders', 'workstations'] as Tab[]).map((tab) => (
+          {(['orders', 'workstations', 'incidencias'] as Tab[]).map((tab) => (
             <button
               key={tab}
               onClick={() => setActiveTab(tab)}
@@ -223,7 +224,7 @@ export function SupervisorPanel() {
         ) : activeTab === 'workstations' ? (
           <WorkstationBoard workstations={workstations} />
         ) : (
-          <IncidenciasList incidencias={incidencias} loading={incidenciasLoading} error={incidenciasError} />
+          <IncidenciasList incidencias={incidencias} loading={incidenciasLoading} error={incidenciasError} onStatusChange={changeIncidenciaStatus} onDelete={removeIncidencia} />
         )}
       </section>
     </main>

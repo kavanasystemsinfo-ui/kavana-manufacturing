@@ -6,6 +6,8 @@ interface Props {
   loading: boolean;
   error: string | null;
   isClassic?: boolean;
+  onStatusChange?: (id: string, status: string) => Promise<void>;
+  onDelete?: (id: string) => Promise<void>;
 }
 
 const sevLabels: Record<string, string> = {
@@ -60,7 +62,7 @@ const statusClassic: Record<string, string> = {
   cerrado: 'bg-slate-100 text-slate-600 border-slate-300',
 };
 
-export function IncidenciasList({ incidencias, loading, error, isClassic }: Props) {
+export function IncidenciasList({ incidencias, loading, error, isClassic, onStatusChange, onDelete }: Props) {
   const sev = isClassic ? sevClassic : sevDark;
   const status = isClassic ? statusClassic : statusDark;
   const card = isClassic
@@ -69,6 +71,13 @@ export function IncidenciasList({ incidencias, loading, error, isClassic }: Prop
   const titleCls = isClassic ? 'font-semibold text-slate-900' : 'font-bold text-white';
   const metaCls = isClassic ? 'text-xs text-slate-500' : 'text-xs text-slate-400';
   const descCls = isClassic ? 'text-sm text-slate-600' : 'text-sm text-slate-300';
+  const btnBase = isClassic
+    ? 'rounded-full border px-3 py-1 text-xs font-medium transition'
+    : 'rounded-full px-3 py-1 text-xs font-bold transition';
+  const btnStart = isClassic ? btnBase + ' border-blue-300 bg-blue-50 text-blue-700 hover:bg-blue-100' : btnBase + ' bg-blue-600/20 text-blue-300 hover:bg-blue-600/40';
+  const btnResolve = isClassic ? btnBase + ' border-emerald-300 bg-emerald-50 text-emerald-700 hover:bg-emerald-100' : btnBase + ' bg-emerald-600/20 text-emerald-300 hover:bg-emerald-600/40';
+  const btnClose = isClassic ? btnBase + ' border-slate-300 bg-slate-50 text-slate-600 hover:bg-slate-100' : btnBase + ' bg-slate-500/20 text-slate-300 hover:bg-slate-500/40';
+  const btnDelete = isClassic ? btnBase + ' border-red-300 bg-red-50 text-red-700 hover:bg-red-100' : btnBase + ' bg-red-600/20 text-red-300 hover:bg-red-600/40';
 
   if (loading) {
     return (
@@ -116,6 +125,27 @@ export function IncidenciasList({ incidencias, loading, error, isClassic }: Prop
           {inc.photo_data_url && (
             <div className="mt-3">
               <IncidenciaPhoto src={inc.photo_data_url} alt="Evidencia de la incidencia" isClassic={isClassic} />
+            </div>
+          )}
+          {(onStatusChange || onDelete) && (
+            <div className="mt-3 flex flex-wrap items-center gap-2">
+              {onStatusChange && inc.status === 'abierto' && (
+                <button onClick={() => void onStatusChange(inc.id, 'en_progreso')} className={btnStart}>Iniciar</button>
+              )}
+              {onStatusChange && inc.status === 'en_progreso' && (
+                <button onClick={() => void onStatusChange(inc.id, 'resuelto')} className={btnResolve}>Resolver</button>
+              )}
+              {onStatusChange && inc.status === 'resuelto' && (
+                <button onClick={() => void onStatusChange(inc.id, 'cerrado')} className={btnClose}>Cerrar</button>
+              )}
+              {onDelete && (
+                <button
+                  onClick={() => { if (confirm('¿Eliminar esta incidencia?')) void onDelete(inc.id); }}
+                  className={btnDelete}
+                >
+                  Eliminar
+                </button>
+              )}
             </div>
           )}
         </div>

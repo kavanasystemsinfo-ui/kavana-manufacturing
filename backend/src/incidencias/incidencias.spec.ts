@@ -104,4 +104,32 @@ describe('IncidenciasService', () => {
       expect(mockUploads.finalize).not.toHaveBeenCalled();
     });
   });
+
+  describe('update', () => {
+    it('actualiza el status de la incidencia', async () => {
+      (tenantQuery as any).mockResolvedValue({ rows: [{ id: 'inc-1', status: 'resuelto' }] });
+      const result = await service.update(1n, 'inc-1', { status: 'resuelto' });
+      expect(result.status).toBe('resuelto');
+      const call = (tenantQuery as any).mock.calls[0];
+      expect(call[1]).toContain('UPDATE incidencias SET');
+      expect(call[1]).toContain('status = $3');
+      expect(call[2]).toEqual([1n, 'inc-1', 'resuelto']);
+    });
+
+    it('devuelve null si la incidencia no existe', async () => {
+      (tenantQuery as any).mockResolvedValue({ rows: [] });
+      const result = await service.update(1n, 'no-existe', { status: 'resuelto' });
+      expect(result).toBeNull();
+    });
+  });
+
+  describe('delete', () => {
+    it('borra la incidencia del tenant', async () => {
+      (tenantQuery as any).mockResolvedValue({ rowCount: 1 });
+      await service.delete(1n, 'inc-1');
+      const call = (tenantQuery as any).mock.calls[0];
+      expect(call[1]).toContain('DELETE FROM incidencias');
+      expect(call[2]).toEqual([1n, 'inc-1']);
+    });
+  });
 });
