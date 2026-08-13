@@ -1,4 +1,5 @@
 import type { Incidencia } from '../api/admin-entities.js';
+import { IncidenciaPhoto } from './IncidenciaPhoto.js';
 
 interface Props {
   incidencias: Incidencia[];
@@ -114,14 +115,7 @@ export function IncidenciasList({ incidencias, loading, error, isClassic }: Prop
           )}
           {inc.photo_data_url && (
             <div className="mt-3">
-              <p className={`mb-1 text-[10px] font-bold uppercase tracking-wider ${isClassic ? 'text-slate-500' : 'text-slate-500'}`}>
-                📷 Evidencia fotográfica
-              </p>
-              <img
-                src={inc.photo_data_url}
-                alt="Evidencia de la incidencia"
-                className={`max-h-44 w-full rounded-lg border object-cover ${isClassic ? 'border-slate-200' : 'border-kavana-steel/20'}`}
-              />
+              <IncidenciaPhoto src={inc.photo_data_url} alt="Evidencia de la incidencia" isClassic={isClassic} />
             </div>
           )}
         </div>
