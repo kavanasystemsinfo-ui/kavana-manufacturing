@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import { listIncidencias, createIncidencia, updateIncidencia, deleteIncidencia, getIncidenciaStats } from '../../api/admin-entities.js';
 import type { Incidencia, IncidenciaStats } from '../../api/admin-entities.js';
+import { IncidenciaPhoto } from '../IncidenciaPhoto.js';
 
 interface Props { isClassic?: boolean; }
 
@@ -186,14 +187,7 @@ export function IncidenciasTab({ isClassic }: Props) {
                 )}
                 {inc.photo_data_url && (
                   <div className="mt-3">
-                    <p className="mb-1 text-[10px] font-bold uppercase tracking-wider text-gray-500">
-                      📷 Evidencia fotográfica
-                    </p>
-                    <img
-                      src={inc.photo_data_url}
-                      alt="Evidencia de la incidencia"
-                      className="max-h-44 w-full rounded-lg border border-gray-700 object-cover"
-                    />
+                    <IncidenciaPhoto src={inc.photo_data_url} alt="Evidencia de la incidencia" isClassic={isClassic} />
                   </div>
                 )}
               </div>
