@@ -1,7 +1,9 @@
 import { useEffect, useState } from 'react';
 import { useSupervisorStore } from '../store/supervisor-store.js';
+import { listIncidencias } from '../api/admin-entities.js';
+import type { Incidencia } from '../api/admin-entities.js';
 
-export type SupervisorTab = 'orders' | 'workstations';
+export type SupervisorTab = 'orders' | 'workstations' | 'incidencias';
 
 export interface SupervisorPanelState {
   // Estado del store (Zustand)
@@ -33,6 +35,10 @@ export interface SupervisorPanelState {
   setActiveTab: (v: SupervisorTab) => void;
   expandedOrder: string | null;
   setExpandedOrder: (v: string | null) => void;
+  // Incidencias
+  incidencias: Incidencia[];
+  incidenciasLoading: boolean;
+  incidenciasError: string | null;
   // Acciones
   handleSubmit: (e: React.FormEvent) => Promise<void>;
   handleToggleExpand: (orderId: string) => void;
@@ -54,6 +60,21 @@ export function useSupervisorPanel(): SupervisorPanelState {
   const [notes, setNotes] = useState('');
   const [activeTab, setActiveTab] = useState<SupervisorTab>('orders');
   const [expandedOrder, setExpandedOrder] = useState<string | null>(null);
+  const [incidencias, setIncidencias] = useState<Incidencia[]>([]);
+  const [incidenciasLoading, setIncidenciasLoading] = useState(false);
+  const [incidenciasError, setIncidenciasError] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (activeTab !== 'incidencias') return;
+    let cancelled = false;
+    setIncidenciasLoading(true);
+    setIncidenciasError(null);
+    listIncidencias()
+      .then((data) => { if (!cancelled) setIncidencias(data); })
+      .catch(() => { if (!cancelled) setIncidenciasError('Error al cargar incidencias'); })
+      .finally(() => { if (!cancelled) setIncidenciasLoading(false); });
+    return () => { cancelled = true; };
+  }, [activeTab]);
 
   useEffect(() => {
     void store.loadOrders();
@@ -116,6 +137,7 @@ export function useSupervisorPanel(): SupervisorPanelState {
     notes, setNotes,
     activeTab, setActiveTab,
     expandedOrder, setExpandedOrder,
+    incidencias, incidenciasLoading, incidenciasError,
     handleSubmit,
     handleToggleExpand,
     changeOrderStatus: store.changeOrderStatus,

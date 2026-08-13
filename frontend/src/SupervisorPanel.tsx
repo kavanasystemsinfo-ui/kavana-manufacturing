@@ -2,6 +2,7 @@ import { useSupervisorPanel } from './hooks/useSupervisorPanel.js';
 import { ThemeToggle } from './components/ThemeToggle.js';
 import { ActivityFeed } from './components/ActivityFeed.js';
 import { WorkstationBoard } from './components/WorkstationBoard.js';
+import { IncidenciasList } from './components/IncidenciasList.js';
 import { HelpModal } from './components/HelpModal.js';
 import { AiAdvisorFab } from './components/AiAdvisorFab.js';
 import { SUPERVISOR_HELP } from './help-content.js';
@@ -21,7 +22,7 @@ const statusLabels: Record<string, string> = {
   cancelled: 'Cancelada',
 };
 
-type Tab = 'orders' | 'workstations';
+type Tab = 'orders' | 'workstations' | 'incidencias';
 
 export function SupervisorPanel() {
   const {
@@ -30,6 +31,7 @@ export function SupervisorPanel() {
     selectedWorkstation, setSelectedWorkstation, quantity, setQuantity,
     orderNumber, setOrderNumber, measurement, setMeasurement, material,
     setMaterial, notes, setNotes, activeTab, setActiveTab, expandedOrder,
+    incidencias, incidenciasLoading, incidenciasError,
     handleSubmit, handleToggleExpand, changeOrderStatus, removeOrder, loadOrders,
   } = useSupervisorPanel();
 
@@ -168,12 +170,12 @@ export function SupervisorPanel() {
                   : 'bg-kavana-surface text-slate-400 hover:text-white'
               }`}
             >
-              {tab === 'orders' ? '📋 Órdenes' : '🏭 Workstations'}
+              {tab === 'orders' ? '📋 Órdenes' : tab === 'workstations' ? '🏭 Workstations' : '🚨 Incidencias'}
             </button>
           ))}
         </div>
 
-        {isLoading ? (
+        {isLoading && activeTab === 'orders' ? (
           <div className="py-16 text-center text-slate-400 animate-pulse">Cargando...</div>
         ) : activeTab === 'orders' ? (
           <div className="space-y-4">
@@ -218,8 +220,10 @@ export function SupervisorPanel() {
               ))
             )}
           </div>
-        ) : (
+        ) : activeTab === 'workstations' ? (
           <WorkstationBoard workstations={workstations} />
+        ) : (
+          <IncidenciasList incidencias={incidencias} loading={incidenciasLoading} error={incidenciasError} />
         )}
       </section>
     </main>

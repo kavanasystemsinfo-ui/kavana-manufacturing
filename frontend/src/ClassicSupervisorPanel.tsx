@@ -2,6 +2,7 @@ import { useSupervisorPanel } from './hooks/useSupervisorPanel.js';
 import { ThemeToggle } from './components/ThemeToggle.js';
 import { ActivityFeed } from './components/ActivityFeed.js';
 import { WorkstationBoard } from './components/WorkstationBoard.js';
+import { IncidenciasList } from './components/IncidenciasList.js';
 import { HelpModal } from './components/HelpModal.js';
 import { SUPERVISOR_HELP } from './help-content.js';
 import { formatQuantity } from './utils/formatNumber.js';
@@ -29,7 +30,8 @@ export function ClassicSupervisorPanel() {
     selectedWorkstation, setSelectedWorkstation, quantity, setQuantity,
     orderNumber, setOrderNumber, measurement, setMeasurement, material,
     setMaterial, notes, setNotes, activeTab, setActiveTab, expandedOrder,
-    setExpandedOrder, handleSubmit, changeOrderStatus, removeOrder,
+    setExpandedOrder, incidencias, incidenciasLoading, incidenciasError,
+    handleSubmit, changeOrderStatus, removeOrder,
   } = useSupervisorPanel();
 
   return (
@@ -128,6 +130,9 @@ export function ClassicSupervisorPanel() {
           <button onClick={() => setActiveTab('workstations')} className={`flex-1 rounded-md px-4 py-2 text-sm font-medium transition ${activeTab === 'workstations' ? 'bg-kavana-orange text-white' : 'text-slate-600 hover:bg-slate-100'}`}>
             Puestos ({workstationStatus.length})
           </button>
+          <button onClick={() => setActiveTab('incidencias')} className={`flex-1 rounded-md px-4 py-2 text-sm font-medium transition ${activeTab === 'incidencias' ? 'bg-kavana-orange text-white' : 'text-slate-600 hover:bg-slate-100'}`}>
+            🚨 Incidencias ({incidencias.length})
+          </button>
         </div>
 
         {activeTab === 'orders' ? (
@@ -202,8 +207,10 @@ export function ClassicSupervisorPanel() {
               })}
             </div>
           )
-        ) : (
+        ) : activeTab === 'workstations' ? (
           <WorkstationBoard workstations={workstationStatus} />
+        ) : (
+          <IncidenciasList incidencias={incidencias} loading={incidenciasLoading} error={incidenciasError} isClassic />
         )}
       </main>
     </div>
