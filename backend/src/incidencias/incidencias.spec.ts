@@ -58,7 +58,6 @@ describe('IncidenciasService', () => {
     const base = {
       reported_by: '00000000-0000-0000-0000-000000000001',
       type: 'produccion',
-      severity: 'media',
       title: 'Avería en la sierra',
     };
 

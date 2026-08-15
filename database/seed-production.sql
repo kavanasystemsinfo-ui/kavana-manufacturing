@@ -32,8 +32,8 @@ INSERT INTO toolings (tenant_id, id, code, name, type, location, status, current
 ON CONFLICT (id) DO NOTHING;
 
 -- Incidencias de ejemplo
-INSERT INTO incidencias (tenant_id, workstation_id, reported_by, type, severity, title, description, status) VALUES
-  (1, '77777777-7777-7777-7777-777777777777', 'operario', 'mantenimiento', 'alta', 'Ruido anómalo en troqueladora', 'La TR-01 hace un ruido metálico al superar 80 piezas/minuto. Revisar rodamientos.', 'abierto'),
-  (1, '55555555-5555-5555-5555-555555555555', 'admin', 'calidad', 'media', 'Angulos 30x30 con rebaba', 'Último lote de angulos 30x30 presenta rebaba excesiva en el corte. Revisar afilado.', 'en_progreso'),
-  (1, NULL, 'supervisor', 'seguridad', 'critica', 'Falta EPP en linea C', 'Operarios de línea C no usan guantes de protección. Riesgo de corte.', 'resuelto')
+INSERT INTO incidencias (tenant_id, workstation_id, reported_by, type, title, description, status) VALUES
+  (1, '77777777-7777-7777-7777-777777777777', 'operario', 'mantenimiento', 'Ruido anómalo en troqueladora', 'La TR-01 hace un ruido metálico al superar 80 piezas/minuto. Revisar rodamientos.', 'abierto'),
+  (1, '55555555-5555-5555-5555-555555555555', 'admin', 'calidad', 'Angulos 30x30 con rebaba', 'Último lote de angulos 30x30 presenta rebaba excesiva en el corte. Revisar afilado.', 'en_progreso'),
+  (1, NULL, 'supervisor', 'seguridad', 'Falta EPP en linea C', 'Operarios de línea C no usan guantes de protección. Riesgo de corte.', 'resuelto')
 ON CONFLICT DO NOTHING;

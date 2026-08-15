@@ -44,7 +44,6 @@ export class IncidenciasService {
     order_id?: string;
     reported_by: string;
     type: string;
-    severity: string;
     title: string;
     description?: string;
     assigned_to?: string;
@@ -64,9 +63,9 @@ export class IncidenciasService {
 
     const res = await tenantQuery(
       postgresPool,
-      `INSERT INTO incidencias (tenant_id, workstation_id, order_id, reported_by, type, severity, title, description, assigned_to)
-       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9) RETURNING *`,
-      [tenantId, data.workstation_id || null, data.order_id || null, data.reported_by, data.type, data.severity, data.title, data.description || null, data.assigned_to || null]
+      `INSERT INTO incidencias (tenant_id, workstation_id, order_id, reported_by, type, title, description, assigned_to)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8) RETURNING *`,
+      [tenantId, data.workstation_id || null, data.order_id || null, data.reported_by, data.type, data.title, data.description || null, data.assigned_to || null]
     );
     const incidencia = res.rows[0];
 
@@ -85,7 +84,6 @@ export class IncidenciasService {
     workstation_id?: string;
     order_id?: string;
     type?: string;
-    severity?: string;
     title?: string;
     description?: string;
     status?: string;
@@ -142,9 +140,7 @@ export class IncidenciasService {
         COUNT(*) FILTER (WHERE status = 'abierto') as abiertas,
         COUNT(*) FILTER (WHERE status = 'en_progreso') as en_progreso,
         COUNT(*) FILTER (WHERE status = 'resuelto') as resueltas,
-        COUNT(*) FILTER (WHERE status = 'cerrado') as cerradas,
-        COUNT(*) FILTER (WHERE severity = 'critica') as criticas,
-        COUNT(*) FILTER (WHERE severity = 'alta') as altas
+        COUNT(*) FILTER (WHERE status = 'cerrado') as cerradas
        FROM incidencias WHERE tenant_id = $1`,
       [tenantId]
     );
