@@ -29,7 +29,6 @@ export function IncidenciaModal({ isOpen, onClose, operatorId, workstationId, or
   const [errorMsg, setErrorMsg] = useState('');
   const [title, setTitle] = useState('');
   const [type, setType] = useState('produccion');
-  const [severity, setSeverity] = useState('media');
   const [description, setDescription] = useState('');
   const pollingRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
@@ -47,7 +46,6 @@ export function IncidenciaModal({ isOpen, onClose, operatorId, workstationId, or
     setPhotoDataUrl(null);
     setTitle('');
     setType('produccion');
-    setSeverity('media');
     setDescription('');
     setErrorMsg('');
     setStatus('creating');
@@ -104,7 +102,6 @@ export function IncidenciaModal({ isOpen, onClose, operatorId, workstationId, or
         workstation_id: workstationId ?? undefined,
         order_id: orderId ?? undefined,
         type,
-        severity,
         title: title.trim(),
         description: description.trim() || undefined,
         photo_session_id: session?.session_id ?? undefined,
@@ -217,18 +214,12 @@ export function IncidenciaModal({ isOpen, onClose, operatorId, workstationId, or
                 <option value="otro">Otro</option>
               </select>
             </div>
-            <div>
-              <label className="mb-1 block text-xs font-bold uppercase tracking-wider text-kavana-steel">Severidad</label>
-              <select
-                value={severity}
-                onChange={(e) => setSeverity(e.target.value)}
-                className="w-full rounded-xl border border-kavana-steel/30 bg-kavana-surface px-3 py-3 text-sm font-medium text-white focus:border-kavana-orange focus:outline-none"
-              >
-                <option value="baja">Baja</option>
-                <option value="media">Media</option>
-                <option value="alta">Alta</option>
-                <option value="critica">Crítica</option>
-              </select>
+            <div className="flex items-end">
+              {/* La severidad la decide el supervisor/gestión, no el operario
+                  (decisión de producto 2026-08-15): fuera del formulario. */}
+              <p className="text-[10px] font-bold uppercase tracking-widest text-kavana-steel/60">
+                La prioridad la valora el supervisor
+              </p>
             </div>
           </div>
 

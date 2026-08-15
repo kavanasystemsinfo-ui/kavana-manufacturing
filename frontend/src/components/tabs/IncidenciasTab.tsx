@@ -13,7 +13,7 @@ export function IncidenciasTab({ isClassic }: Props) {
   const [editing, setEditing] = useState<string | null>(null);
   const [showCreate, setShowCreate] = useState(false);
   const [filterStatus, setFilterStatus] = useState<string>('all');
-  const emptyForm = { title: '', type: 'produccion', severity: 'media', description: '', assigned_to: '' };
+  const emptyForm = { title: '', type: 'produccion', description: '', assigned_to: '' };
   const [form, setForm] = useState(emptyForm);
 
   const load = useCallback(async () => {
@@ -32,7 +32,6 @@ export function IncidenciasTab({ isClassic }: Props) {
       await createIncidencia({
         reported_by: '00000000-0000-0000-0000-000000000000',
         type: form.type,
-        severity: form.severity,
         title: form.title,
         description: form.description || undefined,
         assigned_to: form.assigned_to || undefined,
@@ -48,7 +47,6 @@ export function IncidenciasTab({ isClassic }: Props) {
     try {
       await updateIncidencia(editing, {
         type: form.type,
-        severity: form.severity,
         title: form.title,
         description: form.description || undefined,
       });
@@ -78,20 +76,12 @@ export function IncidenciasTab({ isClassic }: Props) {
     setForm({
       title: inc.title,
       type: inc.type,
-      severity: inc.severity,
       description: inc.description || '',
       assigned_to: inc.assigned_to || '',
     });
   };
 
   const filtered = filterStatus === 'all' ? incidencias : incidencias.filter(i => i.status === filterStatus);
-
-  const getSeverityBadge = (severity: string) => {
-    if (severity === 'critica') return 'bg-red-900/50 text-red-300 border border-red-700';
-    if (severity === 'alta') return 'bg-orange-900/50 text-orange-300 border border-orange-700';
-    if (severity === 'media') return 'bg-amber-900/50 text-amber-300 border border-amber-700';
-    return 'bg-gray-700/50 text-gray-400 border border-gray-600';
-  };
 
   const getStatusBadge = (status: string) => {
     if (status === 'abierto') return 'bg-red-900/50 text-red-300 border border-red-700';
@@ -172,9 +162,6 @@ export function IncidenciasTab({ isClassic }: Props) {
               <div className="flex-1">
                 <div className="flex items-center gap-2 mb-2">
                   <span className="text-white font-semibold">{inc.title}</span>
-                  <span className={`text-xs px-2 py-0.5 rounded-full ${getSeverityBadge(inc.severity)}`}>
-                    {inc.severity}
-                  </span>
                   <span className={`text-xs px-2 py-0.5 rounded-full ${getStatusBadge(inc.status)}`}>
                     {inc.status.replace('_', ' ')}
                   </span>
@@ -245,13 +232,8 @@ export function IncidenciasTab({ isClassic }: Props) {
                   </select>
                 </div>
                 <div>
-                  <label className="text-xs text-gray-400 mb-1 block">Severidad</label>
-                  <select value={form.severity} onChange={(e) => setForm({ ...form, severity: e.target.value })} className="w-full bg-gray-900 border border-gray-600 rounded-lg px-3 py-2 text-sm text-white focus:ring-2 focus:ring-indigo-500 outline-none">
-                    <option value="baja">Baja</option>
-                    <option value="media">Media</option>
-                    <option value="alta">Alta</option>
-                    <option value="critica">Crítica</option>
-                  </select>
+                  <label className="text-xs text-gray-400 mb-1 block">Severidad (asignada por el supervisor)</label>
+                  <p className="w-full bg-gray-900 border border-gray-600 rounded-lg px-3 py-2 text-sm text-gray-500">—</p>
                 </div>
               </div>
               <div>

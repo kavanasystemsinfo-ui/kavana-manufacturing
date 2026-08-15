@@ -422,7 +422,6 @@ export interface Incidencia {
   order_id: string | null;
   reported_by: string;
   type: 'calidad' | 'seguridad' | 'mantenimiento' | 'produccion' | 'otro';
-  severity: 'baja' | 'media' | 'alta' | 'critica';
   title: string;
   description: string | null;
   status: 'abierto' | 'en_progreso' | 'resuelto' | 'cerrado';
@@ -440,8 +439,6 @@ export interface IncidenciaStats {
   en_progreso: number;
   resueltas: number;
   cerradas: number;
-  criticas: number;
-  altas: number;
 }
 
 export async function listIncidencias(): Promise<Incidencia[]> {
@@ -453,7 +450,6 @@ export async function createIncidencia(data: {
   workstation_id?: string;
   order_id?: string;
   type?: string;
-  severity?: string;
   title: string;
   description?: string;
   assigned_to?: string;
@@ -467,7 +463,6 @@ export async function createIncidencia(data: {
 
 export async function updateIncidencia(id: string, data: {
   type?: string;
-  severity?: string;
   title?: string;
   description?: string;
   status?: string;
