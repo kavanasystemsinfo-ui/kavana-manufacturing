@@ -19,7 +19,7 @@ describe('AiAdvisorService', () => {
     vi.spyOn(tenantContext, 'getTenantContext').mockReturnValue({
       tenantId: 1n,
       userId: 'test-user',
-      role: 'admin',
+      role: 'tenant_admin',
     });
     service = new AiAdvisorService();
   });

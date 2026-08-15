@@ -18,7 +18,7 @@ vi.mock('../db/tenant-query.js', () => ({
 }));
 
 describe('ManufacturingModelsController', () => {
-  let controller: ManufacturingModelsService;
+  let controller: ManufacturingModelsController;
   let service: ManufacturingModelsService;
 
   beforeEach(() => {

@@ -46,7 +46,7 @@ describe('WorkstationsController', () => {
     });
 
     it('creates a workstation with default status', async () => {
-      const dto = { name: 'Prensa 2' };
+      const dto = { name: 'Prensa 2', status: 'active' as const };
       const expected = { id: 'ws-2', name: 'Prensa 2', status: 'active', tenant_id: 10n };
       vi.spyOn(service, 'createWorkstation').mockResolvedValue(expected);
 
@@ -56,7 +56,7 @@ describe('WorkstationsController', () => {
     });
 
     it('rejects empty name', async () => {
-      const dto = { name: '' };
+      const dto = { name: '', status: 'active' as const };
       
       await expect(controller.createWorkstation(dto)).rejects.toThrow();
     });

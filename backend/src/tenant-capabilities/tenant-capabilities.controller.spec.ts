@@ -17,6 +17,10 @@ describe('TenantCapabilitiesController', () => {
       getCapabilities: vi.fn(),
       toggleModule: vi.fn(),
       updateCustomFieldsSchema: vi.fn(),
+      isModuleEnabled: vi.fn(),
+      invalidateCache: vi.fn(),
+      getToolingTypes: vi.fn(),
+      saveToolingTypes: vi.fn(),
     };
 
     controller = new TenantCapabilitiesController(

@@ -15,8 +15,7 @@ describe('CoreMesProductionController', () => {
       transitionOrder: vi.fn(),
       syncWorkBlock: vi.fn(),
       listOrderLogs: vi.fn(),
-      lockOrder: vi.fn(),
-      insertWorkBlock: vi.fn(),
+      updateCustomFields: vi.fn(),
     };
 
     controller = new CoreMesProductionController(

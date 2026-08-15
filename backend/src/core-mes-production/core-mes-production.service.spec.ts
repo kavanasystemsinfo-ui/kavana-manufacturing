@@ -49,7 +49,9 @@ describe('CoreMesProductionService - syncWorkBlock', () => {
       type: 'produccion' as const,
       start_time: '2026-06-14T08:00:00Z',
       end_time: '2026-06-14T10:00:00Z',
-      produced_quantity: 100
+      produced_quantity: 100,
+      is_offline_event: false,
+      client_device_id: null,
     };
 
     const { withTenantTransaction } = await import('../db/withTenantTransaction.js');
@@ -90,6 +92,7 @@ describe('CoreMesProductionService - syncWorkBlock', () => {
       end_time: '2026-06-14T10:00:00Z',
       produced_quantity: 50,
       is_offline_event: true,
+      client_device_id: 'sincro-offline-01',
     };
 
     const result = await service.syncWorkBlock(dto);

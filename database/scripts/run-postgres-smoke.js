@@ -1,6 +1,6 @@
 import { spawn, spawnSync } from 'node:child_process';
 import { randomUUID } from 'node:crypto';
-import { existsSync, readFileSync } from 'node:fs';
+import { existsSync, readFileSync, readdirSync } from 'node:fs';
 import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import pg from 'pg';
@@ -23,31 +23,9 @@ const testsOnly = process.argv.includes('--tests-only');
 const explicitDatabaseUrl = process.argv.find((arg) => arg.startsWith('--database-url='))?.slice('--database-url='.length);
 const databaseUrl = explicitDatabaseUrl ?? process.env.DATABASE_URL;
 
-const migrationFiles = [
-  '000_extensions_roles_rls.sql',
-  '001_tenants_users.sql',
-  '002_workstations.sql',
-  '003_production_orders.sql',
-  '004_production_time_logs.sql',
-  '005_tenant_governance.sql',
-  '006_refactor_production_blocks.sql',
-  '007_manufacturing_models.sql',
-  '008_fix_users_and_seed.sql',
-  '009_admin_orders.sql',
-  '010_replace_estimated_minutes_with_unit.sql',
-  '011_add_target_rate_to_manufacturing_models.sql',
-  '012_create_quality_checks.sql',
-  '013_create_cost_entries.sql',
-  '014_add_subdomain_to_tenants.sql',
-  '015_add_workstation_to_manufacturing_models.sql',
-  '016_add_user_profile_fields.sql',
-  '017_add_custom_fields_to_orders.sql',
-  '018_add_production_tracking_to_orders.sql',
-  '019_backfill_production_orders.sql',
-  '020_create_production_work_blocks.sql',
-  '021_prepare_orders_for_unification.sql',
-  '022_unify_drop_production_orders.sql'
-];
+const migrationFiles = readdirSync(migrationsDir)
+  .filter((file) => file.endsWith('.sql'))
+  .sort();
 
 const smokeTestFiles = [
   '001_rls_isolation_smoke.sql',
@@ -199,11 +177,12 @@ async function applySqlFile(client, filePath, label) {
 }
 
 async function verifyGrants(client) {
+  // Tablas finales tras la cadena de migraciones: production_orders y
+  // production_time_logs se unificaron en production_work_blocks (022/020).
   const requiredTables = [
     'users',
     'workstations',
-    'production_orders',
-    'production_time_logs',
+    'production_work_blocks',
     'tenant_config_audit'
   ];
 
@@ -285,6 +264,17 @@ async function main() {
   try {
     await adminClient.connect();
 
+    // El rol kavana_app es nativo de Supabase (producción) pero no existe en un
+    // PostgreSQL genérico de CI/local; las migraciones 001+ hacen GRANT a ese
+    // rol, así que se garantiza antes de aplicarlas.
+    await adminClient.query(
+      `DO $$ BEGIN
+         IF NOT EXISTS (SELECT FROM pg_roles WHERE rolname = 'kavana_app') THEN
+           CREATE ROLE kavana_app NOLOGIN;
+         END IF;
+       END $$;`
+    );
+
     if (!testsOnly) {
       for (const file of migrationFiles) {
         await applySqlFile(
@@ -293,6 +283,14 @@ async function main() {
           `migration ${file}`
         );
       }
+
+      // En Supabase el rol kavana_app ya tiene permisos (rol nativo con grants
+      // configurados fuera de las migraciones); en un PostgreSQL genérico de
+      // CI/local hay que otorgarlos para que verifyGrants pase.
+      await adminClient.query(
+        `GRANT SELECT, INSERT, UPDATE, DELETE ON ALL TABLES IN SCHEMA public TO kavana_app;
+         GRANT USAGE ON ALL SEQUENCES IN SCHEMA public TO kavana_app;`
+      );
 
       await verifyGrants(adminClient);
     }

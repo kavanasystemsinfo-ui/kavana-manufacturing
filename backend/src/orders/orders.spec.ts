@@ -35,7 +35,7 @@ describe('OrdersController', () => {
 
   describe('createOrder', () => {
     it('creates an order with valid data', async () => {
-      const dto = { model_id: '550e8400-e29b-41d4-a716-446655440000', workstation_id: '550e8400-e29b-41d4-a716-446655440001', quantity: 100 };
+      const dto = { model_id: '550e8400-e29b-41d4-a716-446655440000', workstation_id: '550e8400-e29b-41d4-a716-446655440001', quantity: 100, custom_fields: {} };
       const expected = { id: 'order-1', ...dto, status: 'pending', custom_fields: {}, tenant_id: 10n, created_at: new Date() };
       vi.spyOn(service, 'createOrder').mockResolvedValue(expected);
 
@@ -46,19 +46,19 @@ describe('OrdersController', () => {
     });
 
     it('rejects invalid model_id', async () => {
-      const dto = { model_id: 'invalid', workstation_id: '550e8400-e29b-41d4-a716-446655440001', quantity: 100 };
+      const dto = { model_id: 'invalid', workstation_id: '550e8400-e29b-41d4-a716-446655440001', quantity: 100, custom_fields: {} };
       
       await expect(controller.createOrder(dto)).rejects.toThrow();
     });
 
     it('rejects zero quantity', async () => {
-      const dto = { model_id: '550e8400-e29b-41d4-a716-446655440000', workstation_id: '550e8400-e29b-41d4-a716-446655440001', quantity: 0 };
+      const dto = { model_id: '550e8400-e29b-41d4-a716-446655440000', workstation_id: '550e8400-e29b-41d4-a716-446655440001', quantity: 0, custom_fields: {} };
       
       await expect(controller.createOrder(dto)).rejects.toThrow();
     });
 
     it('rejects negative quantity', async () => {
-      const dto = { model_id: '550e8400-e29b-41d4-a716-446655440000', workstation_id: '550e8400-e29b-41d4-a716-446655440001', quantity: -5 };
+      const dto = { model_id: '550e8400-e29b-41d4-a716-446655440000', workstation_id: '550e8400-e29b-41d4-a716-446655440001', quantity: -5, custom_fields: {} };
       
       await expect(controller.createOrder(dto)).rejects.toThrow();
     });
@@ -153,7 +153,7 @@ describe('OrdersService', () => {
 
   describe('createOrder', () => {
     it('creates an order', async () => {
-      const dto = { model_id: 'model-1', workstation_id: 'ws-1', quantity: 100 };
+      const dto = { model_id: 'model-1', workstation_id: 'ws-1', quantity: 100, custom_fields: {} };
       mockTenantQuery.mockResolvedValue({
         rows: [{ id: 'order-1', model_id: 'model-1', workstation_id: 'ws-1', quantity: 100, status: 'pending', custom_fields: {}, created_by: 'user-1' }],
       } as any);

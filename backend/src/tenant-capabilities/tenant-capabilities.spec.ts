@@ -100,7 +100,7 @@ describe('custom_fields_schema label validation', () => {
   });
 
   it('accepts schema without label (optional)', () => {
-    const schema = {
+    const schema: { fields: Array<{ key: string; type: string; required: boolean; label?: string }> } = {
       fields: [
         { key: 'grosor', type: 'number', required: false },
       ],
