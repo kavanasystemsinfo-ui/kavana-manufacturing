@@ -33,6 +33,13 @@ ALTER TABLE production_work_blocks
   ADD CONSTRAINT work_blocks_time_check 
   CHECK (start_time < end_time);
 
+-- Garantizar produced_quantity: en la BD v2 la tabla ya la tenía (por eso el
+-- CREATE TABLE IF NOT EXISTS de la 004 no la recrea), pero en una BD nueva
+-- aplicada desde cero la columna no existe. IF NOT EXISTS no toca lo existente.
+ALTER TABLE production_work_blocks
+  ADD COLUMN IF NOT EXISTS produced_quantity NUMERIC(12, 4) NOT NULL DEFAULT 0
+  CHECK (produced_quantity >= 0);
+
 -- Validaciones condicionales a nivel de base de datos
 ALTER TABLE production_work_blocks
   ADD CONSTRAINT work_blocks_type_check

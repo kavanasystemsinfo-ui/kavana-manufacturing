@@ -182,6 +182,8 @@ describe('Offline Sync Integrity — syncWorkBlock', () => {
         start_time: '2026-06-14T08:00:00Z',
         end_time: '2026-06-14T10:00:00Z',
         produced_quantity: 100,
+        is_offline_event: false,
+        client_device_id: null,
       };
 
       await expect(service.syncWorkBlock(dto)).rejects.toThrow(BadRequestException);
@@ -213,6 +215,8 @@ describe('Offline Sync Integrity — syncWorkBlock', () => {
         start_time: '2026-06-14T08:00:00Z',
         end_time: '2026-06-14T10:00:00Z',
         produced_quantity: 100,
+        is_offline_event: false,
+        client_device_id: null,
       };
 
       await expect(service.syncWorkBlock(dto)).rejects.toThrow(BadRequestException);

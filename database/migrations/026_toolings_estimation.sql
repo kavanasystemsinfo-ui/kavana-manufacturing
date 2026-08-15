@@ -4,6 +4,10 @@
 ALTER TABLE toolings ADD COLUMN IF NOT EXISTS cycles_per_piece NUMERIC(10,4) DEFAULT 0;
 ALTER TABLE toolings ADD COLUMN IF NOT EXISTS estimated_pieces INTEGER DEFAULT 0;
 
+-- La PK de toolings es compuesta (tenant_id, id); la FK de workstations
+-- referencia solo toolings(id), que debe ser único.
+CREATE UNIQUE INDEX IF NOT EXISTS uq_toolings_id ON toolings(id);
+
 ALTER TABLE workstations ADD COLUMN IF NOT EXISTS tooling_id UUID REFERENCES toolings(id) ON DELETE SET NULL;
 
 COMMENT ON COLUMN toolings.cycles_per_piece IS 'Estimated cycles consumed per piece produced. Used for preventive maintenance estimation only.';
