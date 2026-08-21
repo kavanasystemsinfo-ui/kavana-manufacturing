@@ -18,6 +18,7 @@ const PUBLIC_ROUTES: ReadonlySet<string> = new Set([
   'auth', // login: es el endpoint que emite el token
   'health',
   'ai-advisor', // demo pública con rate limit propio
+  'upload-mobile', // subida QR móvil: la credencial es el sessionId single-use
 ]);
 
 @Injectable()
@@ -25,9 +26,15 @@ export class RolesGuard implements CanActivate {
   constructor(@Inject(Reflector) private readonly reflector: Reflector) {}
 
   canActivate(context: ExecutionContext): boolean {
-    const requiredRoles = this.reflector.get<KavanaRole[] | undefined>(
+    // FIX 2026-08-21 (ronda 2): reflector.get(key, handler) solo lee metadata
+    // del MÉTODO. Los @RequireRole a nivel de CLASE (patrón usado en todos
+    // los controllers) viven en la clase, no en el handler: sin
+    // getAllAndOverride el guard no los ve y deniega a TODO el mundo,
+    // incluido el tenant_admin legítimo (regresión introducida por el fix
+    // fail-closed de esta mañana, detectada por el ataque adversarial).
+    const requiredRoles = this.reflector.getAllAndOverride<KavanaRole[] | undefined>(
       REQUIRED_ROLES_KEY,
-      context.getHandler(),
+      [context.getHandler(), context.getClass()],
     );
 
     const request = context.switchToHttp().getRequest<{ path?: string; route?: { path?: string } }>();

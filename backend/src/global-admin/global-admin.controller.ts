@@ -1,6 +1,8 @@
-import { Controller, Get, Post, Put, Delete, Patch, Body, Param, Inject, ForbiddenException } from '@nestjs/common';
+import { Controller, Get, Post, Put, Delete, Patch, Body, Param, Inject, ForbiddenException, UseGuards } from '@nestjs/common';
 import { GlobalAdminService } from './global-admin.service.js';
 import { getTenantContext } from '../auth/tenant-context.storage.js';
+import { RequireRole } from '../auth/roles.decorator.js';
+import { RolesGuard } from '../auth/roles.guard.js';
 
 // FIX 2026-08-21 (P0): este controller administraba TODOS los tenants sin
 // ningún control de roles (listar, crear, suspender, borrar con CASCADE).
@@ -21,7 +23,12 @@ function requirePlatformAdmin(): void {
   }
 }
 
+// FIX ronda 2: @RequireRole('tenant_admin') es SOLO la llave del guard global
+// (sin decorador el fail-closed deniega antes de llegar aquí). La barrera
+// REAL sigue siendo requirePlatformAdmin() contra GLOBAL_ADMIN_USER_IDS.
 @Controller('global-admin')
+@RequireRole('tenant_admin')
+@UseGuards(RolesGuard)
 export class GlobalAdminController {
   constructor(@Inject(GlobalAdminService) private readonly globalAdminService: GlobalAdminService) {}
 

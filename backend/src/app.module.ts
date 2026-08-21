@@ -45,6 +45,10 @@ export class AppModule implements NestModule {
       'toolings',
       'materials',
       'global-admin',
+      // FIX ronda 2 (P2): oee e incidencias faltaban; sin ellas un visitante
+      // demo podría borrar incidencias del histórico una vez reparado el RBAC.
+      'oee',
+      'incidencias',
     );
     consumer.apply(DemoReadOnlyMiddleware).forRoutes(
       'users',
