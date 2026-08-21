@@ -30,7 +30,8 @@ const migrationFiles = readdirSync(migrationsDir)
 const smokeTestFiles = [
   '001_rls_isolation_smoke.sql',
   '002_tenant_governance_smoke.sql',
-  '003_materials_rls_smoke.sql'
+  '003_materials_rls_smoke.sql',
+  '004_integrity_hardlimits_smoke.sql'
 ];
 
 function parseArgs() {
@@ -272,6 +273,9 @@ async function main() {
       `DO $$ BEGIN
          IF NOT EXISTS (SELECT FROM pg_roles WHERE rolname = 'kavana_app') THEN
            CREATE ROLE kavana_app NOLOGIN;
+         END IF;
+         IF NOT EXISTS (SELECT FROM pg_roles WHERE rolname = 'kavana_admin') THEN
+           CREATE ROLE kavana_admin NOLOGIN;
          END IF;
        END $$;`
     );
