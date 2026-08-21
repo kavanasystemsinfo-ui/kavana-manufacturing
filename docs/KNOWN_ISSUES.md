@@ -2,22 +2,13 @@
 
 > **Para reclutadores técnicos**: este documento enumera limitaciones conocidas del proyecto que un ingeniero senior detectaría al revisar el código. Cada una tiene su explicación de trade-off y el camino de resolución previsto. No están ocultas: son decisiones de fase MVP documentadas.
 
-**Última actualización**: 2026-08-08 (auditoría externa segunda ronda).
+**Última actualización**: 2026-08-21 (auditoría interna completa: 10 riesgos identificados, 6 corregidos).
 
 ---
 
-## 1. FK tenant-aware — orders ↔ production_work_blocks
+## 1. ~~FK tenant-aware — orders ↔ production_work_blocks~~ — ✅ CORREGIDO (2026-08-21)
 
-**Problema**: la FK actual en `production_work_blocks` solo comprueba `order_id → orders(id)`, sin verificar que pertenezcan al mismo tenant. La aplicación sí aplica el filtro `WHERE tenant_id = $1 AND id = $2` en `lockOrder()`, pero la constraint de BD no es completa.
-
-**Riesgo real**: bajo en un sistema single-tenant o con RLS activado correctamente. En multi-tenant con RLS desactivado/omitido, un block podría asociarse a una order de otro tenant.
-
-**Por qué no está corregido aún**:
-- Requiere una migration que cree `UNIQUE (tenant_id, id)` en `orders` y reemplace la FK actual por `FOREIGN KEY (tenant_id, order_id) REFERENCES orders(tenant_id, id)`
-- Cualquier migration de FK necesita probarse con datos reales y verificar que no rompe queries existentes
-- Priorizado para la siguiente iteración de hardening de BD
-
-**Plan**: migration 033 con FK compuesta + test de integridad referencial cross-tenant.
+**Resolución**: migration `035_tenant_aware_fk_work_blocks.sql` — `UNIQUE (tenant_id, id)` en `orders` + FK compuesta `FOREIGN KEY (tenant_id, order_id) REFERENCES orders(tenant_id, id) ON DELETE CASCADE`. Verificado con smoke test `004_integrity_hardlimits_smoke.sql` (INSERT cross-tenant bloqueado por FK violation). Commit `07cc922`.
 
 ---
 
@@ -43,25 +34,66 @@
 
 ---
 
-## 3. Migración 003 fuera de secuencia — columnas `version` y `device_id`
+## 3. Migración 003 fuera de secuencia — parcialmente resuelto
 
 **Problema**:
 - `database/migration-003-offline-conflicts.sql` añade columnas `version` y `device_id` a `production_work_blocks`
 - `020_create_production_work_blocks.sql` no crea esas columnas
 - El backend (`insertWorkBlock`) sí utiliza `version`
-- El smoke test solo verifica migraciones hasta la 022; no cubre la 032
-
-**Riesgo real**: medio. Una instalación limpia (`docker compose up`) no ejecutaría `migration-003` automáticamente (está fuera del prefijo numérico `0XX_`), resultando en error al insertar work blocks.
-
-**Por qué no está corregido aún**:
-- `migration-003` tiene un formato de nombre distinto al resto (usa guiones en vez de underscore como separador)
 - La secuencia numérica saltó de 022 a 032, dejando un hueco
-- El smoke test necesita refactorizarse para ejecutar todas las migraciones del directorio en orden alfabético (no una lista hardcodeada)
+- Tres ficheros comparten hoy el número 028; el orden real depende del sort() alfabético del smoke script
 
-**Plan**:
-1. Renombrar `migration-003-offline-conflicts.sql` → `033_offline_conflicts_columns.sql`
-2. Refactorizar `run-postgres-smoke.js` para leer el directorio y ejecutar todas en orden
-3. Verificar que `docker compose up` produce un schema completo
+**Resuelto (2026-08-21)**: `run-postgres-smoke.js` ya lee el directorio y aplica todas las migraciones en orden — verificado desde BD limpia con 000..036.
+
+**Pendiente**: renombrar `migration-003-offline-conflicts.sql` → `033_offline_conflicts_columns.sql` y normalizar los 028 duplicados.
+
+---
+
+## 4. RLS ausente en raw_materials y bom_items — ✅ CORREGIDO (2026-08-21)
+
+La migration 028 creó ambas tablas sin `ENABLE/FORCE ROW LEVEL SECURITY` ni políticas. CRUD completo expuesto en `materials.controller.ts` protegido solo por el filtro de aplicación: costes unitarios, proveedores y BOM quedaban expuestos a cross-tenant data bleeding si una query olvidaba el filtro. Resuelto con migration `034_rls_raw_materials_bom.sql` (mismo patrón fail-closed que orders/pwb) + smoke test `003_materials_rls_smoke.sql`. Commit `e1bd584`.
+
+---
+
+## 5. tenantQuery con scope de sesión — ✅ CORREGIDO (2026-08-21)
+
+`set_config(..., false)` (scope de sesión) puede sobrevivir al `release()` del pool y filtrar el contexto del tenant A a la siguiente query que tome esa conexión. Cambiado a transacción explícita con scope local (`true`), mismo patrón que `withTenantTransaction`.
+
+---
+
+## 6. hard_limits protegidos solo por check post-escritura — ✅ CORREGIDO (2026-08-21)
+
+La inmutabilidad dependía de una comparación JSON antes/después en `tenant-capabilities.service.ts`; cualquier ruta nueva que tocara `tenants` la saltaría. Migration `036_hard_limits_immutable.sql` añade trigger BEFORE UPDATE que rechaza mutaciones salvo para el rol `kavana_admin` (creado también por `run-postgres-smoke.js` en entornos no-Supabase). Verificado con smoke test 004.
+
+---
+
+## 7. Clave de cifrado AI con fallback predecible — ✅ CORREGIDO (2026-08-21)
+
+`ai-config.service.ts` aceptaba derivar la clave de cifrado de `JWT_SECRET` o una constante hardcodeada si faltaba `AI_CONFIG_ENCRYPTION_KEY`. Ahora es fail-closed en producción: lanza error en lugar de cifrar API keys de tenants con una clave predecible.
+
+---
+
+## 8. Lint backend decorativo — ✅ CORREGIDO (2026-08-21)
+
+`eslint.config.js` importaba `typescript-eslint`, que no estaba en devDependencies; el job `lint-backend` tenía `continue-on-error: true`, así que el lint no protegía nada. Dependencias añadidas y flag eliminado: 0 errores, el CI ahora bloquea si aparecen.
+
+---
+
+## 9. Rate limits en memoria (abierto)
+
+El límite de subida de fotos (20/10min por IP) y el del asistente IA (25/día) viven en Maps en memoria: se reinician con cada instancia y no funcionan con más de 1 réplica. Para la demo actual (1 réplica) es suficiente. Si se escala: Redis o rate limit en BD.
+
+---
+
+## 10. Sin PWA/Service Worker (abierto, decisión de producto)
+
+El offline-first del HMI depende de Dexie pero no hay Service Worker: recargar sin red mata la app y no hay sync en background. Feature de producto, no parche de seguridad.
+
+---
+
+## 11. Sin DLQ administrativa para eventos offline rechazados (abierto)
+
+Los eventos offline que violan reglas de negocio van a dead-letter en el frontend sin flujo administrativo de revisión. Requiere decisión de UX: quién revisa los rechazos y desde qué panel.
 
 ---
 
@@ -79,7 +111,11 @@ Si un entrevistador detecta alguno de estos problemas y te pregunta:
 
 > *"¿Por qué el smoke test no cubre todas las migraciones?"*
 
-**Respuesta preparada**: *"El smoke test tiene una lista hardcodeada que no se actualizó al añadir migraciones nuevas. El plan inmediato es que lea el directorio en orden y ejecute todo. Está en el roadmap como P1."*
+**Respuesta preparada**: *"Lo detectamos y lo arreglamos: el smoke script ahora lee el directorio y aplica todo en orden. La auditoría del 21 de agosto lo verificó aplicando las 37 migraciones desde una BD limpia."*
+
+> *"¿Cómo garantizan el aislamiento entre tenants?"*
+
+**Respuesta preparada**: *"En tres capas: RLS fail-closed con FORCE en todas las tablas multi-tenant (auditoría del 21 de agosto: detectamos y corregimos dos tablas que se habían creado sin ella), FKs compuestas con tenant_id para integridad referencial, y set_config con scope local a transacción. Cada capa protege aunque otra falle."*
 
 ---
 
@@ -90,7 +126,15 @@ Si un entrevistador detecta alguno de estos problemas y te pregunta:
 | SQL dinámico | P0 | ✅ Corregido | e083cb1 |
 | JWT exp + timing | P0 | ✅ Corregido | e083cb1 |
 | Mock auth dev default | P0 | ✅ Corregido | e083cb1 |
-| FK tenant-aware | P1 | 📋 Documentado | Migration 033 |
+| RLS raw_materials/bom_items | P0 | ✅ Corregido | e1bd584 (migration 034) |
+| FK tenant-aware | P1 | ✅ Corregido | 07cc922 (migration 035) |
+| tenantQuery scope sesión | P1 | ✅ Corregido | 07cc922 |
+| hard_limits inmutables en BD | P1 | ✅ Corregido | 07cc922 (migration 036) |
+| Cifrado AI fail-closed | P1 | ✅ Corregido | 07cc922 |
+| Lint backend real | P1 | ✅ Corregido | 07cc922 |
+| Rate limits en memoria | P2 | 📋 Documentado | Redis si se escala |
+| PWA/Service Worker | P2 | 📋 Documentado | Roadmap producto |
+| DLQ administrativa | P2 | 📋 Documentado | Decisión UX |
 | kavana_app real | P1 | 📋 Documentado | ADR-008 |
-| Migraciones fuera de secuencia | P1 | 📋 Documentado | Refactor smoke test |
+| Migraciones duplicadas/fuera de secuencia | P2 | 📋 Parcial | Renombrar migration-003 y 028s |
 | OEE performance=0.85 | P1 | 📋 Documentado | README |
