@@ -38,16 +38,21 @@ services:
   redis:
     image: redis:7-alpine
     container_name: kavana-v3-redis
-    ports:
-      - '6379:6379'
+    # FIX A2 (2026-08-21): Redis con password y SIN puerto publicado al host.
+    # Antes: 6379 expuesto sin auth — cualquiera que alcanzara el puerto podía
+    # inyectar jobs BullMQ con tenantId fijo y manipular datos de otros tenants.
+    # Solo red interna de compose; REDIS_PASSWORD obligatorio en .env.
+    command: ['redis-server', '--requirepass', '${REDIS_PASSWORD:?REDIS_PASSWORD required}']
     volumes:
       - redis_data:/data
     restart: unless-stopped
     healthcheck:
-      test: ['CMD', 'redis-cli', 'ping']
+      test: ['CMD-SHELL', 'redis-cli -a $$REDIS_PASSWORD ping | grep PONG']
       interval: 10s
       timeout: 3s
       retries: 5
+    environment:
+      REDIS_PASSWORD: ${REDIS_PASSWORD:?REDIS_PASSWORD required}
 
   backend:
     build:
@@ -61,6 +66,7 @@ services:
       DATABASE_URL: postgresql://kavana:***@db:5432/kavana_v3
       REDIS_HOST: redis
       REDIS_PORT: '6379'
+      REDIS_PASSWORD: ${REDIS_PASSWORD:?REDIS_PASSWORD required}
       METRICS_PORT: '9464'
       JWT_SECRET: ${JWT_SECRET:-dev-secret-change-in-production}
       ALLOW_MOCK_AUTH: ${ALLOW_MOCK_AUTH:-false}
@@ -85,6 +91,7 @@ services:
       DATABASE_URL: postgresql://kavana:***@db:5432/kavana_v3
       REDIS_HOST: redis
       REDIS_PORT: '6379'
+      REDIS_PASSWORD: ${REDIS_PASSWORD:?REDIS_PASSWORD required}
       JWT_SECRET: ${JWT_SECRET:-dev-secret-change-in-production}
     depends_on:
       db:

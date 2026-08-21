@@ -13,6 +13,7 @@ import { LoginPage } from './LoginPage.js';
 import { LandingPage } from './LandingPage.js';
 import { getSubdomain, getTenantFromUrl } from './utils/subdomain.js';
 import { MobilePhotoUpload } from './pages/MobilePhotoUpload.js';
+import { purgeLocalData } from './db/local-db.js';
 
 interface AuthState {
   token: string;
@@ -83,7 +84,9 @@ export function App() {
 
   function handleLogout() {
     handleLogoutStorage();
+    // FIX A6: purgar también el IndexedDB (logs offline, config de tenant).
     setAuth(null);
+    void purgeLocalData();
   }
 
   // Ruta pública de subida de foto de incidencia (flujo QR + móvil).
