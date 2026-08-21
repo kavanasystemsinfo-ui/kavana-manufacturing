@@ -1,8 +1,13 @@
-import { Controller, Get, Post, Body, Param } from '@nestjs/common';
+import { Controller, Get, Post, Body, Param, UseGuards} from '@nestjs/common';
 import { RequireFeature } from '../tenant-capabilities/require-feature.decorator.js';
 import { QualityService } from './quality.service.js';
 
+import { RequireRole } from '../auth/roles.decorator.js';
+import { RolesGuard } from '../auth/roles.guard.js';
+
 @Controller('quality')
+@RequireRole('operario', 'supervisor', 'tenant_admin')
+@UseGuards(RolesGuard)
 @RequireFeature('quality_assurance')
 export class QualityController {
   constructor(private readonly qualityService: QualityService) {}

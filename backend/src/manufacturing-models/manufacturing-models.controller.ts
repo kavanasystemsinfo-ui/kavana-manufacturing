@@ -1,8 +1,13 @@
-import { Controller, Get, Post, Put, Delete, Body, Param, NotFoundException, Inject } from '@nestjs/common';
+import { Controller, Get, Post, Put, Delete, Body, Param, NotFoundException, Inject, UseGuards} from '@nestjs/common';
 import { ManufacturingModelsService } from './manufacturing-models.service.js';
 import { CreateManufacturingModelDtoSchema, UpdateManufacturingModelDtoSchema, type CreateManufacturingModelDto, type UpdateManufacturingModelDto } from './dto.js';
 
+import { RequireRole } from '../auth/roles.decorator.js';
+import { RolesGuard } from '../auth/roles.guard.js';
+
 @Controller('manufacturing-models')
+@RequireRole('tenant_admin')
+@UseGuards(RolesGuard)
 export class ManufacturingModelsController {
   constructor(@Inject(ManufacturingModelsService) private readonly modelsService: ManufacturingModelsService) {}
 

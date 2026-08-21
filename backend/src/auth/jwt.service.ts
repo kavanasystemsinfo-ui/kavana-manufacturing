@@ -88,8 +88,9 @@ export class JwtServiceWrapper {
 
     const payload = JSON.parse(Buffer.from(payloadB64, 'base64url').toString()) as JwtPayload;
 
-    // Check expiration
-    if (payload.exp && Math.floor(Date.now() / 1000) > payload.exp) {
+    // FIX 2026-08-21 (P1): exp obligatorio. Antes un token sin exp era
+    // aceptado como permanente; ahora todo token HMAC debe caducar.
+    if (!payload.exp || Math.floor(Date.now() / 1000) > payload.exp) {
       throw new UnauthorizedException('Token expired');
     }
 

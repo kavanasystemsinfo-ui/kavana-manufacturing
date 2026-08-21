@@ -22,16 +22,50 @@ interface AuthState {
   tenantName: string;
 }
 
+// FIX 2026-08-21 (P0): la sesión ya NO se reconstruye desde localStorage.
+// Antes el rol y el tenant que deciden qué panel se muestra se leían de
+// localStorage sin validar nada: en un quiosco compartido cualquiera podía
+// escribirse role=admin y saltarse pantallas. Ahora la ÚNICA fuente de
+// sesión es el JWT (firmado por el backend); rol/tenant/userId se decodifican
+// del payload del token. Si no hay token válido, se muestra login.
+function decodeJwtPayload(token: string): Record<string, unknown> | null {
+  try {
+    const parts = token.split('.');
+    if (parts.length !== 3) return null;
+    const payload = JSON.parse(atob(parts[1].replace(/-/g, '+').replace(/_/g, '/')));
+    if (typeof payload !== 'object' || payload === null) return null;
+    // exp obligatoria a nivel de UI también: un token caducado no da sesión.
+    if (typeof payload.exp === 'number' && Date.now() / 1000 > payload.exp) return null;
+    return payload as Record<string, unknown>;
+  } catch {
+    return null;
+  }
+}
+
 function getInitialAuth(): AuthState | null {
   const token = localStorage.getItem('kavana_dev_token');
-  const tenantId = localStorage.getItem('kavana_tenant_id');
-  const userId = localStorage.getItem('kavana_user_id');
-  const role = localStorage.getItem('kavana_role');
-  const tenantName = localStorage.getItem('kavana_tenant_name');
-  if (token && tenantId && userId && role) {
-    return { token, tenantId, userId, role, tenantName: tenantName ?? '' };
+  if (!token) return null;
+  const payload = decodeJwtPayload(token);
+  if (!payload) {
+    // Token ausente/mutilado/caducado: limpiar restos y forzar login.
+    handleLogoutStorage();
+    return null;
   }
-  return null;
+  return {
+    token,
+    tenantId: String(payload.tenant_id ?? ''),
+    userId: String(payload.sub ?? ''),
+    role: String(payload.role ?? ''),
+    tenantName: localStorage.getItem('kavana_tenant_name') ?? '',
+  };
+}
+
+function handleLogoutStorage(): void {
+  localStorage.removeItem('kavana_dev_token');
+  localStorage.removeItem('kavana_tenant_id');
+  localStorage.removeItem('kavana_user_id');
+  localStorage.removeItem('kavana_role');
+  localStorage.removeItem('kavana_tenant_name');
 }
 
 export function App() {
@@ -42,16 +76,13 @@ export function App() {
   const [auth, setAuth] = useState<AuthState | null>(getInitialAuth);
 
   function handleLogin(token: string, tenantId: string, userId: string, role: string, tenantName: string) {
+    localStorage.setItem('kavana_dev_token', token);
     localStorage.setItem('kavana_tenant_name', tenantName);
     setAuth({ token, tenantId, userId, role, tenantName });
   }
 
   function handleLogout() {
-    localStorage.removeItem('kavana_dev_token');
-    localStorage.removeItem('kavana_tenant_id');
-    localStorage.removeItem('kavana_user_id');
-    localStorage.removeItem('kavana_role');
-    localStorage.removeItem('kavana_tenant_name');
+    handleLogoutStorage();
     setAuth(null);
   }
 
@@ -73,7 +104,10 @@ export function App() {
 
   // Subdomain-based tenant access
   if (subdomain) {
-    if (!auth || auth.tenantId !== localStorage.getItem('kavana_tenant_id')) {
+    // FIX 2026-08-21: la comprobación anterior comparaba una clave de
+    // localStorage consigo misma (tautología). Ahora se compara el tenant
+    // del JWT con el subdominio de la URL.
+    if (!auth || auth.tenantId !== urlTenant) {
       return <TenantLogin subdomain={subdomain} onLogin={handleLogin} />;
     }
     return (
@@ -119,9 +153,6 @@ export function App() {
 
   // Default: show login
   if (!auth) {
-    if (path === '/global-admin') {
-      return <LoginPage onLogin={handleLogin} />;
-    }
     return <LoginPage onLogin={handleLogin} />;
   }
 

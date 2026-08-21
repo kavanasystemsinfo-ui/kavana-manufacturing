@@ -11,6 +11,15 @@ vi.mock('../auth/tenant-context.storage.js', () => ({
 import { getTenantContext } from './tenant-context.storage.js';
 const mockGetTenantContext = vi.mocked(getTenantContext);
 
+function mockRequest(path: string): ExecutionContext {
+  return {
+    getHandler: vi.fn(),
+    switchToHttp: () => ({
+      getRequest: () => ({ path }),
+    }),
+  } as unknown as ExecutionContext;
+}
+
 describe('RolesGuard', () => {
   let guard: RolesGuard;
   let reflectorMock: { get: ReturnType<typeof vi.fn> };
@@ -19,21 +28,50 @@ describe('RolesGuard', () => {
   beforeEach(() => {
     reflectorMock = { get: vi.fn() };
     guard = new RolesGuard(reflectorMock as unknown as Reflector);
-    contextMock = { getHandler: vi.fn() } as unknown as ExecutionContext;
+    contextMock = {
+      getHandler: vi.fn(),
+      switchToHttp: () => ({ getRequest: () => ({ path: '/users' }) }),
+    } as unknown as ExecutionContext;
   });
 
   afterEach(() => {
     vi.clearAllMocks();
   });
 
-  it('debería permitir acceso si no hay decorador @RequireRole', () => {
+  // FIX 2026-08-21 (P0): comportamiento fail-closed. Los dos tests antiguos
+  // ("permitir si no hay decorador" y "permitir si el array está vacío")
+  // documentaban el agujero de escalada operario → tenant_admin; se
+  // sustituyen por su inverso. La cobertura se conserva e invierte.
+
+  it('FAIL-CLOSED: deniega acceso si no hay decorador @RequireRole', () => {
     reflectorMock.get.mockReturnValue(undefined);
-    expect(guard.canActivate(contextMock)).toBe(true);
+    expect(() => guard.canActivate(contextMock)).toThrow(ForbiddenException);
   });
 
-  it('debería permitir acceso si el array de roles requeridos está vacío', () => {
+  it('FAIL-CLOSED: deniega acceso si el array de roles requeridos está vacío', () => {
     reflectorMock.get.mockReturnValue([]);
-    expect(guard.canActivate(contextMock)).toBe(true);
+    expect(() => guard.canActivate(contextMock)).toThrow(ForbiddenException);
+  });
+
+  it('el mensaje fail-closed explica la política', () => {
+    reflectorMock.get.mockReturnValue(undefined);
+    try {
+      guard.canActivate(contextMock);
+    } catch (error) {
+      expect((error as ForbiddenException).message).toContain('fail-closed');
+    }
+  });
+
+  it('permite rutas públicas (login) sin decorador', () => {
+    reflectorMock.get.mockReturnValue(undefined);
+    const publicCtx = mockRequest('/auth/login');
+    expect(guard.canActivate(publicCtx)).toBe(true);
+  });
+
+  it('permite rutas públicas (health) sin decorador', () => {
+    reflectorMock.get.mockReturnValue(undefined);
+    const publicCtx = mockRequest('/health');
+    expect(guard.canActivate(publicCtx)).toBe(true);
   });
 
   it('debería permitir acceso si el rol del usuario coincide', () => {

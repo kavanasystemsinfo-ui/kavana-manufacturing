@@ -1,4 +1,4 @@
-import { Body, Controller, Get, NotFoundException, Param, Patch, Post, Inject } from '@nestjs/common';
+import { Body, Controller, Get, NotFoundException, Param, Patch, Post, Inject, UseGuards} from '@nestjs/common';
 import { CoreMesProductionService } from './core-mes-production.service.js';
 import {
   createProductionOrderSchema,
@@ -11,7 +11,12 @@ import { postgresPool } from '../db/postgres.provider.js';
 
 const ORDER_NOT_FOUND_MSG = 'The requested production order does not exist or you do not have permission.';
 
+import { RequireRole } from '../auth/roles.decorator.js';
+import { RolesGuard } from '../auth/roles.guard.js';
+
 @Controller('production')
+@RequireRole('operario', 'supervisor', 'tenant_admin')
+@UseGuards(RolesGuard)
 export class CoreMesProductionController {
   constructor(@Inject(CoreMesProductionService) private readonly service: CoreMesProductionService) {}
 

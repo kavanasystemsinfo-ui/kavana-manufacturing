@@ -1,10 +1,15 @@
-import { Controller, Get, Post, Put, Delete, Body, Param, NotFoundException, Inject } from '@nestjs/common';
+import { Controller, Get, Post, Put, Delete, Body, Param, NotFoundException, Inject, UseGuards} from '@nestjs/common';
 import { OrdersService } from './orders.service.js';
 import { CreateOrderDtoSchema, UpdateOrderDtoSchema, type CreateOrderDto, type UpdateOrderDto } from './dto.js';
 import { getTenantContext } from '../auth/tenant-context.storage.js';
 import { postgresPool } from '../db/postgres.provider.js';
 
+import { RequireRole } from '../auth/roles.decorator.js';
+import { RolesGuard } from '../auth/roles.guard.js';
+
 @Controller('orders')
+@RequireRole('operario', 'supervisor', 'tenant_admin')
+@UseGuards(RolesGuard)
 export class OrdersController {
   constructor(@Inject(OrdersService) private readonly ordersService: OrdersService) {}
 

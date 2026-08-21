@@ -1,7 +1,8 @@
-import { Injectable, InternalServerErrorException } from '@nestjs/common';
+import { Injectable, InternalServerErrorException, ForbiddenException } from '@nestjs/common';
 import { randomBytes, createHash } from 'node:crypto';
 import { postgresPool } from '../db/postgres.provider.js';
 import { tenantQuery } from '../db/tenant-query.js';
+import { getTenantContext } from '../auth/tenant-context.storage.js';
 import type { CreateUserDto, UpdateUserDto } from './dto.js';
 
 const USER_SELECT = `id, username, role, first_name, last_name, employee_number, is_active, operator_category, default_workstation_id, last_login, created_at, updated_at`;
@@ -59,6 +60,16 @@ export class UsersService {
   }
 
   async updateUser(userId: string, dto: UpdateUserDto) {
+    // FIX 2026-08-21 (P0): prohibida la auto-escalada de rol. Aunque el
+    // controller ahora exige tenant_admin, el admin no puede cambiar su
+    // PROPIO rol (evita errores y mantiene la trazabilidad de quién es
+    // admin); cambiar el rol de otro usuario sí es una operación válida
+    // de administración de personal.
+    const ctx = getTenantContext();
+    if (dto.role !== undefined && ctx.userId === userId) {
+      throw new ForbiddenException('No puedes cambiar tu propio rol.');
+    }
+
     const setClauses: string[] = [];
     const values: (string | number | boolean | null)[] = [];
     let paramIndex = 1;
