@@ -29,7 +29,8 @@ const migrationFiles = readdirSync(migrationsDir)
 
 const smokeTestFiles = [
   '001_rls_isolation_smoke.sql',
-  '002_tenant_governance_smoke.sql'
+  '002_tenant_governance_smoke.sql',
+  '003_materials_rls_smoke.sql'
 ];
 
 function parseArgs() {
