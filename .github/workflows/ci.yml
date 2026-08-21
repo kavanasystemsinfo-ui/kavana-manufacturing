@@ -53,7 +53,6 @@ jobs:
         working-directory: backend
       - run: npm run lint
         working-directory: backend
-        continue-on-error: true
 
   test-frontend:
     runs-on: ubuntu-latest

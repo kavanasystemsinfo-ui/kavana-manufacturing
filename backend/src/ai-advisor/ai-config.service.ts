@@ -16,6 +16,16 @@ function getEncryptionKey(): Buffer {
   if (envKey && envKey.length >= 32) {
     return scryptSync(envKey, 'kavana-ai-salt', 32);
   }
+  // Fail-closed: en producción NO se acepta un fallback derivado de
+  // JWT_SECRET ni una constante hardcodeada. Si la clave de cifrado no
+  // está configurada, las API keys de tenants quedarían protegidas con
+  // una clave predecible. Mejor fallar al guardar que cifrar en falso.
+  if (process.env.NODE_ENV === 'production') {
+    throw new Error(
+      'AI_CONFIG_ENCRYPTION_KEY no configurada (mínimo 32 caracteres). ' +
+      'Las claves de IA por tenant no se pueden cifrar de forma segura.'
+    );
+  }
   const fallback = process.env.JWT_SECRET || 'kavana-dev-fallback-key-change-me';
   return scryptSync(fallback, 'kavana-ai-salt', 32);
 }
