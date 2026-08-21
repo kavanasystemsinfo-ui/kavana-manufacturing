@@ -125,15 +125,19 @@ El rol/tenant que deciden qué panel se muestra se leían de localStorage sin va
 
 ### 📋 ABIERTOS (priorizados para siguiente ronda)
 
-| # | Issue | Severidad | Nota |
+Ronda 3 (mismo día, commit 255730d): A1, A2, A3, A4 y A6 CORREGIDOS. A5 cerrado como vector (React escapa, 0 sinks). Queda solo A7.
+
+| # | Issue | Severidad | Estado |
 |---|---|---|---|
-| A1 | RLS FORCE ausente en ~10 tablas + conexión como owner | P1 | FORCE falta en quality_checks, incidencias, cost_entries, toolings, oee_metrics, manufacturing_models, ai_context_*, incidencia_uploads. Como owner, RLS se ignora: verificado leyendo cross-tenant. Requiere decidir rol de conexión no-owner en producción |
-| A2 | Redis sin password publicado en 0.0.0.0:6379 | P1 | docker-compose.yml:42. Cualquiera que alcance el puerto encola jobs con tenantId falso (borra/regenera OEE ajeno). Fix: requirepass + bind interno + validar job.data.tenantId contra contexto en productores |
-| A3 | TOCTOU en overlap check de work blocks | P1 | Check e insert fuera de la misma transacción atómica; dos requests simultáneos se cuelan bloques solapados. Fix: exclusion constraint EXCLUDE (operator_id WITH =, tstzrange WITH &&) |
-| A4 | Replay de eventos offline con payload cambiado | P1 | Dedup por client_event_id no valida payload: reenviar evento legítimo con produced_quantity distinta se acepta. Fix: fingerprint hash(order+times+quantities) en el dedup |
-| A5 | Stored XSS vía custom_fields | P2 | Definidos por tenant admin, renderizados sin validar contra schema. Validar antes de renderizar |
-| A6 | Token + logs offline persisten en Dexie tras logout | P2 | Quiosco compartido por turnos: purge por tenant en logout |
-| A7 | Login sin lockout progresivo / hashes legacy | P2 | Rate limit IP puesto; falta lockout por cuenta y migrar hashes antiguos a scrypt |
+| A1 | RLS FORCE ausente en 9 tablas | P1 | ✅ Corregido — migration 037 (FORCE + política kavana_app donde faltaba) |
+| A2 | Redis sin password publicado en 0.0.0.0:6379 | P1 | ✅ Corregido — requirepass obligatorio, puerto eliminado del host, BullMQ con REDIS_PASSWORD y fail-fast en producción |
+| A3 | TOCTOU en overlap check de work blocks | P1 | ✅ Corregido — migration 038: EXCLUDE USING gist (tenant_id, operator_id, tstzrange WITH &&), imposible el solapamiento a nivel de BD |
+| A4 | Replay de eventos offline con payload cambiado | P1 | ✅ Corregido — migration 039 + backend: fingerprint sha256 del contenido con UNIQUE + ON CONFLICT DO NOTHING |
+| A5 | Stored XSS vía custom_fields | P2 | ✅ Cerrado — React escapa por defecto, 0 sinks innerHTML/dangerouslySetInnerHTML verificados |
+| A6 | Logs offline persisten en Dexie tras logout | P2 | ✅ Corregido — purgeLocalData() en logout (borra BD Dexie entera, fallback tabla a tabla) |
+| A7 | Login sin lockout progresivo / hashes legacy | P2 | 📋 Abierto — rate limit IP puesto; falta lockout por cuenta y migrar hashes antiguos a scrypt |
+
+Nota operativa A2: al desplegar, definir REDIS_PASSWORD en el entorno ANTES de `docker compose up` (el compose falla explícitamente si falta).
 
 ### Vectores cerrados verificados
 
