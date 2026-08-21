@@ -2,7 +2,11 @@
 
 > **Para reclutadores técnicos**: este documento enumera limitaciones conocidas del proyecto que un ingeniero senior detectaría al revisar el código. Cada una tiene su explicación de trade-off y el camino de resolución previsto. No están ocultas: son decisiones de fase MVP documentadas.
 
-**Última actualización**: 2026-08-21 (auditoría interna completa: 10 riesgos identificados, 6 corregidos).
+**Última actualización**: 2026-08-21 (segunda ronda: auditoría adversarial multi-agente — 4 atacantes en paralelo sobre tenancy, auth, frontend y cola/offline; P0 corregidos en el día).
+
+## Ronda 2 — Auditoría adversarial (2026-08-21, tarde)
+
+Metodología nueva: en lugar de un auditor con checklist, 4 subagentes adversariales en paralelo con objetivo de ATACAR cada capa. Hallazgos verificados por el orquestador contra el código antes de aceptarlos. Resultado: los P0 más graves (escalada de roles, global-admin sin protección) NO aparecieron en la auditoría matinal de checklist; salieron del ataque dirigido.
 
 ---
 
@@ -97,6 +101,46 @@ Los eventos offline que violan reglas de negocio van a dead-letter en el fronten
 
 ---
 
+## Ronda 2 — Hallazgos adversariales (2026-08-21, tarde)
+
+### ✅ CORREGIDOS el mismo día (commit 5e15d2c)
+
+**P0-1 · Escalada operario → tenant_admin en una petición.**
+`users.controller.ts` sin guard + DTO aceptaba `role` del body: `PUT /users/<mi-id>` con `{"role":"tenant_admin"}` elevaba al operario. Causa raíz: `RolesGuard` solo actuaba con `@UseGuards` explícito (3 controllers de 16).
+**Fix**: RolesGuard como APP_GUARD global FAIL-CLOSED (sin decorador = denegado), `@RequireRole` en todos los controllers, prohibido cambiar el rol propio. Tests invertidos + regresión nueva.
+
+**P0-2 · `/global-admin` sin control de roles + tabla `tenants` sin RLS.**
+Cualquier JWT válido podía listar tenants ajenos, ver sus stats y suspender/borrar un tenant con CASCADE. `tenants` es la única tabla del esquema sin RLS.
+**Fix**: autorización por identidad de plataforma (`GLOBAL_ADMIN_USER_IDS`, fail-closed si no configurada). RLS de `tenants` pendiente (ver abiertos).
+
+**P0-3 · Suplantación de sesión desde localStorage (HMI quiosco).**
+El rol/tenant que deciden qué panel se muestra se leían de localStorage sin validar; la "verificación multi-tenant" comparaba una clave consigo misma.
+**Fix**: sesión decodificada del JWT real con exp obligatoria; tenant del JWT comparado contra el subdominio de la URL.
+
+**P0-4 · Kiosk mode por URL sin autorización.**
+`?operator_id=` atribuía producción a otro operario sin validar server-side.
+**Estado**: mitigación parcial — el backend ahora exige rol para las rutas de producción y el contexto viene del JWT; validación server-side completa de pertenencia operator_id↔user pendiente (ver abiertos).
+
+**P1 corregidos también**: JWT exp obligatorio en tokens HMAC; fail-closed sin secret en producción (login y guard simétricos); rate limit login 10/5min/IP.
+
+### 📋 ABIERTOS (priorizados para siguiente ronda)
+
+| # | Issue | Severidad | Nota |
+|---|---|---|---|
+| A1 | RLS FORCE ausente en ~10 tablas + conexión como owner | P1 | FORCE falta en quality_checks, incidencias, cost_entries, toolings, oee_metrics, manufacturing_models, ai_context_*, incidencia_uploads. Como owner, RLS se ignora: verificado leyendo cross-tenant. Requiere decidir rol de conexión no-owner en producción |
+| A2 | Redis sin password publicado en 0.0.0.0:6379 | P1 | docker-compose.yml:42. Cualquiera que alcance el puerto encola jobs con tenantId falso (borra/regenera OEE ajeno). Fix: requirepass + bind interno + validar job.data.tenantId contra contexto en productores |
+| A3 | TOCTOU en overlap check de work blocks | P1 | Check e insert fuera de la misma transacción atómica; dos requests simultáneos se cuelan bloques solapados. Fix: exclusion constraint EXCLUDE (operator_id WITH =, tstzrange WITH &&) |
+| A4 | Replay de eventos offline con payload cambiado | P1 | Dedup por client_event_id no valida payload: reenviar evento legítimo con produced_quantity distinta se acepta. Fix: fingerprint hash(order+times+quantities) en el dedup |
+| A5 | Stored XSS vía custom_fields | P2 | Definidos por tenant admin, renderizados sin validar contra schema. Validar antes de renderizar |
+| A6 | Token + logs offline persisten en Dexie tras logout | P2 | Quiosco compartido por turnos: purge por tenant en logout |
+| A7 | Login sin lockout progresivo / hashes legacy | P2 | Rate limit IP puesto; falta lockout por cuenta y migrar hashes antiguos a scrypt |
+
+### Vectores cerrados verificados
+
+SQL injection (todo parametrizado), upload móvil (tenant desde sesión single-use), scope BD transaccional (fix matinal), feature flags fail-safe, path traversal en document-ingest (validación de formato presente).
+
+---
+
 ## Nota para entrevistas
 
 Si un entrevistador detecta alguno de estos problemas y te pregunta:
@@ -132,6 +176,15 @@ Si un entrevistador detecta alguno de estos problemas y te pregunta:
 | hard_limits inmutables en BD | P1 | ✅ Corregido | 07cc922 (migration 036) |
 | Cifrado AI fail-closed | P1 | ✅ Corregido | 07cc922 |
 | Lint backend real | P1 | ✅ Corregido | 07cc922 |
+| Escalada operario→admin (RBAC opt-in) | P0 | ✅ Corregido | 5e15d2c (RBAC fail-closed) |
+| global-admin sin protección | P0 | ✅ Corregido | 5e15d2c (GLOBAL_ADMIN_USER_IDS) |
+| Suplantación sesión localStorage | P0 | ✅ Corregido | 5e15d2c (sesión desde JWT) |
+| JWT exp opcional / secret fallback | P1 | ✅ Corregido | 5e15d2c |
+| Login sin rate limit | P1 | ✅ Corregido | 5e15d2c (10/5min/IP) |
+| RLS FORCE + owner bypass (~10 tablas) | P1 | 📋 Abierto | Siguiente ronda (A1) |
+| Redis sin password | P1 | 📋 Abierto | Siguiente ronda (A2) |
+| TOCTOU overlap work blocks | P1 | 📋 Abierto | Siguiente ronda (A3) |
+| Replay offline con payload cambiado | P1 | 📋 Abierto | Siguiente ronda (A4) |
 | Rate limits en memoria | P2 | 📋 Documentado | Redis si se escala |
 | PWA/Service Worker | P2 | 📋 Documentado | Roadmap producto |
 | DLQ administrativa | P2 | 📋 Documentado | Decisión UX |
