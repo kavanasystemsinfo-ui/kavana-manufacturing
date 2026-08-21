@@ -1,8 +1,13 @@
-import { Controller, Get, Post, Put, Delete, Body, Param, NotFoundException, Inject } from '@nestjs/common';
+import { Controller, Get, Post, Put, Delete, Body, Param, NotFoundException, Inject, UseGuards} from '@nestjs/common';
 import { UsersService } from './users.service.js';
 import { CreateUserDtoSchema, UpdateUserDtoSchema, type CreateUserDto, type UpdateUserDto } from './dto.js';
 
+import { RequireRole } from '../auth/roles.decorator.js';
+import { RolesGuard } from '../auth/roles.guard.js';
+
 @Controller('users')
+@RequireRole('tenant_admin')
+@UseGuards(RolesGuard)
 export class UsersController {
   constructor(@Inject(UsersService) private readonly usersService: UsersService) {}
 

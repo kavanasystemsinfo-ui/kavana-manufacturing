@@ -1,8 +1,13 @@
-import { Controller, Get, Post, Patch, Delete, Param, Body } from '@nestjs/common';
+import { Controller, Get, Post, Patch, Delete, Param, Body, UseGuards} from '@nestjs/common';
 import { getTenantContext } from '../auth/tenant-context.storage.js';
 import { MaterialsService } from './materials.service.js';
 
+import { RequireRole } from '../auth/roles.decorator.js';
+import { RolesGuard } from '../auth/roles.guard.js';
+
 @Controller('materials')
+@RequireRole('tenant_admin')
+@UseGuards(RolesGuard)
 export class MaterialsController {
   constructor(private readonly service: MaterialsService) {}
 

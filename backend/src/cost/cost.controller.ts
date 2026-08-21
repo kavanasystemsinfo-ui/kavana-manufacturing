@@ -1,8 +1,13 @@
-import { Controller, Get, Post, Body, Param } from '@nestjs/common';
+import { Controller, Get, Post, Body, Param, UseGuards} from '@nestjs/common';
 import { RequireFeature } from '../tenant-capabilities/require-feature.decorator.js';
 import { CostService } from './cost.service.js';
 
+import { RequireRole } from '../auth/roles.decorator.js';
+import { RolesGuard } from '../auth/roles.guard.js';
+
 @Controller('costs')
+@RequireRole('tenant_admin')
+@UseGuards(RolesGuard)
 @RequireFeature('cost_management')
 export class CostController {
   constructor(private readonly costService: CostService) {}

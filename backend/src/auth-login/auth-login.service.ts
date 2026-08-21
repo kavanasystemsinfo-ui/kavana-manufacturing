@@ -7,6 +7,10 @@ import { createHash, createHmac, randomBytes, timingSafeEqual, scryptSync } from
 // FIX 2026-08-09: antes firmaba con JWT_SECRET (variable distinta, o fallback dev)
 // → el operario 1094 veía el panel de órdenes vacío (401 capturado como []).
 const JWT_SECRET = process.env.JWT_HMAC_SECRET || process.env.JWT_SECRET || 'kavana-jwt-dev-secret-change-me';
+if (!process.env.JWT_HMAC_SECRET && !process.env.JWT_SECRET) {
+  if (process.env.NODE_ENV === 'production') throw new Error('JWT_HMAC_SECRET is required');
+  console.warn('⚠ JWT_HMAC_SECRET not set — using dev fallback (not for production)');
+}
 
 @Injectable()
 export class AuthLoginService {

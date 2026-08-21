@@ -1,7 +1,7 @@
 import { describe, expect, it, vi, beforeEach } from 'vitest';
 import { UsersController } from './users.controller.js';
 import { UsersService } from './users.service.js';
-import { BadRequestException, NotFoundException } from '@nestjs/common';
+import { BadRequestException, ForbiddenException, NotFoundException } from '@nestjs/common';
 import * as tenantContext from '../auth/tenant-context.storage.js';
 import { tenantQuery } from '../db/tenant-query.js';
 
@@ -216,6 +216,9 @@ describe('UsersService', () => {
 
   describe('updateUser', () => {
     it('updates user fields', async () => {
+      // FIX 2026-08-21: el admin (user-1) ya no puede cambiar su PROPIO rol
+      // (anti auto-escalada). La operación válida es sobre otro usuario.
+      vi.spyOn(tenantContext, 'getTenantContext').mockReturnValue({ tenantId: 10n, userId: 'admin-9', role: 'tenant_admin' });
       const dto = { role: 'supervisor' as const };
       const updatedUser = { id: 'user-1', username: 'admin', role: 'supervisor' };
       mockTenantQuery.mockResolvedValue({ rows: [updatedUser] } as any);
@@ -228,6 +231,11 @@ describe('UsersService', () => {
         expect.stringContaining('UPDATE users'),
         expect.arrayContaining(['supervisor', 'user-1'])
       );
+    });
+
+    it('rejects changing OWN role (anti auto-escalada, P0 fix 2026-08-21)', async () => {
+      const dto = { role: 'tenant_admin' as const };
+      await expect(service.updateUser('user-1', dto)).rejects.toThrow(ForbiddenException);
     });
 
     it('returns null when user not found', async () => {

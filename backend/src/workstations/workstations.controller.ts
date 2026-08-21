@@ -1,8 +1,13 @@
-import { Controller, Get, Post, Put, Delete, Body, Param, NotFoundException, Inject } from '@nestjs/common';
+import { Controller, Get, Post, Put, Delete, Body, Param, NotFoundException, Inject, UseGuards} from '@nestjs/common';
 import { WorkstationsService } from './workstations.service.js';
 import { CreateWorkstationDtoSchema, UpdateWorkstationDtoSchema, type CreateWorkstationDto, type UpdateWorkstationDto } from './dto.js';
 
+import { RequireRole } from '../auth/roles.decorator.js';
+import { RolesGuard } from '../auth/roles.guard.js';
+
 @Controller('workstations')
+@RequireRole('tenant_admin')
+@UseGuards(RolesGuard)
 export class WorkstationsController {
   constructor(@Inject(WorkstationsService) private readonly workstationsService: WorkstationsService) {}
 

@@ -1,9 +1,14 @@
-import { Controller, Get, Post, Put, Delete, Param, Body, BadRequestException, Inject } from '@nestjs/common';
+import { Controller, Get, Post, Put, Delete, Param, Body, BadRequestException, Inject, UseGuards} from '@nestjs/common';
 import { ToolingsService } from './toolings.service.js';
 import { createToolingSchema, updateToolingSchema } from './dto.js';
 import { getTenantContext } from '../auth/tenant-context.storage.js';
 
+import { RequireRole } from '../auth/roles.decorator.js';
+import { RolesGuard } from '../auth/roles.guard.js';
+
 @Controller('toolings')
+@RequireRole('tenant_admin')
+@UseGuards(RolesGuard)
 export class ToolingsController {
   constructor(@Inject(ToolingsService) private readonly service: ToolingsService) {}
 

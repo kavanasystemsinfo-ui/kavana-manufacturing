@@ -1,8 +1,13 @@
-import { Controller, Get, Param, Query } from '@nestjs/common';
+import { Controller, Get, Param, Query, UseGuards} from '@nestjs/common';
 import { RequireFeature } from '../tenant-capabilities/require-feature.decorator.js';
 import { OeeService } from './oee.service.js';
 
+import { RequireRole } from '../auth/roles.decorator.js';
+import { RolesGuard } from '../auth/roles.guard.js';
+
 @Controller('oee')
+@RequireRole('operario', 'supervisor', 'tenant_admin')
+@UseGuards(RolesGuard)
 @RequireFeature('oee_monitoring')
 export class OeeController {
   constructor(private readonly oeeService: OeeService) {}
