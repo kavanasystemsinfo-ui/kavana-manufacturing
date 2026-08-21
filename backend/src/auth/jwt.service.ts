@@ -25,7 +25,9 @@ export class JwtServiceWrapper {
     }
 
     const token = authorizationHeader.split(' ')[1];
-    if (token === 'mock-token' && process.env.ALLOW_MOCK_AUTH === 'true') {
+    // FIX ronda 2: mock-token prohibido en producción aunque alguien deje
+    // ALLOW_MOCK_AUTH=true por error en el entorno.
+    if (token === 'mock-token' && process.env.ALLOW_MOCK_AUTH === 'true' && process.env.NODE_ENV !== 'production') {
       return {
         tenantId: 1n,
         userId: 'admin-dev-01',
