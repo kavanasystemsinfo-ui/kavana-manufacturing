@@ -60,3 +60,27 @@ class KavanaHmiDatabase extends Dexie {
 }
 
 export const localDb = new KavanaHmiDatabase();
+
+// FIX A6 (2026-08-21): purge completo del IndexedDB al cerrar sesión.
+// El HMI vive en quioscos compartidos por turnos: los logs offline y la
+// config del tenant persisten en Dexie tras el logout y el siguiente
+// operario (o cualquiera con acceso al quiosco) puede leerlos desde la
+// consola del navegador. delete() destruye la BD entera; Dexie la recrea
+// vacía con el schema en el siguiente uso.
+export async function purgeLocalData(): Promise<void> {
+  try {
+    await localDb.delete();
+  } catch {
+    // Si Dexie falla (pestaña cerrándose, BD bloqueada), limpiar tabla a tabla.
+    try {
+      await Promise.all([
+        localDb.offlineBlocks.clear(),
+        localDb.failedBlocks.clear(),
+        localDb.tenantConfig.clear(),
+      ]);
+    } catch {
+      // Último recurso: nada local que purgar de forma fiable; el token ya
+      // se ha eliminado de localStorage por el llamador.
+    }
+  }
+}

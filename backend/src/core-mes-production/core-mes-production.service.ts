@@ -1,5 +1,6 @@
 import { BadRequestException, Injectable, InternalServerErrorException, Inject } from '@nestjs/common';
 import type { PoolClient } from 'pg';
+import { createHash } from 'node:crypto';
 import { z } from 'zod';
 import { getTenantContext } from '../auth/tenant-context.storage.js';
 import { postgresPool } from '../db/postgres.provider.js';
@@ -226,15 +227,35 @@ private async insertWorkBlock(
     dto: SyncWorkBlockDto,
     tenantId: string,
   ): Promise<boolean> {
+    // FIX A4 (2026-08-21): fingerprint del contenido semántico del bloque.
+    // El dedup por client_event_id solo atrapa el MISMO uuid; un replay con
+    // uuid nuevo y produced_quantity cambiada duplicaba producción. Con el
+    // fingerprint (hash de orden+operario+times+cantidades), el mismo hecho
+    // de producción es irrepetible aunque cambie el uuid. El UNIQUE en BD
+    // (migración 039) rechaza el duplicado; lo tratamos como ya-sincronizado.
+    const fingerprint = createHash('sha256')
+      .update([
+        tenantId,
+        dto.order_id,
+        dto.operator_id,
+        dto.type,
+        dto.start_time ?? '',
+        dto.end_time ?? '',
+        String(dto.type === 'produccion' ? (dto.produced_quantity ?? 0) : ''),
+        String(dto.type === 'produccion' ? (dto.defect_quantity ?? 0) : ''),
+      ].join('|'))
+      .digest('hex');
+
     const sql = `
       INSERT INTO production_work_blocks (
         tenant_id, id, order_id, workstation_id, operator_id,
         client_event_id, type, start_time, end_time, downtime_reason,
-        produced_quantity, defect_quantity, observations, is_offline_event, client_device_id, version
+        produced_quantity, defect_quantity, observations, is_offline_event, client_device_id, version, event_fingerprint
       )
       VALUES ($1, $2::uuid, $3::uuid, $4::uuid, $5::uuid,
               $6::uuid, $7, $8::timestamptz, $9::timestamptz, $10,
-              $11, $12, $13, $14, $15, $16)
+              $11, $12, $13, $14, $15, $16, $17)
+      ON CONFLICT (tenant_id, event_fingerprint) DO NOTHING
       RETURNING id
     `;
     const values = [
