@@ -135,7 +135,7 @@ Ronda 3 (mismo día, commit 255730d): A1, A2, A3, A4 y A6 CORREGIDOS. A5 cerrado
 | A4 | Replay de eventos offline con payload cambiado | P1 | ✅ Corregido — migration 039 + backend: fingerprint sha256 del contenido con UNIQUE + ON CONFLICT DO NOTHING |
 | A5 | Stored XSS vía custom_fields | P2 | ✅ Cerrado — React escapa por defecto, 0 sinks innerHTML/dangerouslySetInnerHTML verificados |
 | A6 | Logs offline persisten en Dexie tras logout | P2 | ✅ Corregido — purgeLocalData() en logout (borra BD Dexie entera, fallback tabla a tabla) |
-| A7 | Login sin lockout progresivo / hashes legacy | P2 | 📋 Abierto — rate limit IP puesto; falta lockout por cuenta y migrar hashes antiguos a scrypt |
+| A7 | Login sin lockout progresivo / hashes legacy | P2 | ✅ Corregido — 2026-08-22: lockout progresivo por cuenta (5 fallos → bloqueo temporal creciente, ventana 15 min) + re-hash automático a scrypt en el primer login correcto con hash legacy sha256 |
 
 Nota operativa A2: al desplegar, definir REDIS_PASSWORD en el entorno ANTES de `docker compose up` (el compose falla explícitamente si falta).
 

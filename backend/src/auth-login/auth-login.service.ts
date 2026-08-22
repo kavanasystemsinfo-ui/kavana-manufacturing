@@ -1,4 +1,4 @@
-import { Injectable, UnauthorizedException } from '@nestjs/common';
+import { Injectable, UnauthorizedException, HttpException } from '@nestjs/common';
 import { postgresPool } from '../db/postgres.provider.js';
 import { createHash, createHmac, randomBytes, timingSafeEqual, scryptSync } from 'node:crypto';
 
@@ -14,7 +14,50 @@ if (!process.env.JWT_HMAC_SECRET && !process.env.JWT_SECRET) {
 
 @Injectable()
 export class AuthLoginService {
+  // A7: lockout progresivo por cuenta, en memoria (1 réplica; migrar a Redis si
+  // se escala). Ventana deslizante como el rate limit por IP del controller.
+  private static readonly LOCK_WINDOW_MS = 15 * 60 * 1000;
+  private static readonly MAX_FAILURES = 5;
+  private readonly accountFailures = new Map<string, { count: number; firstAt: number; lockedUntil?: number }>();
+
+  /** Resetea el estado de bloqueo (para tests y administración manual). */
+  resetAccountLocks(): void {
+    this.accountFailures.clear();
+  }
+
+  private isLocked(usernameKey: string): boolean {
+    const rec = this.accountFailures.get(usernameKey);
+    if (!rec?.lockedUntil) return false;
+    if (Date.now() >= rec.lockedUntil) {
+      this.accountFailures.delete(usernameKey);
+      return false;
+    }
+    return true;
+  }
+
+  private recordFailure(usernameKey: string): void {
+    const now = Date.now();
+    let rec = this.accountFailures.get(usernameKey);
+    if (!rec || now - rec.firstAt > AuthLoginService.LOCK_WINDOW_MS) {
+      rec = { count: 0, firstAt: now };
+    }
+    rec.count += 1;
+    // Bloqueo progresivo: 5 fallos → 5 min, cada fallo extra suma otros 5.
+    if (rec.count >= AuthLoginService.MAX_FAILURES) {
+      rec.lockedUntil = now + Math.min(rec.count - AuthLoginService.MAX_FAILURES + 1, 6) * 5 * 60 * 1000;
+    }
+    this.accountFailures.set(usernameKey, rec);
+  }
+
+  private recordSuccess(usernameKey: string): void {
+    this.accountFailures.delete(usernameKey);
+  }
+
   async login(username: string, password: string): Promise<{ token: string; tenantId: string; userId: string; role: string; tenantName: string }> {
+    const key = username.trim().toLowerCase();
+    if (this.isLocked(key)) {
+      throw new HttpException('Cuenta temporalmente bloqueada por intentos fallidos. Espera unos minutos.', 429);
+    }
     const r = await postgresPool.query(
       `SELECT u.id, u.username, u.password_hash, u.role, u.tenant_id, t.name as tenant_name
        FROM users u
@@ -25,14 +68,21 @@ export class AuthLoginService {
     );
 
     if (r.rowCount === 0) {
+      this.recordFailure(key);
       throw new UnauthorizedException('Invalid credentials.');
     }
 
     const user = r.rows[0];
 
     if (!this.verifyPassword(password, user.password_hash)) {
+      this.recordFailure(key);
       throw new UnauthorizedException('Invalid credentials.');
     }
+    this.recordSuccess(key);
+
+    // A7: si la contraseña estaba en formato legacy sha256, re-hashear a scrypt
+    // aprovechando que ya validamos la contraseña en claro.
+    await this.rehashIfLegacy(user.id, password, user.password_hash);
 
     const token = this.generateToken(user.tenant_id, user.id, user.role);
 
@@ -90,6 +140,13 @@ export class AuthLoginService {
     const salt = randomBytes(16).toString('hex');
     const hash = scryptSync(password, salt, 64).toString('hex');
     return `scrypt:${salt}:${hash}`;
+  }
+
+  /** Re-hashea a scrypt si el hash almacenado es legacy sha256 (A7). */
+  private async rehashIfLegacy(userId: string, password: string, storedHash: string): Promise<void> {
+    if (!storedHash || storedHash.startsWith('scrypt:')) return;
+    const newHash = this.hashPassword(password);
+    await postgresPool.query(`UPDATE users SET password_hash = $1 WHERE id = $2`, [newHash, userId]);
   }
 
   private verifyPassword(password: string, storedHash: string): boolean {
