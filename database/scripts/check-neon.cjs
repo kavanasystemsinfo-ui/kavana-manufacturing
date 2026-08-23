@@ -1,5 +1,13 @@
 const { Client } = require('pg');
-const c = new Client({ connectionString: 'postgresql://neondb_owner:npg_dqTRbj8nE2MB@ep-steep-cell-a21rlab1.eu-central-1.aws.neon.tech/neondb?sslmode=require' });
+
+// La credencial real vive en NEON_DATABASE_URL (nunca en el repo)
+function requireEnvNEON() {
+  const url = process.env.NEON_DATABASE_URL;
+  if (!url) { console.error('Define NEON_DATABASE_URL'); process.exit(1); }
+  return url;
+}
+
+const c = new Client({ connectionString: requireEnvNEON() });
 
 async function main() {
   await c.connect();

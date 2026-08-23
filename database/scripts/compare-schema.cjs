@@ -1,5 +1,13 @@
 const { Client } = require('pg');
 
+// La credencial real vive en NEON_DATABASE_URL (nunca en el repo)
+function requireEnvNEON() {
+  const url = process.env.NEON_DATABASE_URL;
+  if (!url) { console.error('Define NEON_DATABASE_URL'); process.exit(1); }
+  return url;
+}
+
+
 async function check(conn, label) {
   const c = new Client({ connectionString: conn });
   await c.connect();
@@ -21,7 +29,7 @@ async function check(conn, label) {
 }
 
 const LOCAL = 'postgresql://kavana:kavana_v3_password@localhost:5433/kavana_v3';
-const NEON = 'postgresql://neondb_owner:npg_dqTRbj8nE2MB@ep-steep-cell-a21rlab1.eu-central-1.aws.neon.tech/neondb?sslmode=require';
+const NEON = requireEnvNEON();
 
 (async () => {
   await check(LOCAL, 'LOCAL');
