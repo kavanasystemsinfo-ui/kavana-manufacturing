@@ -1,6 +1,6 @@
 # Kavana Manufacturing — MES SaaS para Manufactura Industrial
 
-[![Tests](https://img.shields.io/badge/tests-246%20passing-brightgreen)](https://github.com/kavanasystemsinfo-ui/kavana-manufacturing)
+[![Tests](https://img.shields.io/badge/tests-312%20passing-brightgreen)](https://github.com/kavanasystemsinfo-ui/kavana-manufacturing)
 [![Coverage](https://img.shields.io/badge/coverage-85%25-yellowgreen)](docs/METRICS.md)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.8-3178C6?logo=typescript)](https://www.typescriptlang.org/)
 [![React](https://img.shields.io/badge/React-19-61DAFB?logo=react)](https://react.dev)
@@ -109,7 +109,7 @@ Cada decisión arquitectónica responde a un **problema concreto de planta** y s
 | **Feature flags JSONB** | Clientes con necesidades distintas | Sin migraciones, activación instantánea | Tablas separadas (múltiples JOINs) → [ADR-002](docs/adr/002-feature-flags-jsonb.md) |
 | **Offline-first (Dexie)** | Red inestable en planta | Cero pérdida de datos, sincronización FIFO | WebSockets (fallan sin conexión) → [ADR-003](docs/adr/003-offline-first-dexie.md) |
 | **UX Tunnel Vision** | Operarios con guantes industriales | Botones 64px+, modo tunel, sin distracciones | UI estándar 44px (insuficiente) → [ADR-004](docs/adr/004-ux-tunnel-vision.md) |
-| **TDD desde el inicio** | Evitar deuda técnica temprana | 216 tests backend, 17 frontend = confianza para refactor | Testing post-hoc (falla) → [CONTRIBUTING](CONTRIBUTING.md) |
+| **TDD desde el inicio** | Evitar deuda técnica temprana | 286 tests backend, 26 frontend = confianza para refactor | Testing post-hoc (falla) → [CONTRIBUTING](CONTRIBUTING.md) |
 
 > 📘 **Todas las decisiones documentadas en:** [`DECISIONS.md`](DECISIONS.md) (consolidado) · [`docs/adr/`](docs/adr/) · [`docs/decisions-log.md`](docs/decisions-log.md) · [`DECISIONES_ESTRATEGICAS.md`](DECISIONES_ESTRATEGICAS.md)
 
@@ -126,7 +126,7 @@ Cada decisión arquitectónica responde a un **problema concreto de planta** y s
 | **Colas** | BullMQ + Redis | Jobs desacoplados (OEE, informes, ingestión de documentos) |
 | **AI Advisor** | RAG multi-provider (Ollama, vLLM, OpenAI, OpenRouter) | Asistente industrial contextualizado con datos reales |
 | **Observabilidad** | OpenTelemetry + Prometheus + Grafana | Trazabilidad de principio a fin, métricas por provider/modelo |
-| **Tests** | Vitest + Testing Library | TDD: 17 frontend + 229 API tests |
+| **Tests** | Vitest + Testing Library | TDD: 26 frontend + 286 API tests |
 | **CI/CD** | GitHub Actions → Vercel + Render | Deploy automático en push a main |
 | **Infra** | Vercel (frontend) · Render (backend) · Neon (PostgreSQL) · Upstash (Redis) |
 
@@ -150,8 +150,8 @@ cd backend && npm install && npm run dev      # http://localhost:3001
 cd frontend && npm install && npm run dev      # http://localhost:5173
 
 # 5. Tests
-npm run test                                   # 17 frontend tests
-cd backend && npm run test                     # 229 API tests
+npm run test                                   # 26 frontend tests
+cd backend && npm run test                     # 286 API tests
 
 # 6. Docker (stack completo)
 docker compose up -d
@@ -171,7 +171,7 @@ docker compose up -d
 - [x] Feature flags JSONB (cada cliente activa solo lo que necesita)
 - [x] AI Advisor industrial (RAG con datos reales de planta)
 - [x] Fábrica demo completa (18 modelos solares, 15 puestos, 17 materias primas con BOM)
-- [x] Tests automatizados: 17 frontend + 229 API
+- [x] Tests automatizados: 26 frontend + 286 API
 - [x] ADRs documentados con alternativas evaluadas
 - [x] Despliegue automatizado (Vercel + Render + Neon)
 - [x] Tema dual (Kavana + Clásico) para diferentes perfiles de usuario
@@ -240,7 +240,7 @@ Este proyecto demuestra capacidades técnicas aplicadas a un dominio industrial 
 | **Arquitectura SaaS multi-tenant** | [ADR-001](docs/adr/001-shared-schema-multi-tenant-rls.md) + [technical/01](docs/technical/01_multi-tenancy-rls-audit.md) |
 | **Offline-first resiliente** | [ADR-003](docs/adr/003-offline-first-dexie.md) + implementación en frontend |
 | **UX industrial contextual** | [ADR-004](docs/adr/004-ux-tunnel-vision.md) + pantallas HMI |
-| **TDD y calidad** | [CONTRIBUTING](CONTRIBUTING.md) + 246 tests (229 API + 17 frontend) |
+| **TDD y calidad** | [CONTRIBUTING](CONTRIBUTING.md) + 312 tests (286 API + 26 frontend) |
 | **AI aplicada a industria** | [AI Advisor](docs/commercial/00_executive-summary.md) + RAG multi-provider |
 | **Feature flags como producto** | [ADR-002](docs/adr/002-feature-flags-jsonb.md) + módulo tenant-capabilities |
 | **Documentación como infraestructura** | ADRs, decisions log, technical docs |
