@@ -58,7 +58,14 @@ Debe responder en 30 segundos:
 
 Cada ADR debe incluir:
 - **Contexto** → **Alternativas evaluadas** (≥2) → **Decisión** → **Consecuencias**
+- **Señal de revisión**: qué vigilar, dónde comprobarlo y qué dispararía
+  revisar la decisión. Dos tipos:
+  - Automatizable: tiene fuente consultable (versión de una dependencia, un
+    precio, un benchmark). Se puede alertar cuando el contexto deja de cumplirse.
+  - Ritual: contexto de negocio o prioridades del equipo, sin fuente
+    consultable. Requiere revisión periódica calendarizada.
 
+Una decisión sin señal de revisión no está terminada.
 Nunca documentes solo lo que hiciste. Documenta **por qué**.
 
 ---
