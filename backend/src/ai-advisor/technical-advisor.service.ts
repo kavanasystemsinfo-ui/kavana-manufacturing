@@ -31,8 +31,8 @@ export class TechnicalAdvisorService {
     const adrDir = path.join(REPO_ROOT, 'docs/adr');
     const techDir = path.join(REPO_ROOT, 'docs/technical');
     try {
-      for (const f of readdirSync(adrDir).filter((f) => f.endsWith('.md')).sort()) fuentes.push(`docs/adr/${f}`);
-      for (const f of readdirSync(techDir).filter((f) => f.endsWith('.md')).sort()) fuentes.push(`docs/technical/${f}`);
+      for (const f of readdirSync(adrDir).filter((f) => f.endsWith('.md') && !f.toLowerCase().includes('template')).sort()) fuentes.push(`docs/adr/${f}`);
+      for (const f of readdirSync(techDir).filter((f) => f.endsWith('.md') && !f.toLowerCase().includes('template')).sort()) fuentes.push(`docs/technical/${f}`);
     } catch {
       // docs/adr o docs/technical pueden no existir; se ignoran
     }

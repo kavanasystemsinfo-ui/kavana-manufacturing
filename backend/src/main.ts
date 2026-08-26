@@ -12,7 +12,16 @@ async function bootstrap(): Promise<void> {
   const otel = await initOtelSDK();
 
   const app = await NestFactory.create(AppModule);
-  app.enableCors({ origin: process.env.FRONTEND_ORIGIN ?? 'http://localhost:5173' });
+  const frontendOrigen = process.env.FRONTEND_ORIGIN ?? 'http://localhost:5173';
+  app.enableCors({
+    origin: (origin: string | undefined, cb: (err: Error | null, allow?: boolean) => void) => {
+      // Permitir requests sin Origin (curl, Postman, server-to-server)
+      if (!origin) return cb(null, true);
+      const permitidos = frontendOrigen.split(',').map((o) => o.trim()).concat('https://www.kavanasystems.com');
+      if (permitidos.includes(origin)) return cb(null, true);
+      return cb(new Error('Origen no permitido por CORS'));
+    },
+  });
   app.useGlobalFilters(new ZodFilter());
 
   const errorFilter: ExceptionFilter = {
