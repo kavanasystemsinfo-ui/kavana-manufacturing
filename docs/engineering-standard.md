@@ -68,6 +68,12 @@ Cada ADR debe incluir:
 Una decisión sin señal de revisión no está terminada.
 Nunca documentes solo lo que hiciste. Documenta **por qué**.
 
+**Registro de señales (opción tabla única, 2026-08-26):** además de la señal
+dentro de cada ADR nuevo, existe un índice transversal vivo en
+`docs/registro-senales.md` que centraliza qué vigilar de cada decisión sin
+tocar los ADRs antiguos (regla 2026-08-25: no reescribir retroactivamente).
+Se actualiza cuando un ADR nuevo lleva señal o una decisión vieja revive.
+
 ---
 
 ## 5. Calidad
