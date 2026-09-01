@@ -205,7 +205,7 @@ export class AiAdvisorService {
   }
 
   private async callLLM(prompt: string, cv?: ContextVersion): Promise<string> {
-    // Provider selection: ollama, vllm, nvidia, openrouter, or openai
+    // Provider selection: ollama, vllm, nvidia, openrouter, openai, deepseek
     const provider = (process.env.LLM_PROVIDER || 'openrouter').toLowerCase();
 
     // Provider → env-var lookup (extensible sin cambiar lógica)
@@ -213,12 +213,14 @@ export class AiAdvisorService {
       nvidia: 'NVIDIA_API_KEY',
       openai: 'OPENAI_API_KEY',
       openrouter: 'OPENROUTER_API_KEY',
+      deepseek: 'DEEPSEEK_API_KEY',
     };
     const apiKey = (provider === 'ollama' || provider === 'vllm')
       ? 'ollama'
       : process.env[KEY_MAP[provider] || 'OPENROUTER_API_KEY']
         || process.env.OPENROUTER_API_KEY
-        || process.env.OPENAI_API_KEY;
+        || process.env.OPENAI_API_KEY
+        || process.env.DEEPSEEK_API_KEY;
 
     const baseUrl = process.env.LLM_BASE_URL || {
       ollama: 'http://localhost:11434/v1',
@@ -226,6 +228,7 @@ export class AiAdvisorService {
       nvidia: 'https://integrate.api.nvidia.com/v1',
       openrouter: 'https://openrouter.ai/api/v1',
       openai: 'https://api.openai.com/v1',
+      deepseek: 'https://api.deepseek.com/v1',
     }[provider] || 'https://openrouter.ai/api/v1';
 
     const model = process.env.LLM_MODEL || {
@@ -234,6 +237,7 @@ export class AiAdvisorService {
       nvidia: 'meta/llama-3.1-8b-instruct',
       openrouter: 'poolside/laguna-s-2.1:free',
       openai: 'gpt-4o-mini',
+      deepseek: 'deepseek-chat',
     }[provider] || 'poolside/laguna-s-2.1:free';
 
     // Modelo gratuito de respaldo (mismo patrón que RouteAI/Warehouse: si el
