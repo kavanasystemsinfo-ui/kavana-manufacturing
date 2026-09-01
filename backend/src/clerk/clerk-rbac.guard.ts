@@ -9,7 +9,7 @@ import {
   getAuthorityScope,
   getMaxAuthorityScope,
   getRequiredKavanaRoles
-} from './roles.decorator';
+} from './roles.decorator.js';
 
 @Injectable()
 export class ClerkRbacGuard implements CanActivate {
