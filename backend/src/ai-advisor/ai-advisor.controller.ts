@@ -73,9 +73,9 @@ export class AiAdvisorController {
     }
 
     const { question } = parsed.data;
-    const apiKey = process.env.OPENROUTER_API_KEY;
+    const apiKey = process.env.DEEPSEEK_API_KEY || process.env.OPENROUTER_API_KEY;
     if (!apiKey) {
-      return res.status(500).json({ success: false, error: 'Asistente no configurado (falta OPENROUTER_API_KEY en el servidor)' });
+      return res.status(500).json({ success: false, error: 'Asistente no configurado (falta DEEPSEEK_API_KEY en el servidor)' });
     }
 
     this.logger.log(`Ask advisor (TÉCNICO): question="${question.slice(0, 60)}..."`);

@@ -14,8 +14,10 @@ import { fileURLToPath } from 'node:url';
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const REPO_ROOT = path.resolve(__dirname, '../../..');
 
-const MODELO_PRO = process.env.ASSISTANT_MODEL_PRO || 'nvidia/nemotron-3-super-120b-a12b:free';
-const MODELO_FREE = process.env.ASSISTANT_MODEL_FREE || 'nvidia/nemotron-3-super-120b-a12b:free';
+const MODELO_PRO = process.env.ASSISTANT_MODEL_PRO || process.env.LLM_MODEL || 'deepseek-chat';
+const MODELO_FREE = process.env.ASSISTANT_MODEL_FREE || process.env.LLM_MODEL || 'deepseek-chat';
+// Base URL del proveedor (OpenRouter por defecto; DeepSeek: https://api.deepseek.com/v1)
+const LLM_BASE_URL = process.env.LLM_BASE_URL || 'https://openrouter.ai/api/v1';
 
 @Injectable()
 export class TechnicalAdvisorService {
@@ -111,7 +113,7 @@ export class TechnicalAdvisorService {
     systemPrompt: string,
     userPrompt: string
   ): Promise<string> {
-    const res = await fetch('https://openrouter.ai/api/v1/chat/completions', {
+    const res = await fetch(`${LLM_BASE_URL}/chat/completions`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
