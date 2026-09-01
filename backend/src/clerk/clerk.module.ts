@@ -1,7 +1,7 @@
 import { Module, Global } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
-import clerkConfig from './clerk.config';
-import { ClerkService } from './clerk.service';
+import clerkConfig from './clerk.config.js';
+import { ClerkService } from './clerk.service.js';
 
 @Global()
 @Module({

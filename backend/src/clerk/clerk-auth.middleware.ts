@@ -1,6 +1,6 @@
 import { Injectable, NestMiddleware, Logger, UnauthorizedException } from '@nestjs/common';
 import { Request, Response, NextFunction } from 'express';
-import { ClerkService } from './clerk.service';
+import { ClerkService } from './clerk.service.js';
 import { ConfigService } from '@nestjs/config';
 import { verifyToken } from '@clerk/clerk-sdk-node';
 

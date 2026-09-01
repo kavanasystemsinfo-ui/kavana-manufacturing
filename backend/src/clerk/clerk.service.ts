@@ -1,7 +1,7 @@
 import { Injectable, OnModuleInit, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { createClerkClient, type User, type Organization, type OrganizationMembership } from '@clerk/clerk-sdk-node';
-import { ClerkConfig } from './clerk.config';
+import { ClerkConfig } from './clerk.config.js';
 
 @Injectable()
 export class ClerkService implements OnModuleInit {
@@ -116,7 +116,19 @@ export class ClerkService implements OnModuleInit {
     publicMetadata?: Record<string, unknown>;
     privateMetadata?: Record<string, unknown>;
   }): Promise<OrganizationMembership> {
-    return this.getClient().organizations.createOrganizationMembership(data);
+    // El SDK tipa role como union estricta y su firma cambia entre versiones.
+    // Llamamos con un cast explícito a la firma que este servicio necesita.
+    const client = this.getClient();
+    const fn = client.organizations.createOrganizationMembership as unknown as (
+      data: {
+        organizationId: string;
+        userId: string;
+        role?: string;
+        publicMetadata?: Record<string, unknown>;
+        privateMetadata?: Record<string, unknown>;
+      }
+    ) => Promise<OrganizationMembership>;
+    return fn(data);
   }
 
   async updateOrganizationMembership(
@@ -124,7 +136,19 @@ export class ClerkService implements OnModuleInit {
     userId: string,
     data: { role?: string; publicMetadata?: Record<string, unknown>; privateMetadata?: Record<string, unknown> }
   ): Promise<OrganizationMembership> {
-    return this.getClient().organizations.updateOrganizationMembership({ organizationId: orgId, userId }, data);
+    // El SDK cambió la firma entre versiones (antes dos argumentos, ahora uno).
+    // Cast explícito a la firma que este servicio necesita.
+    const client = this.getClient();
+    const fn = client.organizations.updateOrganizationMembership as unknown as (
+      data: {
+        organizationId: string;
+        userId: string;
+        role?: string;
+        publicMetadata?: Record<string, unknown>;
+        privateMetadata?: Record<string, unknown>;
+      }
+    ) => Promise<OrganizationMembership>;
+    return fn({ organizationId: orgId, userId, ...data });
   }
 
   async deleteOrganizationMembership(orgId: string, userId: string): Promise<OrganizationMembership> {
@@ -143,7 +167,10 @@ export class ClerkService implements OnModuleInit {
   async decodeToken(token: string): Promise<Record<string, unknown> | null> {
     try {
       const { decodeJwt } = await import('@clerk/clerk-sdk-node');
-      return decodeJwt(token);
+      const decoded = decodeJwt(token);
+      // decodeJwt devuelve una estructura Jwt del SDK (no Record puro); lo
+      // aplanamos a objeto plano para la API interna.
+      return { ...(decoded as unknown as Record<string, unknown>) };
     } catch (error) {
       this.logger.error('Token decoding failed', error);
       return null;
