@@ -5,7 +5,7 @@ import { askAdvisorSchema } from './dto.js';
 import { getTenantContext } from '../auth/tenant-context.storage.js';
 import type { Request, Response } from 'express';
 
-// Límite 25 preguntas/día/IP (mismo patrón que RouteAI/Warehouse): la demo es
+// Límite 15 preguntas/día/IP (decisión Jorge 2026-09-01, DeepSeek): la demo es
 // pública y el reclutador pregunta sin login; el rate-limit controla el gasto.
 const assistantLimits = new Map<string, { count: number; resetAt: number }>();
 
@@ -19,8 +19,8 @@ function checkRateLimit(req: Request): string | null {
     assistantLimits.set(ip, { count: 1, resetAt: now + 24 * 3600 * 1000 });
     return null;
   }
-  if (limite.count >= 25) {
-    return 'Has alcanzado el límite de preguntas de hoy (25). Vuelve mañana o pregúntale directamente a Jorge.';
+  if (limite.count >= 15) {
+    return 'Has alcanzado el límite de preguntas de hoy (15). Vuelve mañana o pregúntale directamente a Jorge.';
   }
   limite.count += 1;
   return null;
