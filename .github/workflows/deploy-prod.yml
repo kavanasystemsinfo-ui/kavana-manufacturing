@@ -1,0 +1,169 @@
+name: Deploy Production
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+env:
+  NODE_VERSION: '20'
+  VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+  VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+  RENDER_API_KEY: ${{ secrets.RENDER_API_KEY }}
+  RENDER_SERVICE_ID: ${{ secrets.RENDER_SERVICE_ID }}
+  RENDER_REDIS_ID: ${{ secrets.RENDER_REDIS_ID }}
+
+jobs:
+  deploy-vercel-prod:
+    name: Deploy Angular to Vercel Production
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Angular repository
+        uses: actions/checkout@v4
+        with:
+          repository: your-org/kavana-warehouse-angular
+          path: kavana-warehouse-angular
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+          cache-dependency-path: kavana-warehouse-angular/package-lock.json
+
+      - name: Install Angular dependencies
+        run: npm ci
+        working-directory: /root/kavana-warehouse-angular
+
+      - name: Build Angular
+        run: npm run build
+        working-directory: /root/kavana-warehouse-angular
+        env:
+          CLERK_PUBLISHABLE_KEY: ${{ secrets.CLERK_PUBLISHABLE_KEY }}
+          CLERK_SECRET_KEY: ${{ secrets.CLERK_SECRET_KEY }}
+          MONGODB_URI: ${{ secrets.MONGODB_URI }}
+          OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+
+      - name: Install Vercel CLI
+        run: npm install -g vercel@latest
+
+      - name: Deploy to Vercel Production
+        run: |
+          vercel --token=${{ secrets.VERCEL_TOKEN }} \
+            --org=${{ secrets.VERCEL_ORG_ID }} \
+            --project=${{ secrets.VERCEL_PROJECT_ID }} \
+            --scope=${{ secrets.VERCEL_ORG_ID }} \
+            --prod=true
+        working-directory: /root/kavana-warehouse-angular
+
+      - name: Health check Vercel Production
+        run: |
+          sleep 10
+          PROD_URL=$(vercel --token=${{ secrets.VERCEL_TOKEN }} --org=${{ secrets.VERCEL_ORG_ID }} --project=${{ secrets.VERCEL_PROJECT_ID }} ls --scope=${{ secrets.VERCEL_ORG_ID }} --json | jq -r '.[] | select(.target=="production") | .url' | head -1)
+          echo "Production URL: https://$PROD_URL"
+          curl -f "https://$PROD_URL/health" || exit 1
+
+  deploy-render-prod:
+    name: Deploy NestJS to Render Production
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+          cache-dependency-path: |
+            package-lock.json
+            backend/package-lock.json
+
+      - name: Install root dependencies
+        run: npm ci
+        working-directory: /root/kavana-manufacturing
+
+      - name: Install backend dependencies
+        run: npm ci
+        working-directory: /root/kavana-manufacturing/backend
+
+      - name: Build backend
+        run: npm run build
+        working-directory: /root/kavana-manufacturing/backend
+
+      - name: Deploy to Render Production
+        run: |
+          curl -X POST "https://api.render.com/v1/services/${{ secrets.RENDER_SERVICE_ID }}/deploys" \
+            -H "Authorization: Bearer ${{ secrets.RENDER_API_KEY }}" \
+            -H "Content-Type: application/json" \
+            -d '{"clearCache": "do_not_clear"}'
+
+      - name: Wait for Render deployment
+        run: |
+          echo "Waiting for Render production deployment to complete..."
+          sleep 60
+          # Poll for deployment status
+          for i in {1..20}; do
+            STATUS=$(curl -s -H "Authorization: Bearer ${{ secrets.RENDER_API_KEY }}" \
+              "https://api.render.com/v1/services/${{ secrets.RENDER_SERVICE_ID }}/deploys" | jq -r '.[0].status')
+            echo "Deployment status: $STATUS"
+            if [ "$STATUS" = "live" ]; then
+              echo "Production deployment successful!"
+              break
+            elif [ "$STATUS" = "build_failed" ] || [ "$STATUS" = "update_failed" ]; then
+              echo "Production deployment failed!"
+              exit 1
+            fi
+            sleep 30
+          done
+
+      - name: Verify Redis is connected
+        run: |
+          REDIS_STATUS=$(curl -s -H "Authorization: Bearer ${{ secrets.RENDER_API_KEY }}" \
+            "https://api.render.com/v1/redis/${{ secrets.RENDER_REDIS_ID }}" | jq -r '.status')
+          echo "Redis status: $REDIS_STATUS"
+          if [ "$REDIS_STATUS" != "active" ]; then
+            echo "Redis is not active!"
+            exit 1
+          fi
+
+      - name: Health check Render Production
+        run: |
+          RENDER_URL=$(curl -s -H "Authorization: Bearer ${{ secrets.RENDER_API_KEY }}" \
+            "https://api.render.com/v1/services/${{ secrets.RENDER_SERVICE_ID }}" | jq -r '.url')
+          echo "Render Production URL: $RENDER_URL"
+          curl -f "$RENDER_URL/health" || exit 1
+
+  notify-deployment:
+    name: Notify Deployment Success
+    runs-on: ubuntu-latest
+    needs: [deploy-vercel-prod, deploy-render-prod]
+    if: success()
+    steps:
+      - name: Get Vercel Production URL
+        id: vercel-url
+        run: |
+          PROD_URL=$(vercel --token=${{ secrets.VERCEL_TOKEN }} --org=${{ secrets.VERCEL_ORG_ID }} --project=${{ secrets.VERCEL_PROJECT_ID }} ls --scope=${{ secrets.VERCEL_ORG_ID }} --json | jq -r '.[] | select(.target=="production") | .url' | head -1)
+          echo "url=https://$PROD_URL" >> $GITHUB_OUTPUT
+
+      - name: Get Render Production URL
+        id: render-url
+        run: |
+          RENDER_URL=$(curl -s -H "Authorization: Bearer ${{ secrets.RENDER_API_KEY }}" \
+            "https://api.render.com/v1/services/${{ secrets.RENDER_SERVICE_ID }}" | jq -r '.url')
+          echo "url=$RENDER_URL" >> $GITHUB_OUTPUT
+
+      - name: Create deployment summary
+        run: |
+          echo "## ✅ Production Deployment Successful" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Frontend (Vercel Production):** ${{ steps.vercel-url.outputs.url }}" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Backend (Render Production):** ${{ steps.render-url.outputs.url }}" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Redis (BullMQ):** Connected and active" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "---" >> $GITHUB_STEP_SUMMARY
+          echo "*Health checks: Both services have `/health` endpoint verified.*" >> $GITHUB_STEP_SUMMARY
+          echo "*Deployed at: $(date -u)*" >> $GITHUB_STEP_SUMMARY
