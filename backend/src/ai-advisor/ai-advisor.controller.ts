@@ -1,4 +1,4 @@
-import { Controller, Post, Body, Logger, Req, Res } from '@nestjs/common';
+import { Controller, Post, Body, Logger, Req, Res, Get } from '@nestjs/common';
 import { AiAdvisorService } from './ai-advisor.service.js';
 import { TechnicalAdvisorService } from './technical-advisor.service.js';
 import { askAdvisorSchema } from './dto.js';
@@ -83,59 +83,10 @@ export class AiAdvisorController {
     const result = await this.technicalAdvisor.responder(apiKey, question);
     return res.json({ success: true, ...result });
   }
-}
 
   @Get('corpus-stats')
   async getCorpusStats(@Req() req: Request, @Res() res: Response) {
     const stats = this.technicalAdvisor.estadisticasCorpus();
     return res.json({ success: true, ...stats });
   }
-    }
-
-    const rateError = checkRateLimit(req);
-    if (rateError) {
-      return res.status(429).json({ error: rateError });
-    }
-
-    const { question, context_filter } = parsed.data;
-    const context = getTenantContext();
-
-    this.logger.log(`Ask advisor (MES): tenant=${context.tenantId} question="${question.slice(0, 60)}..."`);
-
-    const result = await this.advisor.ask(question, context_filter);
-    return res.json({ success: true, ...result });
-  }
-
-  // Asistente TÉCNICO: RAG sobre la documentación del repo (README, DECISIONS,
-  // ADRs, docs técnicos). Funciona sin token (demo pública) igual que /ask.
-  @Post('ask-tech')
-  async askTech(@Body() body: unknown, @Req() req: Request, @Res() res: Response) {
-    const parsed = askAdvisorSchema.safeParse(body);
-    if (!parsed.success) {
-      const firstError = parsed.error.flatten().fieldErrors;
-      return res.status(400).json({ error: Object.values(firstError).flat()[0] || 'Datos inválidos', success: false });
-    }
-
-    const rateError = checkRateLimit(req);
-    if (rateError) {
-      return res.status(429).json({ error: rateError });
-    }
-
-    const { question } = parsed.data;
-    const apiKey = process.env.DEEPSEEK_API_KEY || process.env.OPENROUTER_API_KEY;
-    if (!apiKey) {
-      return res.status(500).json({ success: false, error: 'Asistente no configurado (falta DEEPSEEK_API_KEY en el servidor)' });
-    }
-
-    this.logger.log(`Ask advisor (TÉCNICO): question="${question.slice(0, 60)}..."`);
-
-    const result = await this.technicalAdvisor.responder(apiKey, question);
-    return res.json({ success: true, ...result });
-  }
 }
-
-  @Get('corpus-stats')
-  async getCorpusStats(@Req() req: Request, @Res() res: Response) {
-    const stats = this.technicalAdvisor.estadisticasCorpus();
-    return res.json({ success: true, ...stats });
-  }
