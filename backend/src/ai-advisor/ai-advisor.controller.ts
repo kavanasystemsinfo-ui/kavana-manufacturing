@@ -19,7 +19,7 @@ function checkRateLimit(req: Request): string | null {
     assistantLimits.set(ip, { count: 1, resetAt: now + 24 * 3600 * 1000 });
     return null;
   }
-  if (limite.count >= 15) {
+  if (limite.count >= 100) {
     return 'Has alcanzado el límite de preguntas de hoy (15). Vuelve mañana o pregúntale directamente a Jorge.';
   }
   limite.count += 1;
