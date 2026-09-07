@@ -84,3 +84,9 @@ export class AiAdvisorController {
     return res.json({ success: true, ...result });
   }
 }
+
+  @Get('corpus-stats')
+  async getCorpusStats(@Req() req: Request, @Res() res: Response) {
+    const stats = this.technicalAdvisor.estadisticasCorpus();
+    return res.json({ success: true, ...stats });
+  }
