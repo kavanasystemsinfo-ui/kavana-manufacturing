@@ -24,6 +24,10 @@ RUN addgroup -S app && adduser -S app -G app
 COPY --from=build /app/backend/dist ./dist
 COPY --from=build /app/backend/node_modules ./node_modules
 COPY --from=build /app/node_modules ./node_modules
+COPY README.md ./README.md
+COPY DECISIONS.md ./DECISIONS.md
+COPY SECURITY.md ./SECURITY.md
+COPY docs/ ./docs/
 
 # Copy documentation for technical advisor RAG corpus
 COPY README.md ./README.md
