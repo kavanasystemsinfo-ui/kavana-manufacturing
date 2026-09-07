@@ -54,9 +54,15 @@ export class TechnicalAdvisorService {
     return chunks;
   }
 
+  private normalizar(texto: string): string {
+    return texto
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '');
+  }
+
   private tokenizar(texto: string): string[] {
-    return texto.toLowerCase()
-      .replace(/[^a-záéíóúñü0-9]/g, ' ')
+    return this.normalizar(texto.toLowerCase())
+      .replace(/[^a-z0-9]/g, ' ')
       .split(/\s+/)
       .filter((w) => w.length > 2 && !STOPWORDS.has(w));
   }
