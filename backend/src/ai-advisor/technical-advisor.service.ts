@@ -225,10 +225,4 @@ function similitud(a: Map<string, number>, b: Map<string, number>): number {
   return dot / (Math.sqrt(na) * Math.sqrt(nb));
 }
 
-const STOPWORDS = new Set(`
-  para por con los las el la un una como del al se su sus en de y o
-  esta esos esos donde cuando cual cuales sobre entre
-  desde hasta tienen hacer hizo hizo fueron fue era
-  manufacturing kavana sistema aplicacion app datos demuestra mostrar
-  mes mfg fabrica planta operario supervisor
-`.trim().split(/\s+/));
+const STOPWORDS = new Set([]);
