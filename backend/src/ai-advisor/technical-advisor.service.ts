@@ -226,9 +226,9 @@ function similitud(a: Map<string, number>, b: Map<string, number>): number {
 }
 
 const STOPWORDS = new Set(`
-  para por con los las el la un una como del al se su sus en de y o a
-  esta estos esas esos donde cuando cual cuales sobre entre
-  mediante desde hasta tienen hacer hace sido estan fueron
+  para por con los las el la un una como del al se su sus en de y o
+  esta esos esos donde cuando cual cuales sobre entre
+  desde hasta hacen hizo hizo fueron fue era
   manufacturing kavana sistema aplicacion app datos demuestra mostrar
   mes mfg fabrica planta operario supervisor
 `.trim().split(/\s+/));
