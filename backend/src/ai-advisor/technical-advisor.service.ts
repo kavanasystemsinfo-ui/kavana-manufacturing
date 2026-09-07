@@ -152,7 +152,7 @@ export class TechnicalAdvisorService {
     if (!apiKey) throw new Error('OPENROUTER_API_KEY no configurada');
     const docs = this.buscar(pregunta);
 
-    if (docs.length === 0 || docs[0].score < 0.005) {
+    if (docs.length === 0 || docs[0].score < 0.001) {
       return {
         respuesta: 'No encuentro nada en la documentación del proyecto que responda a eso. Si quieres, pregúntaselo directamente a Jorge (el creador de Kavana Manufacturing): es el único que puede responder sobre lo que no está documentado.',
         fuentes: [],
