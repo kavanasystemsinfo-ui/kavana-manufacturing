@@ -150,11 +150,22 @@ export class TechnicalAdvisorService {
     pregunta: string
   ): Promise<{ respuesta: string; fuentes: string[]; modelo: string | null }> {
     if (!apiKey) throw new Error('OPENROUTER_API_KEY no configurada');
+
+    // Detectar saludos simples para responder de forma natural sin LLM
+    const saludo = this.detectarSaludo(pregunta);
+    if (saludo) {
+      return {
+        respuesta: saludo,
+        fuentes: [],
+        modelo: null,
+      };
+    }
+
     const docs = this.buscar(pregunta);
 
     if (docs.length === 0) {
       return {
-        respuesta: 'No encuentro nada en la documentación del proyecto que responda a eso. Si quieres, pregúntaselo directamente a Jorge (el creador de Kavana Manufacturing): es el único que puede responder sobre lo que no está documentado.',
+        respuesta: this.generarRespuestaSinResultados(pregunta),
         fuentes: [],
         modelo: null,
       };
@@ -166,13 +177,15 @@ export class TechnicalAdvisorService {
 
     const systemPrompt = [
       'Eres el asistente técnico de KAVANA Manufacturing, un MES (Sistema de Ejecución de Manufactura) offline-first multi-tenant.',
-      'Respondes EXCLUSIVAMENTE con la documentación real del proyecto que te doy en el contexto.',
+      'Tu objetivo es ayudar a usuarios (reclutadores, clientes, operarios) a entender el proyecto de forma clara y útil.',
       'Reglas:',
       '- Responde en español, claro y directo, como explicaría el desarrollador el proyecto.',
-      '- Si el contexto contiene la respuesta, explícala con tus palabras y apóyate en los datos del contexto.',
-      '- Si el contexto NO contiene la respuesta, di literalmente: "Eso no está en la documentación del proyecto. Si quieres, pregúntaselo directamente a Jorge, el creador de Kavana Manufacturing." y NADA más.',
-      '- NUNCA inventes datos, métricas, nombres de archivos o decisiones que no estén en el contexto.',
-      '- Solo añade la línea "Ver: [fuente1, fuente2]" al final cuando hayas respondido usando el contexto. Si no has usado el contexto, no añadas ninguna fuente.',
+      '- Si el contexto contiene información relevante, úsala para responder con tus palabras y apóyate en los datos.',
+      '- Si el contexto NO contiene información específica sobre la pregunta, pero puedes inferir algo razonable del contexto general del proyecto, hazlo y sé transparente sobre los límites.',
+      '- Si realmente no tienes nada que decir basado en lo que conoces del proyecto, di: "Perdón, no tengo esa información en la documentación del proyecto. Pero puedo ayudarte con otras preguntas sobre cómo funciona Kavana Manufacturing, su arquitectura, o cómo desplegarlo. ¿Te gustaría que intente con otra pregunta?"',
+      '- NUNCA inventes datos, métricas, nombres de archivos o decisiones que no estén en el contexto o que no puedan inferirse razonablemente.',
+      '- Siempre termina tus respuestas útiles con una invitación a hacer más preguntas: "¿Te gustaría saber más sobre algún aspecto específico?"',
+      '- Solo añade la línea "Ver: [fuente1, fuente2]" al final cuando hayas respondido usando el contexto directamente. Si inferiste o no usaste contexto, no añadas fuentes.',
     ].join('\n');
 
     const userPrompt = [
@@ -205,6 +218,48 @@ export class TechnicalAdvisorService {
     };
   }
 
+  private detectarSaludo(pregunta: string): string | null {
+    const texto = pregunta.trim().toLowerCase();
+    const saludos = ['hola', 'buenas', 'buenos días', 'buenas tardes', 'buenas noches', 'qué tal', 'que tal', 'hello', 'hi'];
+    const esSaludo = saludos.some(s => texto === s || texto.startsWith(s + ' ') || texto.endsWith(' ' + s));
+    
+    if (esSaludo) {
+      return '¡Hola! Soy el asistente técnico de Kavana Manufacturing, un MES SaaS multi-tenant para plantas industriales. Puedes preguntarme sobre:\n\n' +
+        '• **Qué es y para qué sirve** el proyecto (arquitectura, stack, problemas que resuelve)\n' +
+        '• **Cómo funciona** offline-first, RLS multi-tenant, feature flags, sincronización\n' +
+        '• **Decisiones técnicas** documentadas en ADRs (por qué NestJS, PostgreSQL, Dexie, etc.)\n' +
+        '• **Cómo desplegarlo** o ejecutarlo en local (Docker, variables de entorno, CI/CD)\n' +
+        '• **Detalles de dominio** (órdenes, bloques de trabajo, incidencias, OEE, quality)\n\n' +
+        '¿Sobre qué te gustaría saber más?';
+    }
+    return null;
+  }
+
+  private generarRespuestaSinResultados(pregunta: string): string {
+    const texto = pregunta.toLowerCase();
+    
+    // Sugerencias según tipo de pregunta
+    if (texto.includes('precio') || texto.includes('coste') || texto.includes('licencia') || texto.includes('vender')) {
+      return 'Esa información no está en la documentación técnica del proyecto. Kavana Manufacturing es un proyecto de portfolio/demo abierto (MIT), no un producto comercial con precios publicados.\n\n' +
+        'Puedo contarte sobre la arquitectura, el stack, cómo funciona offline-first, o cómo desplegarlo tú mismo. ¿Te interesa algún aspecto técnico?';
+    }
+    
+    if (texto.includes('jorge') || texto.includes('creador') || texto.includes('autor') || texto.includes('contacto')) {
+      return 'Jorge Adán es el arquitecto y creador de Kavana Manufacturing. Las decisiones de arquitectura, producto y dominio son suyas; la IA actuó como copiloto de implementación.\n\n' +
+        'Si quieres contactar con él, su perfil está en el README del proyecto. Mientras tanto, puedo explicarte cualquier aspecto técnico del MES. ¿Por dónde empezamos?';
+    }
+    
+    // Respuesta genérica con sugerencias basadas en lo que SÍ hay en docs
+    return 'Perdón, no tengo esa información específica en la documentación del proyecto. Pero como conozco bien Kavana Manufacturing, te sugiero estas preguntas que sí puedo responder con detalle:\n\n' +
+      '• "¿Cómo funciona la arquitectura offline-first con Dexie.js y sincronización FIFO?"\n' +
+      '• "¿Por qué RLS multi-tenant en lugar de schema-per-tenant?"\n' +
+      '• "¿Cómo se activan features por cliente sin nuevos deploys?"\n' +
+      '• "¿Qué stack usa el frontend HMI para operarios con guantes?"\n' +
+      '• "¿Cómo se modelan órdenes, bloques de trabajo e incidencias?"\n' +
+      '• "¿Cómo desplegar en local con Docker Compose?"\n\n' +
+      '¿Te gustaría que profundice en alguno de estos temas o tienes otra pregunta?';
+  }
+
   estadisticasCorpus(): { chunks: number; fuentes: number } {
     const idx = this.getIndice();
     return { chunks: idx.chunks.length, fuentes: new Set(idx.chunks.map((c) => c.fuente)).size };
@@ -225,4 +280,4 @@ function similitud(a: Map<string, number>, b: Map<string, number>): number {
   return dot / (Math.sqrt(na) * Math.sqrt(nb));
 }
 
-const STOPWORDS = new Set([]);
+const STOPWORDS: Set<string> = new Set([]);
