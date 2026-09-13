@@ -4,14 +4,18 @@ import { initOtelSDK } from './telemetry/sdk.js';
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module.js';
 import { ZodFilter } from './zod.filter.js';
-import { HttpException } from '@nestjs/common';
+import { GlobalExceptionFilter } from './common/filters/global-exception.filter.js';
+import { ApiDeprecationWarningMiddleware } from './common/middleware/deprecation.middleware.js';
 import type { ExceptionFilter, ArgumentsHost } from '@nestjs/common';
+import { HttpException } from '@nestjs/common';
 
 async function bootstrap(): Promise<void> {
   // ── Telemetría ANTES de NestJS ──
   const otel = await initOtelSDK();
 
   const app = await NestFactory.create(AppModule);
+  // Set global API version prefix
+  app.setGlobalPrefix('api/v1');
   const frontendOrigen = process.env.FRONTEND_ORIGIN ?? 'http://localhost:5173';
   app.enableCors({
     origin: (origin: string | undefined, cb: (err: Error | null, allow?: boolean) => void) => {
@@ -23,30 +27,8 @@ async function bootstrap(): Promise<void> {
     },
   });
   app.useGlobalFilters(new ZodFilter());
-
-  const errorFilter: ExceptionFilter = {
-    catch(exception: unknown, host: ArgumentsHost) {
-      const ctx = host.switchToHttp();
-      const response = ctx.getResponse();
-
-      // Las excepciones HTTP de Nest (400/401/403/404/409/410...) deben salir
-      // con su status real, no convertidas en 500. Antes este filtro lo pisaba
-      // todo: BadRequestException("...") se devolvía como 500.
-      if (exception instanceof HttpException) {
-        const status = exception.getStatus();
-        const body = exception.getResponse();
-        response
-          .status(status)
-          .json(typeof body === 'string' ? { statusCode: status, message: body } : body);
-        return;
-      }
-
-      console.error('[BACKEND_ERROR]', exception);
-      const message = exception instanceof Error ? exception.message : String(exception);
-      response.status(500).json({ statusCode: 500, message });
-    },
-  };
-  app.useGlobalFilters(errorFilter);
+  app.useGlobalFilters(new GlobalExceptionFilter());
+  app.use(new ApiDeprecationWarningMiddleware());
 
   const port = Number(process.env.PORT ?? 3001);
   await app.listen(port);

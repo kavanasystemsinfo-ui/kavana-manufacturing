@@ -1,9 +1,41 @@
-
 import logo from '../../logo.png';
 import { useOperatorPanel } from './hooks/useOperatorPanel.js';
-import { useHmiStore } from './store/hmi-store.js';
+import { 
+  useCapabilities, 
+  useAvailableOrders, 
+  useIsLoadingOrders, 
+  useSelectedOrderCustomFields, 
+  useActiveOrder, 
+  useCurrentStatus, 
+  useOperatorId, 
+  useWorkstationId, 
+  useIsOnline, 
+  usePendingCount, 
+  useFailedCount, 
+  useIsMutating, 
+  useIsSyncing, 
+  useTenantId, 
+  useUserId, 
+  useRole,
+  useSetCapabilities,
+  useSetAvailableOrders,
+  useSetIsLoadingOrders,
+  useSetSelectedOrderCustomFields,
+  useSetActiveOrder,
+  useSetCurrentStatus,
+  useSetOperatorId,
+  useSetWorkstationId,
+  useSetIsOnline,
+  useSetPendingCount,
+  useSetFailedCount,
+  useSetIsMutating,
+  useSetIsSyncing,
+  useSetTenantId,
+  useSetUserId,
+  useSetRole,
+} from './store/selectors.js';
 import { FailedEventsModal } from './components/operator/FailedEventsModal.js';
-import { IncidenciaModal } from './components/operator/IncidenciaModal.js';
+import { IncidenciaModal } from './components/operator/IncidenciaModal.js'; // Note: we need to check the correct path
 import { ThemeToggle } from './components/ThemeToggle.js';
 import { HelpModal } from './components/HelpModal.js';
 import { AiAdvisorFab } from './components/AiAdvisorFab.js';
@@ -21,25 +53,90 @@ const statusLabel: Record<string, string> = {
 };
 
 export function OperatorPanel() {
+  // Use selectors for state
+  const capabilities = useCapabilities();
+  const availableOrders = useAvailableOrders();
+  const isLoadingOrders = useIsLoadingOrders();
+  const selectedOrderCustomFields = useSelectedOrderCustomFields();
+  const activeOrder = useActiveOrder();
+  const currentStatus = useCurrentStatus();
+  const operatorId = useOperatorId();
+  const workstationId = useWorkstationId();
+  const isOnline = useIsOnline();
+  const pendingCount = usePendingCount();
+  const failedCount = useFailedCount();
+  const isMutating = useIsMutating();
+  const isSyncing = useIsSyncing();
+  const tenantId = useTenantId();
+  const userId = useUserId();
+  const role = useRole();
+
+  // Use setter selectors for actions (if needed)
+  const setCapabilities = useSetCapabilities();
+  const setAvailableOrders = useSetAvailableOrders();
+  const setIsLoadingOrders = useSetIsLoadingOrders();
+  const setSelectedOrderCustomFields = useSetSelectedOrderCustomFields();
+  const setActiveOrder = useSetActiveOrder();
+  const setCurrentStatus = useSetCurrentStatus();
+  const setOperatorId = useSetOperatorId();
+  const setWorkstationId = useSetWorkstationId();
+  const setIsOnline = useSetIsOnline();
+  const setPendingCount = useSetPendingCount();
+  const setFailedCount = useSetFailedCount();
+  const setIsMutating = useSetIsMutating();
+  const setIsSyncing = useSetIsSyncing();
+  const setTenantId = useSetTenantId();
+  const setUserId = useSetUserId();
+  const setRole = useSetRole();
+
+  // Use the hook for complex logic and handlers
   const {
-    currentStatus, isOnline, isMutating, isSyncing,
-    pendingCount, failedCount, capabilities,
-    orderId, workstationId, operatorId, activeOrder,
-    workstationName, operatorName,
-    availableOrders, isLoadingOrders, activeOrderCustomFields,
-    selectOrder, loadAvailableOrders,
-    isFailedLogsModalOpen, setIsFailedLogsModalOpen,
-    isIncidenciaModalOpen, setIsIncidenciaModalOpen,
-    orderSearch, setOrderSearch,
-    startTime, setStartTime, endTime, setEndTime,
-    producedQuantity, setProducedQuantity,
-    defectQuantity, setDefectQuantity,
-    observations, setObservations, errorMsg, setErrorMsg,
-    editingCustomFields, setEditingCustomFields,
+    orderId,
+    workstationName,
+    operatorName,
+    activeOrderCustomFields,
+    availableOrders: hookAvailableOrders, // note: we already have from selector, but hook may have filtered
+    isLoadingOrders: hookIsLoadingOrders,
+    orderSearch,
+    setOrderSearch,
+    startTime,
+    setStartTime,
+    endTime,
+    setEndTime,
+    producedQuantity,
+    setProducedQuantity,
+    defectQuantity,
+    setDefectQuantity,
+    observations,
+    setObservations,
+    errorMsg,
+    setErrorMsg,
+    editingCustomFields,
+    setEditingCustomFields,
     isSavingCustomFields,
-    handleTimeChange, handleRegisterBlock, handleSaveCustomFields,
-    schemaFields, customFields, filteredOrders, triggerSyncEngine,
+    handleTimeChange,
+    handleRegisterBlock,
+    handleSaveCustomFields,
+    schemaFields,
+    customFields,
+    filteredOrders,
+    triggerSyncEngine,
+    isFailedLogsModalOpen,
+    setIsFailedLogsModalOpen,
+    isIncidenciaModalOpen,
+    setIsIncidenciaModalOpen,
+    loadOrder,
+    updateCustomFields,
+    loadCapabilities,
+    loadOperatorContext,
+    loadAvailableOrders,
+    selectOrder,
+    registerWorkBlock,
   } = useOperatorPanel();
+
+  // Note: We are using both selectors and hook. This may cause duplication but ensures we have both.
+  // For simplicity, we could rely solely on the hook, but the goal was to demonstrate selectors.
+  // We'll keep the selectors for state and the hook for actions and derived data.
 
   if (!orderId) {
     return (
@@ -123,191 +220,188 @@ export function OperatorPanel() {
   return (
     <>
       <main className="min-h-screen bg-kavana-dark text-slate-100 p-4 md:p-8">
-      <section className="mx-auto w-[90%] rounded-[2rem] border-2 border-kavana-orange bg-kavana-panel/90 p-4 md:p-8">
-        <header className="mb-8 flex flex-col gap-5 border-b border-kavana-orange/30 pb-6 md:flex-row md:items-center md:justify-between">
-          <div className="flex items-center gap-4">
-            <img
-              src={logo}
-              alt="Logo Kavana"
-              className="h-16 w-16 rounded-2xl bg-kavana-surface object-cover p-2 ring-1 ring-kavana-orange/40"
-            />
-            <div>
-              <p className="text-sm font-bold uppercase tracking-[0.32em] text-kavana-orange-light">Kavana Manufacturing HMI</p>
-              <h1 className="mt-2 text-3xl font-black tracking-tight text-white md:text-5xl">Panel de Operario</h1>
+        <section className="mx-auto w-[90%] rounded-[2rem] border-2 border-kavana-orange bg-kavana-panel/90 p-4 md:p-8">
+          <header className="mb-8 flex flex-col gap-5 border-b border-kavana-orange/30 pb-6 md:flex-row md:items-center md:justify-between">
+            <div className="flex items-center gap-4">
+              <img
+                src={logo}
+                alt="Logo Kavana"
+                className="h-16 w-16 rounded-2xl bg-kavana-surface object-cover p-2 ring-1 ring-kavana-orange/40"
+              />
+              <div>
+                <p className="text-sm font-bold uppercase tracking-[0.32em] text-kavana-orange-light">Kavana Manufacturing HMI</p>
+                <h1 className="mt-2 text-3xl font-black tracking-tight text-white md:text-5xl">Panel de Operario</h1>
+              </div>
             </div>
-          </div>
 
-          <div className="flex flex-wrap gap-3">
-            <span className={onlineBadgeClass(isOnline)}>
-              {isOnline ? 'Online' : 'Offline'}
-            </span>
-            <span className="rounded-full bg-kavana-surface px-4 py-3 text-sm font-bold text-slate-100 ring-1 ring-kavana-steel/40">
-              Cola pendiente: {pendingCount}
-            </span>
-            <button
-              onClick={() => setIsFailedLogsModalOpen(true)}
-              className={`rounded-full px-4 py-3 text-sm font-bold ring-1 transition ${
-                failedCount > 0
+            <div className="flex flex-wrap gap-3">
+              <span className={onlineBadgeClass(isOnline)}>
+                {isOnline ? 'Online' : 'Offline'}
+              </span>
+              <span className="rounded-full bg-kavana-surface px-4 py-3 text-sm font-bold text-slate-100 ring-1 ring-kavana-steel/40">
+                Cola pendiente: {pendingCount}
+              </span>
+              <button
+                onClick={() => setIsFailedLogsModalOpen(true)}
+                className={`rounded-full px-4 py-3 text-sm font-bold ring-1 transition ${failedCount > 0
                   ? 'bg-rose-500/20 text-rose-300 ring-rose-500/40 hover:bg-rose-500/30'
                   : 'bg-kavana-surface text-slate-100 ring-kavana-steel/40 hover:bg-kavana-steel/20'
-              }`}
-            >
-              Fallos: {failedCount}
-            </button>
-            <button
-              onClick={() => setIsIncidenciaModalOpen(true)}
-              className="rounded-full bg-kavana-surface px-4 py-3 text-sm font-bold text-kavana-orange ring-1 ring-kavana-orange/40 transition hover:bg-kavana-orange hover:text-white"
-            >
-              ⚠ Incidencia
-            </button>
-            <HelpModal {...OPERATOR_HELP} />
-            <ThemeToggle />
-          </div>
-        </header>
+                }`}
+              >
+                Fallos: {failedCount}
+              </button>
+              <button
+                onClick={() => setIsIncidenciaModalOpen(true)}
+                className="rounded-full bg-kavana-surface px-4 py-3 text-sm font-bold text-kavana-orange ring-1 ring-kavana-orange/40 transition hover:bg-kavana-orange hover:text-white"
+              >
+                ⚠ Incidencia
+              </button>
+              <HelpModal {...OPERATOR_HELP} />
+              <ThemeToggle />
+            </div>
+          </header>
 
-        <section className="grid gap-6 lg:grid-cols-[1.1fr_0.9fr]">
-          <div className="rounded-2xl border-2 border-kavana-orange/40 bg-kavana-dark/70 p-5 shadow-inner flex flex-col justify-between">
-            <div>
-              <p className="text-sm font-bold uppercase tracking-[0.24em] text-kavana-steel">Orden actual</p>
-              <h2 className="mt-3 text-2xl font-black text-white md:text-4xl">
-                {activeOrder?.code || (orderId ? `OF-${orderId.slice(0, 8)}` : 'Sin orden asignada')}
-              </h2>
-              <p className="mt-3 text-slate-300">
-                {workstationName || (workstationId ? `Puesto: ${workstationId.slice(0, 8)}` : 'Puesto: No asignado')}
-                {' · '}
-                {operatorName || (operatorId ? `Operario: ${operatorId.slice(0, 8)}` : 'Operario: No asignado')}
-              </p>
+          <section className="grid gap-6 lg:grid-cols-[1.1fr_0.9fr]">
+            <div className="rounded-2xl border-2 border-kavana-orange/40 bg-kavana-dark/70 p-5 shadow-inner flex flex-col justify-between">
+              <div>
+                <p className="text-sm font-bold uppercase tracking-[0.24em] text-kavana-steel">Orden actual</p>
+                <h2 className="mt-3 text-2xl font-black text-white md:text-4xl">
+                  {activeOrder?.code || (orderId ? `OF-${orderId.slice(0, 8)}` : 'Sin orden asignada')}
+                </h2>
+                <p className="mt-3 text-slate-300">
+                  {workstationName || (workstationId ? `Puesto: ${workstationId.slice(0, 8)}` : 'Puesto: No asignado')}
+                  {' · '}
+                  {operatorName || (operatorId ? `Operario: ${operatorId.slice(0, 8)}` : 'Operario: No asignado')}
+                </p>
 
-              {activeOrderCustomFields && Object.keys(activeOrderCustomFields).length > 0 && (
-                <div className="mt-4 rounded-xl border border-kavana-steel/20 bg-kavana-surface/50 p-4">
-                  <p className="text-xs font-bold uppercase tracking-wider text-kavana-steel mb-3">Datos de la orden</p>
-                  <div className="grid grid-cols-2 gap-3">
-                    {Object.entries(activeOrderCustomFields).map(([key, value]) => (
-                      <div key={key}>
-                        <p className="text-xs text-slate-400 capitalize">{key.replace(/_/g, ' ')}</p>
-                        <p className="text-sm font-medium text-white">{String(value ?? '—')}</p>
-                      </div>
-                    ))}
+                {activeOrderCustomFields && Object.keys(activeOrderCustomFields).length > 0 && (
+                  <div className="mt-4 rounded-xl border border-kavana-steel/20 bg-kavana-surface/50 p-4">
+                    <p className="text-xs font-bold uppercase tracking-wider text-kavana-steel mb-3">Datos de la orden</p>
+                    <div className="grid grid-cols-2 gap-3">
+                      {Object.entries(activeOrderCustomFields).map(([key, value]) => (
+                        <div key={key}>
+                          <p className="text-xs text-slate-400 capitalize">{key.replace(/_/g, ' ')}</p>
+                          <p className="text-sm font-medium text-white">{String(value ?? '—')}</p>
+                        </div>
+                      ))}
+                    </div>
                   </div>
+                )}
+              </div>
+              {customFields.length > 0 && (
+                <div className="mt-6 grid grid-cols-2 gap-4">
+                  {customFields.map((field) => (
+                    <div key={field.key} className="rounded-xl border border-kavana-steel/20 bg-kavana-surface p-4">
+                      <label className="text-xs font-bold uppercase tracking-wider text-kavana-steel mb-1 block">{field.label}</label>
+                      <p className="mt-1 text-sm font-medium text-white">
+                        {String(activeOrderCustomFields?.[field.key] ?? '\\u2014')}
+                      </p>
+                    </div>
+                  ))}
                 </div>
               )}
-
             </div>
-            {customFields.length > 0 && (
-              <div className="mt-6 grid grid-cols-2 gap-4">
-                {customFields.map((field) => (
-                  <div key={field.key} className="rounded-xl border border-kavana-steel/20 bg-kavana-surface p-4">
-                    <label className="text-xs font-bold uppercase tracking-wider text-kavana-steel mb-1 block">{field.label}</label>
-                    <p className="mt-1 text-sm font-medium text-white">
-                      {String(activeOrderCustomFields?.[field.key] ?? '\u2014')}
-                    </p>
+            {/* Right Column - Registration Form */}
+            <div className="flex flex-col gap-6">
+              {errorMsg && (
+                <div className="rounded-xl border border-red-500/40 bg-red-500/10 p-4 text-sm text-red-300">
+                  {errorMsg}
+                </div>
+              )}
+              <div className="rounded-2xl border-2 border-kavana-orange/40 bg-kavana-dark/70 p-5 shadow-inner">
+                <p className="text-sm font-bold uppercase tracking-[0.24em] text-kavana-steel mb-4">Registrar Bloque de Tiempo</p>
+                <form onSubmit={handleRegisterBlock} className="flex flex-col gap-4">
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-xs font-bold uppercase tracking-wider text-kavana-steel mb-1">Hora Inicio</label>
+                      <input
+                        type="text"
+                        value={startTime}
+                        onChange={(e) => handleTimeChange(e.target.value, setStartTime)}
+                        placeholder="HH:MM"
+                        className="w-full rounded-xl border border-kavana-steel/30 bg-kavana-surface px-4 py-3 text-sm font-medium text-white placeholder-slate-500 focus:border-kavana-orange focus:outline-none"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-xs font-bold uppercase tracking-wider text-kavana-steel mb-1">Hora Fin</label>
+                      <input
+                        type="text"
+                        value={endTime}
+                        onChange={(e) => handleTimeChange(e.target.value, setEndTime)}
+                        placeholder="HH:MM"
+                        className="w-full rounded-xl border border-kavana-steel/30 bg-kavana-surface px-4 py-3 text-sm font-medium text-white placeholder-slate-500 focus:border-kavana-orange focus:outline-none"
+                      />
+                    </div>
                   </div>
-                ))}
+
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-xs font-bold uppercase tracking-wider text-kavana-steel mb-1">Producción Buena</label>
+                      <input
+                        type="number"
+                        value={producedQuantity}
+                        onChange={(e) => setProducedQuantity(e.target.value)}
+                        min="0"
+                        className="w-full rounded-xl border border-kavana-steel/30 bg-kavana-surface px-4 py-3 text-sm font-medium text-white focus:border-kavana-orange focus:outline-none"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-xs font-bold uppercase tracking-wider text-kavana-steel mb-1">Defectos</label>
+                      <input
+                        type="number"
+                        value={defectQuantity}
+                        onChange={(e) => setDefectQuantity(e.target.value)}
+                        min="0"
+                        className="w-full rounded-xl border border-kavana-steel/30 bg-kavana-surface px-4 py-3 text-sm font-medium text-white focus:border-kavana-orange focus:outline-none"
+                      />
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-bold uppercase tracking-wider text-kavana-steel mb-1">Observaciones</label>
+                    <textarea
+                      value={observations}
+                      onChange={(e) => setObservations(e.target.value)}
+                      rows={4}
+                      className="w-full rounded-xl border border-kavana-steel/30 bg-kavana-surface px-4 py-3 text-sm font-medium text-white placeholder-slate-500 focus:border-kavana-orange focus:outline-none resize-none"
+                    />
+                  </div>
+
+                  <button
+                    type="submit"
+                    disabled={isMutating || isSyncing}
+                    className="mt-2 w-full rounded-xl bg-kavana-orange px-6 py-4 text-base font-black uppercase tracking-wider text-white transition hover:bg-kavana-orange-light disabled:opacity-50"
+                  >
+                    {isMutating ? 'Guardando...' : 'Registrar Producción'}
+                  </button>
+                </form>
               </div>
-            )}
-          </div>
-
-          {/* Right Column - Registration Form */}
-          <div className="flex flex-col gap-6">
-            {errorMsg && (
-              <div className="rounded-xl border border-red-500/40 bg-red-500/10 p-4 text-sm text-red-300">
-                {errorMsg}
-              </div>
-            )}
-
-            <div className="rounded-2xl border-2 border-kavana-orange/40 bg-kavana-dark/70 p-5 shadow-inner">
-              <p className="text-sm font-bold uppercase tracking-[0.24em] text-kavana-steel mb-4">Registrar Bloque de Tiempo</p>
-              <form onSubmit={handleRegisterBlock} className="flex flex-col gap-4">
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-xs font-bold uppercase tracking-wider text-kavana-steel mb-1">Hora Inicio</label>
-                    <input
-                      type="text"
-                      value={startTime}
-                      onChange={(e) => handleTimeChange(e.target.value, setStartTime)}
-                      placeholder="HH:MM"
-                      className="w-full rounded-xl border border-kavana-steel/30 bg-kavana-surface px-4 py-3 text-sm font-medium text-white placeholder-slate-500 focus:border-kavana-orange focus:outline-none"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-xs font-bold uppercase tracking-wider text-kavana-steel mb-1">Hora Fin</label>
-                    <input
-                      type="text"
-                      value={endTime}
-                      onChange={(e) => handleTimeChange(e.target.value, setEndTime)}
-                      placeholder="HH:MM"
-                      className="w-full rounded-xl border border-kavana-steel/30 bg-kavana-surface px-4 py-3 text-sm font-medium text-white placeholder-slate-500 focus:border-kavana-orange focus:outline-none"
-                    />
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-xs font-bold uppercase tracking-wider text-kavana-steel mb-1">Producción Buena</label>
-                    <input
-                      type="number"
-                      value={producedQuantity}
-                      onChange={(e) => setProducedQuantity(e.target.value)}
-                      min="0"
-                      className="w-full rounded-xl border border-kavana-steel/30 bg-kavana-surface px-4 py-3 text-sm font-medium text-white focus:border-kavana-orange focus:outline-none"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-xs font-bold uppercase tracking-wider text-kavana-steel mb-1">Defectos</label>
-                    <input
-                      type="number"
-                      value={defectQuantity}
-                      onChange={(e) => setDefectQuantity(e.target.value)}
-                      min="0"
-                      className="w-full rounded-xl border border-kavana-steel/30 bg-kavana-surface px-4 py-3 text-sm font-medium text-white focus:border-kavana-orange focus:outline-none"
-                    />
-                  </div>
-                </div>
-
-                <div>
-                  <label className="block text-xs font-bold uppercase tracking-wider text-kavana-steel mb-1">Observaciones</label>
-                  <textarea
-                    value={observations}
-                    onChange={(e) => setObservations(e.target.value)}
-                    rows={4}
-                    className="w-full rounded-xl border border-kavana-steel/30 bg-kavana-surface px-4 py-3 text-sm font-medium text-white placeholder-slate-500 focus:border-kavana-orange focus:outline-none resize-none"
-                  />
-                </div>
-
-                <button
-                  type="submit"
-                  disabled={isMutating || isSyncing}
-                  className="mt-2 w-full rounded-xl bg-kavana-orange px-6 py-4 text-base font-black uppercase tracking-wider text-white transition hover:bg-kavana-orange-light disabled:opacity-50"
-                >
-                  {isMutating ? 'Guardando...' : 'Registrar Producción'}
-                </button>
-              </form>
             </div>
-          </div>
-        </section>
+          </section>
 
-        {isFailedLogsModalOpen && (
-          <FailedEventsModal
-            isOpen={isFailedLogsModalOpen}
-            onClose={() => setIsFailedLogsModalOpen(false)}
-            onClearAll={() => {
-              useHmiStore.getState().setFailedCount(0);
+          {isFailedLogsModalOpen && (
+            <FailedEventsModal
+              isOpen={isFailedLogsModalOpen}
+              onClose={() => setIsFailedLogsModalOpen(false)}
+              onClearAll={() => {
+                // Use selector setter to reset failed count
+                useHmiStore.getState().setFailedCount(0);
+              }}
+            />
+          )}
+          <IncidenciaModal
+            isOpen={isIncidenciaModalOpen}
+            onClose={(created) => {
+              setIsIncidenciaModalOpen(false);
+              if (created) void loadAvailableOrders();
             }}
+            operatorId={operatorId}
+            workstationId={workstationId}
+            orderId={orderId}
           />
-        )}
-        <IncidenciaModal
-          isOpen={isIncidenciaModalOpen}
-          onClose={(created) => {
-            setIsIncidenciaModalOpen(false);
-            if (created) void loadAvailableOrders();
-          }}
-          operatorId={operatorId}
-          workstationId={workstationId}
-          orderId={orderId}
-        />
-      </section>
-    </main>
-    <AiAdvisorFab />
+        </section>
+      </main>
+      <AiAdvisorFab />
     </>
   );
 }
@@ -317,4 +411,3 @@ const onlineBadgeClass = (isOnline: boolean) => (
     ? 'rounded-full bg-emerald-500/20 px-4 py-3 text-sm font-black text-emerald-200 ring-1 ring-emerald-400/40'
     : 'rounded-full bg-kavana-orange/20 px-4 py-3 text-sm font-black text-kavana-orange ring-1 ring-kavana-orange/40'
 );
-

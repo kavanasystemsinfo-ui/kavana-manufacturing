@@ -9,6 +9,10 @@ WORKDIR /app
 # Copiar archivos del workspace
 COPY package.json package-lock.json ./
 COPY backend/ ./backend/
+COPY README.md ./
+COPY DECISIONS.md ./
+COPY SECURITY.md ./
+COPY docs/ ./docs/
 
 # Instalar dependencias y build
 RUN npm ci && \
