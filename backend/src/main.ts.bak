@@ -5,7 +5,6 @@ import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module.js';
 import { ZodFilter } from './zod.filter.js';
 import { GlobalExceptionFilter } from './common/filters/global-exception.filter.js';
-import { ApiDeprecationWarningMiddleware } from './common/middleware/deprecation.middleware.js';
 import type { ExceptionFilter, ArgumentsHost } from '@nestjs/common';
 import { HttpException } from '@nestjs/common';
 
@@ -28,7 +27,6 @@ async function bootstrap(): Promise<void> {
   });
   app.useGlobalFilters(new ZodFilter());
   app.useGlobalFilters(new GlobalExceptionFilter());
-  app.use(new ApiDeprecationWarningMiddleware());
 
   const port = Number(process.env.PORT ?? 3001);
   await app.listen(port);
