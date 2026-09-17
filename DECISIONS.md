@@ -19,6 +19,7 @@ de implementación. Git describe qué cambió; este documento explica por qué.
 | 003 | Offline-first con Dexie/IndexedDB + outbox | [`docs/adr/003-offline-first-dexie.md`](docs/adr/003-offline-first-dexie.md) |
 | 004 | UX Tunnel Vision (pantallas industriales, manos con guantes) | [`docs/adr/004-ux-tunnel-vision.md`](docs/adr/004-ux-tunnel-vision.md) |
 | 005 | Toolings: estimación preventiva de vida útil (no tracking sin hardware) | [`docs/adr/005-toolings-estimacion-preventiva.md`](docs/adr/005-toolings-estimacion-preventiva.md) |
+| 006 | Coste cero y modelos gratuitos como decisión explícita (asistentes con modelo gratuito: 11,3 s medidos frente a 36,4 s del de pago) | [`docs/adr/006-coste-cero-y-modelos-gratuitos.md`](docs/adr/006-coste-cero-y-modelos-gratuitos.md) |
 
 ## Decisiones de implementación (resumen)
 

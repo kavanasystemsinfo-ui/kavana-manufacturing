@@ -110,8 +110,24 @@ Cada decisión arquitectónica responde a un **problema concreto de planta** y s
 | **Offline-first (Dexie)** | Red inestable en planta | Cero pérdida de datos, sincronización FIFO | WebSockets (fallan sin conexión) → [ADR-003](docs/adr/003-offline-first-dexie.md) |
 | **UX Tunnel Vision** | Operarios con guantes industriales | Botones 64px+, modo tunel, sin distracciones | UI estándar 44px (insuficiente) → [ADR-004](docs/adr/004-ux-tunnel-vision.md) |
 | **TDD desde el inicio** | Evitar deuda técnica temprana | 286 tests backend, 26 frontend = confianza para refactor | Testing post-hoc (falla) → [CONTRIBUTING](CONTRIBUTING.md) |
+| **Modelos gratuitos y coste cero** | Demostrar ingeniería sin presupuesto | Asistentes con modelo gratuito por configuración: 11,3 s medidos frente a 36,4 s del de pago | Pago por pregunta en una demo personal → [ADR-006](docs/adr/006-coste-cero-y-modelos-gratuitos.md) |
 
 > 📘 **Todas las decisiones documentadas en:** [`DECISIONS.md`](DECISIONS.md) (consolidado) · [`docs/adr/`](docs/adr/) · [`docs/decisions-log.md`](docs/decisions-log.md) · [`DECISIONES_ESTRATEGICAS.md`](DECISIONES_ESTRATEGICAS.md)
+
+---
+
+## 💰 Cómo está construido y cómo lo construiría con presupuesto
+
+Kavana Manufacturing está construido para costar **0 €/mes** y servir a **un solo usuario real: su autor**. Es una restricción elegida, no una carencia disimulada, y el detalle con alternativas está en el [ADR-006](docs/adr/006-coste-cero-y-modelos-gratuitos.md). Cada punto lleva al lado qué cambiaría con clientes de verdad:
+
+- **Asistentes de IA:** recuperación de contexto con **TF-IDF en memoria** (sin embeddings ni base vectorial, coste 0) y un **modelo gratuito** de OpenRouter para redactar. Medido: **11,3 s** por respuesta frente a los 36,4 s del modelo de pago que usaba antes. Con clientes reales: modelo de pago con SLA y modelo de respaldo, y búsqueda semántica con embeddings si el corpus crece.
+- **Base de datos:** Neon serverless en nivel gratuito con multi-tenancy por RLS. Con clientes reales: plan con restauración amplia, réplicas y copias gestionadas (el aislamiento por RLS ya está, y está probado con tests).
+- **Cómputo:** Render free (una instancia, arranque en frío) para la API y Vercel para los paneles. Con clientes reales: instancias dedicadas y autoescalado.
+- **Operación:** CI en GitHub Actions con la cadena de migraciones y el smoke de base de datos; sin observabilidad externa. Con clientes reales: métricas, trazas, alertas con SLO y turno de guardia.
+- **Secretos y límites:** variables de entorno del proveedor y límite de intentos de autenticación en memoria. Con clientes reales: gestor de secretos con rotación y cuotas por usuario y plan.
+- **Demo:** datos de sesión acotados y ninguna integración con ERP real. Con clientes reales: conectores de planta, trazabilidad por operario y auditoría.
+
+Lo que **no** cambia entre los dos escenarios es lo que se evalúa aquí: aislamiento multi-tenant forzado en base de datos (RLS), offline-first con outbox para red inestable en planta, UX pensada para operarios con guantes, TDD desde el primer commit, CI que aplica la cadena completa de migraciones sobre una base limpia y documentación con alternativas evaluadas.
 
 ---
 
