@@ -14,8 +14,14 @@ async function bootstrap(): Promise<void> {
   const otel = await initOtelSDK();
 
   const app = await NestFactory.create(AppModule);
-  // Set global API version prefix
-  app.setGlobalPrefix('api/v1');
+  // OJO: el prefijo global `api/v1` NO se puede activar todavía. Todos los
+  // consumidores vivos usan rutas SIN versión: el frontend (rewrites de Vercel
+  // quitan el `/api` y llaman `/users`, `/production/…`) y la landing
+  // (`/ai-advisor/ask-tech`). Activarlo deja a los dos en 404 y la API solo
+  // responde en `/api/v1/*`. La migración a versión necesita su propio cambio:
+  // registrar el middleware de reescritura (`ApiVersioningMiddleware`), pasar
+  // los consumidores a `/api/v1` y verificar landing y frontend antes de
+  // encender el prefijo. Aquí vivía `app.setGlobalPrefix('api/v1')`.
   const frontendOrigen = process.env.FRONTEND_ORIGIN ?? 'http://localhost:5173';
   app.enableCors({
     origin: (origin: string | undefined, cb: (err: Error | null, allow?: boolean) => void) => {
