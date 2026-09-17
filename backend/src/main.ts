@@ -28,7 +28,12 @@ async function bootstrap(): Promise<void> {
   });
   app.useGlobalFilters(new ZodFilter());
   app.useGlobalFilters(new GlobalExceptionFilter());
-  app.use(new ApiDeprecationWarningMiddleware());
+  // Express solo acepta funciones en app.use(): pasar la instancia de clase
+  // (new ApiDeprecationWarningMiddleware()) mata el arranque con
+  // "TypeError: app.use() requires a middleware function" y Render mantiene la
+  // versión anterior en vivo. Se registra el método ya ligado a la instancia.
+  const avisoDeprecacion = new ApiDeprecationWarningMiddleware();
+  app.use(avisoDeprecacion.use.bind(avisoDeprecacion));
 
   const port = Number(process.env.PORT ?? 3001);
   await app.listen(port);
