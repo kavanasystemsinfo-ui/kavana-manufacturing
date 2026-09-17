@@ -1,13 +1,14 @@
 const { Client } = require("pg");
 const crypto = require("crypto");
 
-const c = new Client({
-  host: "ep-steep-cell-a21rlab1.eu-central-1.aws.neon.tech",
-  port: 5432, database: "neondb",
-  user: "neondb_owner",
-  password: "npg_dqTRbj8nE2MB",
-  ssl: { rejectUnauthorized: false }
-});
+// La credencial real vive en NEON_DATABASE_URL (nunca en el repo)
+function requireEnvNEON() {
+  const url = process.env.NEON_DATABASE_URL;
+  if (!url) { console.error('Define NEON_DATABASE_URL'); process.exit(1); }
+  return url;
+}
+
+const c = new Client({ connectionString: requireEnvNEON() });
 
 function uuid() { return crypto.randomUUID(); }
 
