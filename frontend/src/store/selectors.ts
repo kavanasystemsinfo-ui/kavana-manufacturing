@@ -27,9 +27,24 @@ export const useRole = () => useHmiStore(state => state.role);
  * These return the functions that can be called to update state or perform actions.
  */
 
-export const useSetOnlineStatus = () => useHmiStore(state => state.setOnlineStatus);
+export const useSetCapabilities = () => useHmiStore(state => state.setCapabilities);
+export const useSetAvailableOrders = () => useHmiStore(state => state.setAvailableOrders);
+export const useSetIsLoadingOrders = () => useHmiStore(state => state.setIsLoadingOrders);
+export const useSetSelectedOrderCustomFields = () => useHmiStore(state => state.setSelectedOrderCustomFields);
+export const useSetActiveOrder = () => useHmiStore(state => state.setActiveOrder);
+export const useSetCurrentStatus = () => useHmiStore(state => state.setCurrentStatus);
+export const useSetOperatorId = () => useHmiStore(state => state.setOperatorId);
+export const useSetWorkstationId = () => useHmiStore(state => state.setWorkstationId);
+export const useSetIsOnline = () => useHmiStore(state => state.setIsOnline);
 export const useSetPendingCount = () => useHmiStore(state => state.setPendingCount);
 export const useSetFailedCount = () => useHmiStore(state => state.setFailedCount);
+export const useSetIsMutating = () => useHmiStore(state => state.setIsMutating);
+export const useSetIsSyncing = () => useHmiStore(state => state.setIsSyncing);
+export const useSetTenantId = () => useHmiStore(state => state.setTenantId);
+export const useSetUserId = () => useHmiStore(state => state.setUserId);
+export const useSetRole = () => useHmiStore(state => state.setRole);
+
+export const useSetOnlineStatus = () => useHmiStore(state => state.setOnlineStatus);
 export const useLoadCapabilities = () => useHmiStore(state => state.loadCapabilities);
 export const useLoadOperatorContext = () => useHmiStore(state => state.loadOperatorContext);
 export const useLoadAvailableOrders = () => useHmiStore(state => state.loadAvailableOrders);
