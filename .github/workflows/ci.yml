@@ -31,14 +31,6 @@ jobs:
       - name: Install root dependencies
         run: npm ci
 
-      - name: Install backend dependencies
-        run: npm ci
-        working-directory: ./backend
-
-      - name: Install frontend dependencies
-        run: npm ci
-        working-directory: ./frontend
-
       - name: Lint backend
         run: npm run lint
         working-directory: ./backend
@@ -67,14 +59,6 @@ jobs:
       - name: Install root dependencies
         run: npm ci
 
-      - name: Install backend dependencies
-        run: npm ci
-        working-directory: ./backend
-
-      - name: Install frontend dependencies
-        run: npm ci
-        working-directory: ./frontend
-
       - name: TypeCheck backend
         run: npx tsc --noEmit
         working-directory: ./backend
@@ -102,39 +86,31 @@ jobs:
           --health-retries=5
 
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
+          - name: Checkout repository
+            uses: actions/checkout@v4
 
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: ${{ env.NODE_VERSION }}
-          cache: 'npm'
-          cache-dependency-path: |
-            package-lock.json
-            backend/package-lock.json
-            frontend/package-lock.json
+          - name: Setup Node.js
+            uses: actions/setup-node@v4
+            with:
+              node-version: ${{ env.NODE_VERSION }}
+              cache: 'npm'
+              cache-dependency-path: |
+                package-lock.json
+                backend/package-lock.json
+                frontend/package-lock.json
 
-      - name: Install root dependencies
-        run: npm ci
+          - name: Install root dependencies
+            run: npm ci
 
-      - name: Install backend dependencies
-        run: npm ci
-        working-directory: ./backend
+          - name: Test backend
+            env:
+              DATABASE_URL: postgresql://kavana:kavana_pass@localhost:5432/kavana_test
+            run: npm run test
+            working-directory: ./backend
 
-      - name: Install frontend dependencies
-        run: npm ci
-        working-directory: ./frontend
-
-      - name: Test backend
-        env:
-          DATABASE_URL: postgresql://kavana:kavana_pass@localhost:5432/kavana_test
-        run: npm run test
-        working-directory: ./backend
-
-      - name: Test frontend
-        run: npm run test
-        working-directory: ./frontend
+          - name: Test frontend
+            run: npm run test
+            working-directory: ./frontend
 
   docker-size:
     name: Docker Image Size
@@ -156,10 +132,6 @@ jobs:
 
       - name: Install root dependencies
         run: npm ci
-
-      - name: Install backend dependencies
-        run: npm ci
-        working-directory: ./backend
 
       - name: Build backend Docker image
         run: |
@@ -197,14 +169,6 @@ jobs:
 
       - name: Install root dependencies
         run: npm ci
-
-      - name: Install backend dependencies
-        run: npm ci
-        working-directory: ./backend
-
-      - name: Install frontend dependencies
-        run: npm ci
-        working-directory: ./frontend
 
       - name: Build backend
         run: npm run build
