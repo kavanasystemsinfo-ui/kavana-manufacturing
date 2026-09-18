@@ -17,6 +17,14 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Verify frontend test file is clean
+        run: |
+          echo "=== Verifying imageCompress.spec.ts ==="
+          head -50 frontend/src/utils/imageCompress.spec.ts
+          echo "=== Running lint ==="
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
