@@ -80,7 +80,7 @@ describe('compressImage', () => {
   });
 
   it('deja de bajar calidad cuando el blob ya cabe en el límite', async () => {
-    let qualityCalls: (number | undefined)[] = [];
+    const qualityCalls: (number | undefined)[] = [];
     mockCanvas.toBlob = vi.fn((cb: (b: Blob | null) => void, _type: string, quality?: number) => {
       qualityCalls.push(quality);
       cb(new Blob([`fake-${quality ?? 0}`], { type: 'image/jpeg' }));
