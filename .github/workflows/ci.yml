@@ -24,6 +24,12 @@ jobs:
         run: |
           echo "=== Verifying imageCompress.spec.ts ==="
           head -50 frontend/src/utils/imageCompress.spec.ts
+          echo "=== Raw bytes of lines 10-12 ==="
+          sed -n '10,12p' frontend/src/utils/imageCompress.spec.ts | od -c
+          echo "=== Raw bytes of lines 26-28 ==="
+          sed -n '26,28p' frontend/src/utils/imageCompress.spec.ts | od -c
+          echo "=== Raw bytes of lines 33-35 ==="
+          sed -n '33,35p' frontend/src/utils/imageCompress.spec.ts | od -c
           echo "=== Running lint ==="
 
       - name: Setup Node.js
