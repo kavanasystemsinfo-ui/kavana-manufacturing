@@ -27,7 +27,8 @@ export class GlobalExceptionFilter implements ExceptionFilter {
     }
 
     // For everything else, treat as unexpected server error.
-    console.error('[GLOBAL_ERROR] Uncaught exception:', exception);
+    const errorMessage = exception instanceof Error ? exception.message : String(exception);
+    console.error('[GLOBAL_ERROR] Uncaught exception:', errorMessage);
     // Optionally add tenant ID if available via request headers or custom property.
     const tenantId =
       request.headers['x-tenant-id'] ?? (request as any).tenantId ?? 'unknown';
