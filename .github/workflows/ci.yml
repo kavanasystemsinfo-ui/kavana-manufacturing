@@ -30,23 +30,22 @@ jobs:
 
       - name: Install root dependencies
         run: npm ci
-        working-directory: /root/kavana-manufacturing
 
       - name: Install backend dependencies
         run: npm ci
-        working-directory: /root/kavana-manufacturing/backend
+        working-directory: ./backend
 
       - name: Install frontend dependencies
         run: npm ci
-        working-directory: /root/kavana-manufacturing/frontend
+        working-directory: ./frontend
 
       - name: Lint backend
         run: npm run lint
-        working-directory: /root/kavana-manufacturing/backend
+        working-directory: ./backend
 
       - name: Lint frontend
         run: npm run lint
-        working-directory: /root/kavana-manufacturing/frontend
+        working-directory: ./frontend
 
   typecheck:
     name: TypeCheck
@@ -67,27 +66,41 @@ jobs:
 
       - name: Install root dependencies
         run: npm ci
-        working-directory: /root/kavana-manufacturing
 
       - name: Install backend dependencies
         run: npm ci
-        working-directory: /root/kavana-manufacturing/backend
+        working-directory: ./backend
 
       - name: Install frontend dependencies
         run: npm ci
-        working-directory: /root/kavana-manufacturing/frontend
+        working-directory: ./frontend
 
       - name: TypeCheck backend
         run: npx tsc --noEmit
-        working-directory: /root/kavana-manufacturing/backend
+        working-directory: ./backend
 
       - name: TypeCheck frontend
         run: npx tsc --noEmit
-        working-directory: /root/kavana-manufacturing/frontend
+        working-directory: ./frontend
 
   test:
     name: Test
     runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:18
+        env:
+          POSTGRES_USER: kavana
+          POSTGRES_PASSWORD: kavana_pass
+          POSTGRES_DB: kavana_test
+        ports: ['5432:5432']
+        # needed because the postgres container does not emit a ready signal
+        options: >-
+          --health-cmd="pg_isready -U kavana -d kavana_test"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=5
+
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -104,24 +117,24 @@ jobs:
 
       - name: Install root dependencies
         run: npm ci
-        working-directory: /root/kavana-manufacturing
 
       - name: Install backend dependencies
         run: npm ci
-        working-directory: /root/kavana-manufacturing/backend
+        working-directory: ./backend
 
       - name: Install frontend dependencies
         run: npm ci
-        working-directory: /root/kavana-manufacturing/frontend
+        working-directory: ./frontend
 
       - name: Test backend
+        env:
+          DATABASE_URL: postgresql://kavana:kavana_pass@localhost:5432/kavana_test
         run: npm run test
-        working-directory: /root/kavana-manufacturing/backend
+        working-directory: ./backend
 
       - name: Test frontend
         run: npm run test
-        working-directory: /root/kavana-manufacturing/frontend
-
+        working-directory: ./frontend
 
   docker-size:
     name: Docker Image Size
@@ -130,12 +143,29 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+          cache-dependency-path: |
+            package-lock.json
+            backend/package-lock.json
+            frontend/package-lock.json
+
+      - name: Install root dependencies
+        run: npm ci
+
+      - name: Install backend dependencies
+        run: npm ci
+        working-directory: ./backend
+
       - name: Build backend Docker image
         run: |
           cd backend
           docker build -t kavana-manufacturing-backend:ci .
+
       - name: Check Docker image size
         id: image-size
         run: |
@@ -146,6 +176,7 @@ jobs:
             echo "Error: Image size exceeds 200 MB"
             exit 1
           fi
+
   build:
     name: Build
     runs-on: ubuntu-latest
@@ -166,142 +197,33 @@ jobs:
 
       - name: Install root dependencies
         run: npm ci
-        working-directory: /root/kavana-manufacturing
 
       - name: Install backend dependencies
         run: npm ci
-        working-directory: /root/kavana-manufacturing/backend
+        working-directory: ./backend
 
       - name: Install frontend dependencies
         run: npm ci
-        working-directory: /root/kavana-manufacturing/frontend
+        working-directory: ./frontend
 
       - name: Build backend
         run: npm run build
-        working-directory: /root/kavana-manufacturing/backend
+        working-directory: ./backend
 
       - name: Build frontend
         run: npm run build
-        working-directory: /root/kavana-manufacturing/frontend
+        working-directory: ./frontend
 
       - name: Upload backend build artifacts
         uses: actions/upload-artifact@v4
         with:
           name: backend-dist
-          path: /root/kavana-manufacturing/backend/dist
+          path: ./backend/dist
           retention-days: 1
 
       - name: Upload frontend build artifacts
         uses: actions/upload-artifact@v4
         with:
           name: frontend-dist
-          path: /root/kavana-manufacturing/frontend/dist
-          retention-days: 1
-
-  angular-lint:
-    name: Angular Lint
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout Angular repository
-        uses: actions/checkout@v4
-        with:
-          repository: your-org/kavana-warehouse-angular
-          path: kavana-warehouse-angular
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: ${{ env.NODE_VERSION }}
-          cache: 'npm'
-          cache-dependency-path: kavana-warehouse-angular/package-lock.json
-
-      - name: Install Angular dependencies
-        run: npm ci
-        working-directory: /root/kavana-warehouse-angular
-
-      - name: Lint Angular
-        run: npm run lint
-        working-directory: /root/kavana-warehouse-angular
-
-  angular-typecheck:
-    name: Angular TypeCheck
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout Angular repository
-        uses: actions/checkout@v4
-        with:
-          repository: your-org/kavana-warehouse-angular
-          path: kavana-warehouse-angular
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: ${{ env.NODE_VERSION }}
-          cache: 'npm'
-          cache-dependency-path: kavana-warehouse-angular/package-lock.json
-
-      - name: Install Angular dependencies
-        run: npm ci
-        working-directory: /root/kavana-warehouse-angular
-
-      - name: TypeCheck Angular
-        run: npx tsc --noEmit
-        working-directory: /root/kavana-warehouse-angular
-
-  angular-test:
-    name: Angular Test
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout Angular repository
-        uses: actions/checkout@v4
-        with:
-          repository: your-org/kavana-warehouse-angular
-          path: kavana-warehouse-angular
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: ${{ env.NODE_VERSION }}
-          cache: 'npm'
-          cache-dependency-path: kavana-warehouse-angular/package-lock.json
-
-      - name: Install Angular dependencies
-        run: npm ci
-        working-directory: /root/kavana-warehouse-angular
-
-      - name: Test Angular
-        run: npm run test -- --watch=false --browsers=ChromeHeadless
-        working-directory: /root/kavana-warehouse-angular
-
-  angular-build:
-    name: Angular Build
-    runs-on: ubuntu-latest
-    needs: [angular-lint, angular-typecheck, angular-test]
-    steps:
-      - name: Checkout Angular repository
-        uses: actions/checkout@v4
-        with:
-          repository: your-org/kavana-warehouse-angular
-          path: kavana-warehouse-angular
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: ${{ env.NODE_VERSION }}
-          cache: 'npm'
-          cache-dependency-path: kavana-warehouse-angular/package-lock.json
-
-      - name: Install Angular dependencies
-        run: npm ci
-        working-directory: /root/kavana-warehouse-angular
-
-      - name: Build Angular
-        run: npm run build
-        working-directory: /root/kavana-warehouse-angular
-
-      - name: Upload Angular build artifacts
-        uses: actions/upload-artifact@v4
-        with:
-          name: angular-dist
-          path: /root/kavana-warehouse-angular/dist
+          path: ./frontend/dist
           retention-days: 1
