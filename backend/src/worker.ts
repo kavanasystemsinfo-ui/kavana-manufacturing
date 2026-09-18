@@ -26,4 +26,9 @@ async function bootstrap() {
   process.on('SIGINT', shutdown);
 }
 
-void bootstrap();
+// If this file is run directly, execute the bootstrap
+if (require.main === module) {
+  bootstrap();
+}
+
+export { bootstrap };
