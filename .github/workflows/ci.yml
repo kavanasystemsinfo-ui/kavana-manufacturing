@@ -22,12 +22,7 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: ${{ env.NODE_VERSION }}
-          cache: 'npm'
-          cache-dependency-path: |
-            package-lock.json
-            backend/package-lock.json
-            frontend/package-lock.json
-            .github/workflows/ci.yml
+          # No cache for lint job to avoid stale frontend cache
 
       - name: Install root dependencies
         run: npm ci
@@ -52,6 +47,11 @@ jobs:
         with:
           node-version: ${{ env.NODE_VERSION }}
           cache: 'npm'
+          cache-dependency-path: |
+            package-lock.json
+            backend/package-lock.json
+            frontend/package-lock.json
+            .github/workflows/ci.yml
           cache-dependency-path: |
             package-lock.json
             backend/package-lock.json
@@ -132,6 +132,11 @@ jobs:
             backend/package-lock.json
             frontend/package-lock.json
             .github/workflows/ci.yml
+          cache-dependency-path: |
+            package-lock.json
+            backend/package-lock.json
+            frontend/package-lock.json
+            .github/workflows/ci.yml
 
       - name: Install root dependencies
         run: npm ci
@@ -165,6 +170,11 @@ jobs:
         with:
           node-version: ${{ env.NODE_VERSION }}
           cache: 'npm'
+          cache-dependency-path: |
+            package-lock.json
+            backend/package-lock.json
+            frontend/package-lock.json
+            .github/workflows/ci.yml
           cache-dependency-path: |
             package-lock.json
             backend/package-lock.json
