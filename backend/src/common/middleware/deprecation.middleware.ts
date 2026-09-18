@@ -13,7 +13,7 @@ export class ApiDeprecationWarningMiddleware implements NestMiddleware {
     if (path.startsWith('/api/') && !path.startsWith('/api/v1/')) {
       // Warning header format: Warning: <code> <host> "<message>" <date>
       // We'll use a simple custom format or standard: 299 - "Deprecated API endpoint. Use /api/v1/ instead."
-      res.setHeader('Warning', '299 - \"Deprecated API endpoint. Use /api/v1/ instead.\"');
+      res.setHeader('Warning', '299 - "Deprecated API endpoint. Use /api/v1/ instead."');
     }
     next();
   }

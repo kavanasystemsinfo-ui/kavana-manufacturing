@@ -18,7 +18,7 @@ export class ApiVersioningMiddleware implements NestMiddleware {
       const redirectUrl = newPath + queryString;
       // Set a header to inform clients
       res.setHeader('Deprecation', 'true');
-      res.setHeader('Warning', '299 - \"API version deprecated. Use /api/v1/ instead.\"');
+      res.setHeader('Warning', '299 - "API version deprecated. Use /api/v1/ instead."');
       // Optionally, you could redirect with 301, but we choose to forward internally.
       // For simplicity, we rewrite the request URL and let the router handle it.
       req.url = redirectUrl;
