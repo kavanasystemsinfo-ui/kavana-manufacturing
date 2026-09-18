@@ -1,4 +1,5 @@
 import logo from '../../logo.png';
+import { useHmiStore } from './store/hmi-store.js';
 import { useOperatorPanel } from './hooks/useOperatorPanel.js';
 import { 
   useCapabilities, 

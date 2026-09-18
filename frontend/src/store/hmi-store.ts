@@ -58,6 +58,20 @@ interface HmiState {
   setOnlineStatus: (status: boolean) => void;
   setPendingCount: (count: number) => void;
   setFailedCount: (count: number) => void;
+  setCapabilities: (caps: TenantCapabilities | null) => void;
+  setAvailableOrders: (orders: AvailableOrder[]) => void;
+  setIsLoadingOrders: (loading: boolean) => void;
+  setSelectedOrderCustomFields: (fields: Record<string, any> | null) => void;
+  setActiveOrder: (order: ProductionOrder | null) => void;
+  setCurrentStatus: (status: ProductionStatus) => void;
+  setOperatorId: (id: string | null) => void;
+  setWorkstationId: (id: string | null) => void;
+  setIsOnline: (status: boolean) => void;
+  setIsMutating: (mutating: boolean) => void;
+  setIsSyncing: (syncing: boolean) => void;
+  setTenantId: (id: string) => void;
+  setUserId: (id: string) => void;
+  setRole: (role: string) => void;
   loadCapabilities: () => Promise<void>;
   loadOperatorContext: () => Promise<void>;
   loadAvailableOrders: () => Promise<void>;
@@ -153,6 +167,22 @@ export const useHmiStore = create<HmiState>()((set, get) => ({
   setOnlineStatus: (status) => set({ isOnline: status }),
   setPendingCount: (count) => set({ pendingCount: count }),
   setFailedCount: (count) => set({ failedCount: count }),
+
+  // Setters used by OperatorPanel
+  setCapabilities: (caps) => set({ capabilities: caps }),
+  setAvailableOrders: (orders) => set({ availableOrders: orders }),
+  setIsLoadingOrders: (loading) => set({ isLoadingOrders: loading }),
+  setSelectedOrderCustomFields: (fields) => set({ selectedOrderCustomFields: fields }),
+  setActiveOrder: (order) => set({ activeOrder: order }),
+  setCurrentStatus: (status) => set({ currentStatus: status }),
+  setOperatorId: (id) => set({ operatorId: id }),
+  setWorkstationId: (id) => set({ workstationId: id }),
+  setIsOnline: (status) => set({ isOnline: status }),
+  setIsMutating: (mutating) => set({ isMutating: mutating }),
+  setIsSyncing: (syncing) => set({ isSyncing: syncing }),
+  setTenantId: (id) => set({ tenantId: id }),
+  setUserId: (id) => set({ userId: id }),
+  setRole: (role) => set({ role: role }),
 
   loadCapabilities: async () => {
     const activeTenantId = get().tenantId;
