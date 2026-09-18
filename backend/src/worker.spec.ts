@@ -1,23 +1,34 @@
 import { describe, it, expect, vi } from 'vitest';
-import { bootstrap } from './worker.js';
+
+// El worker arranca el contexto REAL de Nest con Redis: en CI no hay Redis
+// y NestFactory aborta el proceso al fallar la inicialización. Se mockea el
+// módulo entero: lo que se prueba es el cableado de shutdown del bootstrap,
+// no la integración con BullMQ.
+vi.mock('@nestjs/core', () => ({
+  NestFactory: {
+    createApplicationContext: vi.fn().mockResolvedValue({
+      close: vi.fn().mockResolvedValue(undefined),
+    }),
+  },
+}));
 
 describe('worker bootstrap', () => {
-  it('should call NestFactory.createApplicationContext', async () => {
-    const createAppCtxSpy = vi.spyOn(require('@nestjs/core'), 'NestFactory').mockImplementation(() => ({
-      createApplicationContext: vi.fn().mockResolvedValue({
-        close: vi.fn().mockResolvedValue(undefined)
-      })
-    }) as any);
-    const consoleSpy = vi.spyOn(console, 'log').mockImplementation(() => {});
+  it('arranca el contexto de Nest y registra el apagado limpio', async () => {
+    const { bootstrap } = await import('./worker.js');
+    const logSpy = vi.spyOn(console, 'log').mockImplementation(() => {});
     const onSpy = vi.fn();
+    const exitSpy = vi.fn();
     vi.stubGlobal('process', {
+      env: { REDIS_HOST: 'localhost', REDIS_PORT: '6379' },
       on: onSpy,
-      exit: vi.fn()
+      exit: exitSpy,
     } as any);
     await bootstrap();
-    expect(createAppCtxSpy).toHaveBeenCalled();
+    const { NestFactory } = await import('@nestjs/core');
+    expect(NestFactory.createApplicationContext).toHaveBeenCalled();
     expect(onSpy).toHaveBeenCalledWith('SIGTERM', expect.any(Function));
     expect(onSpy).toHaveBeenCalledWith('SIGINT', expect.any(Function));
-    consoleSpy.mockRestore();
+    logSpy.mockRestore();
+    vi.unstubAllGlobals();
   });
 });

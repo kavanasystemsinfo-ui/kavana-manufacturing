@@ -26,10 +26,21 @@ describe('TechnicalAdvisorService', () => {
     expect((service as any).esCompleja('¿Cuántas órdenes hay hoy?')).toBe(false);
   });
 
-  it('devuelve "no documentado" si no hay contexto suficiente', async () => {
+  it('no llama al LLM y devuelve sugerencias si no hay contexto suficiente', async () => {
+    // Contrato real: sin documentos no hay llamada a OpenRouter (coste 0),
+    // la respuesta es la de respaldo con sugerencias y modelo null.
+    const buscarSpy = vi
+      .spyOn(service as any, 'buscar')
+      .mockReturnValue([]);
+    const llmSpy = vi
+      .spyOn(service as any, 'llamarOpenRouter');
     const result = await service.responder('fake-key-123', 'zzz qqq xxx yyy');
-    expect(result.respuesta).toContain('No encuentro nada en la documentación');
+    expect(result.respuesta).toContain('no tengo esa información');
     expect(result.fuentes).toEqual([]);
+    expect(result.modelo).toBeNull();
+    expect(llmSpy).not.toHaveBeenCalled();
+    buscarSpy.mockRestore();
+    llmSpy.mockRestore();
   });
 
   it('falla claro si no hay API key', async () => {
