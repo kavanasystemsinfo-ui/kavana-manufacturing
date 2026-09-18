@@ -52,11 +52,6 @@ jobs:
             backend/package-lock.json
             frontend/package-lock.json
             .github/workflows/ci.yml
-          cache-dependency-path: |
-            package-lock.json
-            backend/package-lock.json
-            frontend/package-lock.json
-            .github/workflows/ci.yml
 
       - name: Install root dependencies
         run: npm ci
@@ -132,11 +127,6 @@ jobs:
             backend/package-lock.json
             frontend/package-lock.json
             .github/workflows/ci.yml
-          cache-dependency-path: |
-            package-lock.json
-            backend/package-lock.json
-            frontend/package-lock.json
-            .github/workflows/ci.yml
 
       - name: Install root dependencies
         run: npm ci
@@ -170,11 +160,6 @@ jobs:
         with:
           node-version: ${{ env.NODE_VERSION }}
           cache: 'npm'
-          cache-dependency-path: |
-            package-lock.json
-            backend/package-lock.json
-            frontend/package-lock.json
-            .github/workflows/ci.yml
           cache-dependency-path: |
             package-lock.json
             backend/package-lock.json
