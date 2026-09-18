@@ -14,7 +14,9 @@ export interface ClerkAuthPayload {
   [key: string]: unknown;
 }
 
+// eslint-disable-next-line @typescript-eslint/no-namespace
 declare global {
+  // eslint-disable-next-line @typescript-eslint/no-namespace
   namespace Express {
     interface Request {
       clerkAuth?: ClerkAuthPayload;
