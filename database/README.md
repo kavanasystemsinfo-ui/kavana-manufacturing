@@ -4,7 +4,10 @@ Este directorio contiene las migraciones PostgreSQL que construyen el núcleo se
 
 ## Estado del documento
 
-- **Última actualización:** 2026-07-04. Smoke runner actualizado con migraciones 000-013.
+- **Última actualización:** 2026-09-22.
+- La lista de migraciones de abajo es histórica y se detiene en la 013: la fuente
+  de verdad es el directorio [`migrations/`](migrations/) (39 ficheros). El runner
+  de smoke las lee del directorio, así que aplica todas, no solo las listadas.
 
 ## Principios
 
@@ -86,6 +89,27 @@ Este directorio contiene las migraciones PostgreSQL que construyen el núcleo se
 
 - [`tests/001_rls_isolation_smoke.sql`](tests/001_rls_isolation_smoke.sql:1) valida aislamiento RLS tras las migraciones `000..004`.
 - [`tests/002_tenant_governance_smoke.sql`](tests/002_tenant_governance_smoke.sql:1) valida gobernanza de tenant tras aplicar la migración `005`.
+
+## Seed de desarrollo
+
+[`seed.sql`](seed.sql:1) crea el tenant demo y las tres cuentas que anuncia la
+pantalla de login (`frontend/src/LoginPage.tsx`):
+
+- `admin` / `admin123` — tenant_admin
+- `047` / `kavana` — supervisor
+- `1094` / `kavana` — operario
+
+```bash
+psql "$DATABASE_URL" -f database/seed.sql
+```
+
+Es idempotente y se puede aplicar sobre una base ya migrada. **Solo para
+desarrollo**: son credenciales publicadas en la UI del demo, así que aplicarlo
+contra producción crearía un administrador con contraseña conocida.
+
+Las contraseñas se guardan en el formato legacy `salt:sha256(salt+password)` que
+`AuthLoginService.verifyPassword` acepta; en el primer login correcto el backend
+las re-hashea a scrypt automáticamente.
 
 ## Ejecución real sin `psql`
 

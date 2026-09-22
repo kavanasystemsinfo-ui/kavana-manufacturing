@@ -13,6 +13,7 @@ import { LoginPage } from './LoginPage.js';
 import { LandingPage } from './LandingPage.js';
 import { getSubdomain, getTenantFromUrl } from './utils/subdomain.js';
 import { MobilePhotoUpload } from './pages/MobilePhotoUpload.js';
+import { OfflineBanner } from './components/ui/OfflineBanner.js';
 import { purgeLocalData } from './db/local-db.js';
 
 interface AuthState {
@@ -69,7 +70,7 @@ function handleLogoutStorage(): void {
   localStorage.removeItem('kavana_tenant_name');
 }
 
-export function App() {
+export function AppRoutes() {
   const theme = useThemeStore((s) => s.theme);
   const path = window.location.pathname;
   const subdomain = getSubdomain();
@@ -185,6 +186,22 @@ export function App() {
       >
         Salir ({auth.tenantName})
       </button>
+    </>
+  );
+}
+
+/**
+ * Envoltorio de la aplicación.
+ *
+ * El aviso de desconexión vive aquí y no dentro de cada panel: es estado
+ * global y así cubre de una vez los tres roles, sus variantes clásicas y las
+ * pantallas de login.
+ */
+export function App() {
+  return (
+    <>
+      <OfflineBanner />
+      <AppRoutes />
     </>
   );
 }

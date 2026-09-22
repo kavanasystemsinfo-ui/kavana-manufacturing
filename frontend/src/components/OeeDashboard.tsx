@@ -1,6 +1,8 @@
 import { useEffect, useState } from 'react';
 import { callApiWithTimeout } from '../api/client.js';
 import { useThemeStore } from '../store/theme-store.js';
+import { usePeriodo } from '../store/periodo-store.js';
+import { PeriodoSelector } from './PeriodoSelector.js';
 
 interface OeeByWorkstation {
   workstation_id: string;
@@ -29,6 +31,7 @@ interface OeeSummary {
 export function OeeDashboard() {
   const theme = useThemeStore((s) => s.theme);
   const isClassic = theme === 'classic';
+  const { from, to } = usePeriodo();
 
   const [data, setData] = useState<OeeByWorkstation[]>([]);
   const [selectedWs, setSelectedWs] = useState<string | null>(null);
@@ -36,25 +39,30 @@ export function OeeDashboard() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  const today = new Date().toISOString().slice(0, 10);
-  const startDate = `${today}T00:00:00Z`;
-  const endDate = `${today}T23:59:59Z`;
+  // 'Todo' llega como rango abierto; el endpoint espera fechas concretas, así
+  // que se manda un límite inferior suficientemente antiguo en vez de dejar los
+  // parámetros vacíos.
+  const startDate = `${from ?? '1970-01-01'}T00:00:00Z`;
+  const endDate = `${to ?? new Date().toISOString().slice(0, 10)}T23:59:59Z`;
 
   useEffect(() => {
-    void loadOeeData();
-  }, []);
+    // Se pasan las fechas como argumentos en lugar de leerlas del cierre: es el
+    // fallo clásico de este selector, donde cada cambio mostraba el periodo
+    // anterior porque el estado aún no se había actualizado.
+    void loadOeeData(startDate, endDate);
+  }, [startDate, endDate]);
 
   useEffect(() => {
     if (selectedWs) {
-      void loadSummary(selectedWs);
+      void loadSummary(selectedWs, startDate, endDate);
     }
-  }, [selectedWs]);
+  }, [selectedWs, startDate, endDate]);
 
-  async function loadOeeData() {
+  async function loadOeeData(rangeStart: string, rangeEnd: string) {
     try {
       setLoading(true);
       const result = await callApiWithTimeout<OeeByWorkstation[]>(
-        `/oee/workstations?startDate=${startDate}&endDate=${endDate}`,
+        `/oee/workstations?startDate=${rangeStart}&endDate=${rangeEnd}`,
       );
       setData(result ?? []);
     } catch (err) {
@@ -64,10 +72,10 @@ export function OeeDashboard() {
     }
   }
 
-  async function loadSummary(wsId: string) {
+  async function loadSummary(wsId: string, rangeStart: string, rangeEnd: string) {
     try {
       const result = await callApiWithTimeout<OeeSummary>(
-        `/oee/workstation/${wsId}?startDate=${startDate}&endDate=${endDate}`,
+        `/oee/workstation/${wsId}?startDate=${rangeStart}&endDate=${rangeEnd}`,
       );
       setSummary(result);
     } catch (err) {
@@ -102,7 +110,7 @@ export function OeeDashboard() {
     return (
       <div className={`p-6 rounded-lg border ${isClassic ? 'bg-red-50 border-red-200 text-red-700' : 'bg-rose-500/10 border-rose-500/30 text-rose-300'}`}>
         <p className="font-medium">Error: {error}</p>
-        <button onClick={() => { setError(null); void loadOeeData(); }} className="mt-2 text-sm underline">Reintentar</button>
+        <button onClick={() => { setError(null); void loadOeeData(startDate, endDate); }} className="mt-2 text-sm underline">Reintentar</button>
       </div>
     );
   }
@@ -113,10 +121,9 @@ export function OeeDashboard() {
         <h2 className={`text-xl font-bold ${isClassic ? 'text-slate-900' : 'text-white'}`}>
           Dashboard OEE
         </h2>
-        <span className={`text-xs ${isClassic ? 'text-slate-500' : 'text-slate-400'}`}>
-          {new Date().toLocaleDateString('es-ES', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
-        </span>
       </div>
+
+      <PeriodoSelector isClassic={isClassic} />
 
       {/* OEE Grid */}
       <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">

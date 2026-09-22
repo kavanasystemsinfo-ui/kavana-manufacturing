@@ -9,8 +9,11 @@ services:
       POSTGRES_PASSWORD: kavana_v3_password
       POSTGRES_DB: kavana_v3
     ports:
-      # Exponemos en el 5433 local para no pisar el contenedor Cleanops que usa el 5432
-      - "5433:5432"
+      # Exponemos en el 5433 local para no pisar el contenedor Cleanops que usa
+      # el 5432. Configurable con DB_PORT: en una máquina donde el 5433 ya esté
+      # ocupado (por ejemplo otro Postgres), `DB_PORT=5434 docker compose up -d`.
+      # Solo en loopback: la base no debe ser alcanzable desde la red.
+      - "127.0.0.1:${DB_PORT:-5433}:5432"
     volumes:
       - kavana_v3_pgdata:/var/lib/postgresql/data
     restart: unless-stopped

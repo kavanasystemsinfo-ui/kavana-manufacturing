@@ -3,7 +3,6 @@ import 'reflect-metadata';
 import { initOtelSDK } from './telemetry/sdk.js';
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module.js';
-import { ZodFilter } from './zod.filter.js';
 import { GlobalExceptionFilter } from './common/filters/global-exception.filter.js';
 import { ApiDeprecationWarningMiddleware } from './common/middleware/deprecation.middleware.js';
 import type { ExceptionFilter, ArgumentsHost } from '@nestjs/common';
@@ -32,7 +31,6 @@ async function bootstrap(): Promise<void> {
       return cb(new Error('Origen no permitido por CORS'));
     },
   });
-  app.useGlobalFilters(new ZodFilter());
   app.useGlobalFilters(new GlobalExceptionFilter());
   // Express solo acepta funciones en app.use(): pasar la instancia de clase
   // (new ApiDeprecationWarningMiddleware()) mata el arranque con

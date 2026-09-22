@@ -15,6 +15,7 @@ describe('CoreMesProductionController', () => {
       transitionOrder: vi.fn(),
       syncWorkBlock: vi.fn(),
       listOrderLogs: vi.fn(),
+      listMyTimeLogs: vi.fn(),
       updateCustomFields: vi.fn(),
     };
 
@@ -97,6 +98,22 @@ describe('CoreMesProductionController', () => {
       };
 
       expect(() => controller.syncWorkBlock(invalidPayload)).toThrow();
+    });
+  });
+
+  describe('listMyTimeLogs', () => {
+    it('debería rechazar una query sin rango temporal', () => {
+      expect(() => controller.listMyTimeLogs({})).toThrow();
+    });
+
+    it('debería pasar el rango validado al servicio', () => {
+      serviceMock.listMyTimeLogs.mockReturnValue('logs');
+      const query = { from: '2026-09-22T00:00:00.000Z', to: '2026-09-23T00:00:00.000Z' };
+
+      const result = controller.listMyTimeLogs(query);
+
+      expect(serviceMock.listMyTimeLogs).toHaveBeenCalledWith(query);
+      expect(result).toBe('logs');
     });
   });
 });

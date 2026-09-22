@@ -8,10 +8,7 @@ vi.mock('../db/tenant-query.js', () => ({
 }));
 
 vi.mock('./incidencia-uploads.service.js', () => ({
-  IncidenciaUploadsService: vi.fn().mockImplementation(() => ({
-    getSession: vi.fn(),
-    finalize: vi.fn(),
-  })),
+  IncidenciaUploadsService: vi.fn(),
 }));
 
 describe('IncidenciasService', () => {
@@ -26,7 +23,7 @@ describe('IncidenciasService', () => {
         Promise.resolve({ rows: [], rowCount: 0 })
     );
     (tenantQuery as any).mockClear();
-    mockUploads = new IncidenciaUploadsService();
+    mockUploads = { getSession: vi.fn(), finalize: vi.fn() } as unknown as IncidenciaUploadsService;
     service = new IncidenciasService(mockUploads);
   });
 
