@@ -7,6 +7,7 @@ import {
   setCachedCapabilities,
   invalidateCachedCapabilities,
 } from './capabilities-cache.js';
+import { CUSTOM_FIELD_TYPES, customFieldsSchemaValidator, type CustomFieldType } from '../common/custom-fields.js';
 
 // ponytail: known module keys from migration 005 seed. Add here when a new module is created.
 const KNOWN_MODULE_KEYS = new Set([
@@ -148,14 +149,9 @@ export class TenantCapabilitiesService {
 
   async updateCustomFieldsSchema(tenantId: bigint, userId: string, newSchema: any): Promise<void> {
     // 1. Meta-validation of the proposed schema structure using Zod
-    const CustomFieldsSchemaValidator = z.object({
-      fields: z.array(z.object({
-        key: z.string().trim().regex(/^[a-z0-9_-]+$/, "La llave debe ser minúsculas, números, guiones bajos o guiones"),
-        label: z.string().trim().max(100).optional().default(''),
-        type: z.enum(['string', 'number', 'boolean']),
-        required: z.boolean().default(false)
-      }))
-    });
+    // La definición de qué es un esquema válido vive en common/custom-fields.ts,
+    // junto al constructor que valida las órdenes: así no pueden divergir.
+    const CustomFieldsSchemaValidator = customFieldsSchemaValidator;
 
     // Filter out fields with empty keys (user may have added but not filled in)
     if (newSchema?.fields && Array.isArray(newSchema.fields)) {
