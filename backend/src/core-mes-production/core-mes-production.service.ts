@@ -5,7 +5,7 @@ import { z } from 'zod';
 import { getTenantContext } from '../auth/tenant-context.storage.js';
 import { postgresPool } from '../db/postgres.provider.js';
 import { withTenantTransaction } from '../db/withTenantTransaction.js';
-import type { CreateProductionOrderDto, SyncWorkBlockDto, TransitionProductionOrderDto, UpdateCustomFieldsDto } from './dto.js';
+import type { CreateProductionOrderDto, SyncWorkBlockDto, TransitionProductionOrderDto, UpdateCustomFieldsDto, ListMyTimeLogsDto } from './dto.js';
 import { TenantCapabilitiesService } from '../tenant-capabilities/tenant-capabilities.service.js';
 
 @Injectable()
@@ -206,6 +206,24 @@ WHERE tenant_id = $1::bigint AND id = $2::uuid
        WHERE tenant_id = $1::bigint AND order_id = $2::uuid
        ORDER BY start_time ASC`,
       [String(context.tenantId), orderId],
+    );
+    return result.rows;
+  }
+
+  /**
+   * Bloques del propio operario autenticado en un rango temporal.
+   * El operario_id sale siempre del token, nunca de la query: un operario no
+   * puede leer el turno de otro ni cambiando el parámetro.
+   */
+  async listMyTimeLogs(dto: ListMyTimeLogsDto) {
+    const context = getTenantContext();
+    const result = await postgresPool.query(
+      `SELECT id, order_id, workstation_id, operator_id, type, downtime_reason, start_time, end_time, produced_quantity, defect_quantity, observations, is_offline_event
+       FROM production_work_blocks
+       WHERE tenant_id = $1::bigint AND operator_id = $2::uuid
+         AND start_time >= $3::timestamptz AND start_time < $4::timestamptz
+       ORDER BY start_time ASC`,
+      [String(context.tenantId), context.userId, dto.from, dto.to],
     );
     return result.rows;
   }

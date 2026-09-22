@@ -104,3 +104,46 @@ describe('CoreMesProductionService - syncWorkBlock', () => {
     expect(overlapCall?.[1]).toContain('10');
   });
 });
+
+describe('CoreMesProductionService - listMyTimeLogs (2.2 Mi turno hoy)', () => {
+  let service: CoreMesProductionService;
+
+  beforeEach(() => {
+    vi.resetAllMocks();
+    vi.spyOn(tenantContext, 'getTenantContext').mockReturnValue({ tenantId: 10n, userId: 'operator-uuid', role: 'operario' });
+    service = new CoreMesProductionService({ getCapabilities: vi.fn() } as unknown as TenantCapabilitiesService);
+  });
+
+  it('filtra por tenant y por el operario del token, nunca por parámetro externo', async () => {
+    vi.mocked(postgresPool.query).mockResolvedValue({ rows: [] } as any);
+
+    await service.listMyTimeLogs({
+      from: '2026-09-22T00:00:00.000Z',
+      to: '2026-09-23T00:00:00.000Z',
+    });
+
+    const [sql, params] = vi.mocked(postgresPool.query).mock.calls[0] as unknown as [string, unknown[]];
+    expect(sql).toContain('operator_id = $2::uuid');
+    expect(params[0]).toBe('10');
+    expect(params[1]).toBe('operator-uuid');
+    expect(params[2]).toBe('2026-09-22T00:00:00.000Z');
+    expect(params[3]).toBe('2026-09-23T00:00:00.000Z');
+  });
+
+  it('devuelve los bloques ordenados por hora de inicio', async () => {
+    const rows = [
+      { id: 'b1', type: 'produccion', start_time: '2026-09-22T08:00:00.000Z', produced_quantity: 100, defect_quantity: 2 },
+      { id: 'b2', type: 'parada', start_time: '2026-09-22T10:00:00.000Z' },
+    ];
+    vi.mocked(postgresPool.query).mockResolvedValue({ rows } as any);
+
+    const result = await service.listMyTimeLogs({
+      from: '2026-09-22T00:00:00.000Z',
+      to: '2026-09-23T00:00:00.000Z',
+    });
+
+    expect(result).toEqual(rows);
+    const [sql] = vi.mocked(postgresPool.query).mock.calls[0] as unknown as [string];
+    expect(sql).toContain('ORDER BY start_time ASC');
+  });
+});
