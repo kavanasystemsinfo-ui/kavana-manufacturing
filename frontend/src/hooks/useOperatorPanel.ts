@@ -52,7 +52,6 @@ export interface OperatorPanelState {
   setEditingCustomFields: (v: Record<string, any>) => void;
   isSavingCustomFields: boolean;
   // Handlers
-  handleTimeChange: (val: string, setter: (v: string) => void) => void;
   handleRegisterBlock: (e: React.FormEvent) => Promise<void>;
   handleSaveCustomFields: () => Promise<void>;
   // Derived
@@ -60,6 +59,21 @@ export interface OperatorPanelState {
   customFields: any[];
   filteredOrders: any[];
   activeOrderCustomFields: any;
+}
+
+/**
+ * Valida las horas de un bloque de trabajo introducidas con input type="time".
+ * El navegador ya garantiza formato HH:MM; esto valida presencia, formato
+ * (defensa contra navegadores sin soporte) y orden temporal con cruce de
+ * medianoche permitido (turnos nocturnos).
+ */
+export function validateWorkBlockTimes(start: string, end: string): string | null {
+  if (!start || !end) return 'Las horas de inicio y fin son obligatorias.';
+  if (!/^\d{2}:\d{2}$/.test(start) || !/^\d{2}:\d{2}$/.test(end)) {
+    return 'Las horas deben tener formato HH:MM completo.';
+  }
+  if (start === end) return 'La hora de fin debe ser posterior a la de inicio.';
+  return null;
 }
 
 export function useOperatorPanel(): OperatorPanelState {
@@ -101,18 +115,11 @@ export function useOperatorPanel(): OperatorPanelState {
     return d;
   };
 
-  const handleTimeChange = (val: string, setter: (v: string) => void) => {
-    let clean = val.replace(/[^\d:]/g, '');
-    if (clean.length === 2 && !clean.includes(':') && val.length === 2) clean += ':';
-    else if (clean.length > 2 && !clean.includes(':')) clean = clean.slice(0, 2) + ':' + clean.slice(2);
-    if (clean.length > 5) clean = clean.slice(0, 5);
-    setter(clean);
-  };
-
   const handleRegisterBlock = async (e: React.FormEvent) => {
     e.preventDefault();
     setErrorMsg('');
-    if (startTime.length < 5 || endTime.length < 5) { setErrorMsg('Las horas deben tener formato HH:MM completo.'); return; }
+    const timeError = validateWorkBlockTimes(startTime, endTime);
+    if (timeError) { setErrorMsg(timeError); return; }
     const startD = parseTimeStr(startTime);
     const endD = parseTimeStr(endTime);
     if (endD < startD) endD.setDate(endD.getDate() + 1);
@@ -173,7 +180,7 @@ export function useOperatorPanel(): OperatorPanelState {
     errorMsg, setErrorMsg,
     editingCustomFields, setEditingCustomFields,
     isSavingCustomFields,
-    handleTimeChange, handleRegisterBlock, handleSaveCustomFields,
+    handleRegisterBlock, handleSaveCustomFields,
     schemaFields, customFields, filteredOrders, activeOrderCustomFields,
   };
 }

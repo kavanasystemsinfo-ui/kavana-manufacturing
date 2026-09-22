@@ -8,7 +8,9 @@ function getStoredTheme(): Theme {
   try {
     const stored = localStorage.getItem(STORAGE_KEY);
     if (stored === 'classic' || stored === 'modern') return stored;
-  } catch {}
+  } catch {
+    // localStorage no disponible (modo privado, SSR): fallback a classic
+  }
   return 'classic';
 }
 
@@ -24,14 +26,18 @@ export const useThemeStore = create<ThemeState>()((set) => ({
     set({ theme });
     try {
       localStorage.setItem(STORAGE_KEY, theme);
-    } catch {}
+    } catch {
+      // Sin localStorage: el tema no persiste entre sesiones, solo en memoria
+    }
   },
   toggleTheme: () => {
     set((prev) => {
       const next = prev.theme === 'classic' ? 'modern' : 'classic';
       try {
         localStorage.setItem(STORAGE_KEY, next);
-      } catch {}
+      } catch {
+        // Sin localStorage: el tema no persiste entre sesiones, solo en memoria
+      }
       return { theme: next };
     });
   },
