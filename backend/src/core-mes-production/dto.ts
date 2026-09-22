@@ -52,7 +52,30 @@ export const updateCustomFieldsSchema = z.object({
   custom_fields: z.record(z.unknown()),
 });
 
+/** Tope de rango para la consulta del turno: evita barridos sin límite. */
+export const MAX_TIME_LOG_RANGE_DAYS = 31;
+
+export const listMyTimeLogsQuerySchema = z
+  .object({
+    from: z.string().datetime({ offset: true }),
+    to: z.string().datetime({ offset: true }),
+  })
+  .refine((value) => new Date(value.to) > new Date(value.from), {
+    message: 'to must be strictly after from.',
+    path: ['to'],
+  })
+  .refine(
+    (value) =>
+      new Date(value.to).getTime() - new Date(value.from).getTime() <=
+      MAX_TIME_LOG_RANGE_DAYS * 24 * 60 * 60 * 1000,
+    {
+      message: `The requested range cannot exceed ${MAX_TIME_LOG_RANGE_DAYS} days.`,
+      path: ['to'],
+    },
+  );
+
 export type CreateProductionOrderDto = z.infer<typeof createProductionOrderSchema>;
 export type TransitionProductionOrderDto = z.infer<typeof transitionProductionOrderSchema>;
 export type SyncWorkBlockDto = z.infer<typeof syncWorkBlockSchema>;
 export type UpdateCustomFieldsDto = z.infer<typeof updateCustomFieldsSchema>;
+export type ListMyTimeLogsDto = z.infer<typeof listMyTimeLogsQuerySchema>;

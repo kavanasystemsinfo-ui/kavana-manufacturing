@@ -1,6 +1,23 @@
 import { useEffect, useState } from 'react';
 import { useHmiStore, triggerSyncEngine } from '../store/hmi-store.js';
 import { mapCustomFieldsToUI } from '../utils/customFieldsMapper.js';
+import {
+  useStartTime,
+  useSetStartTime,
+  useEndTime,
+  useSetEndTime,
+  useProducedQuantity,
+  useSetProducedQuantity,
+  useDefectQuantity,
+  useSetDefectQuantity,
+  useObservations,
+  useSetObservations,
+  useRepeatLastBlock,
+  useLastBlock,
+  useSetLastBlock,
+  useCalculateShiftKPI,
+} from '../store/operator-panel-store.js';
+import type { LastBlock, ShiftKPI } from '../store/operator-panel-store.js';
 
 export interface OperatorPanelState {
   // HMI Store
@@ -29,7 +46,7 @@ export interface OperatorPanelState {
   isLoadingOrders: boolean;
   selectedOrderCustomFields: any;
   triggerSyncEngine: () => Promise<void>;
-  // Local state
+  // Local state (from operator-panel-store)
   isFailedLogsModalOpen: boolean;
   setIsFailedLogsModalOpen: (v: boolean) => void;
   isIncidenciaModalOpen: boolean;
@@ -51,6 +68,11 @@ export interface OperatorPanelState {
   editingCustomFields: Record<string, any>;
   setEditingCustomFields: (v: Record<string, any>) => void;
   isSavingCustomFields: boolean;
+  
+  // New: last block & KPI
+  lastBlock: LastBlock | null;
+  repeatLastBlock: () => void;
+  calculateShiftKPI: (blocks: any[]) => ShiftKPI;
   // Handlers
   handleRegisterBlock: (e: React.FormEvent) => Promise<void>;
   handleSaveCustomFields: () => Promise<void>;
@@ -79,14 +101,25 @@ export function validateWorkBlockTimes(start: string, end: string): string | nul
 export function useOperatorPanel(): OperatorPanelState {
   const hmi = useHmiStore();
 
+  // New store selectors
+  const startTime = useStartTime();
+  const setStartTime = useSetStartTime();
+  const endTime = useEndTime();
+  const setEndTime = useSetEndTime();
+  const producedQuantity = useProducedQuantity();
+  const setProducedQuantity = useSetProducedQuantity();
+  const defectQuantity = useDefectQuantity();
+  const setDefectQuantity = useSetDefectQuantity();
+  const observations = useObservations();
+  const setObservations = useSetObservations();
+  const repeatLastBlock = useRepeatLastBlock();
+  const lastBlock = useLastBlock();
+  const setLastBlock = useSetLastBlock();
+  const calculateShiftKPI = useCalculateShiftKPI();
+
   const [isFailedLogsModalOpen, setIsFailedLogsModalOpen] = useState(false);
   const [isIncidenciaModalOpen, setIsIncidenciaModalOpen] = useState(false);
   const [orderSearch, setOrderSearch] = useState('');
-  const [startTime, setStartTime] = useState('');
-  const [endTime, setEndTime] = useState('');
-  const [producedQuantity, setProducedQuantity] = useState('');
-  const [defectQuantity, setDefectQuantity] = useState('0');
-  const [observations, setObservations] = useState('');
   const [errorMsg, setErrorMsg] = useState('');
   const [editingCustomFields, setEditingCustomFields] = useState<Record<string, any>>({});
   const [isSavingCustomFields, setIsSavingCustomFields] = useState(false);
@@ -126,6 +159,16 @@ export function useOperatorPanel(): OperatorPanelState {
     if (endD <= startD) { setErrorMsg('La hora de fin debe ser posterior a la de inicio.'); return; }
     if (!producedQuantity || Number(producedQuantity) < 0) { setErrorMsg('Debes introducir la cantidad producida.'); return; }
     await hmi.registerWorkBlock('produccion', startD.toISOString(), endD.toISOString(), null, Number(producedQuantity), Number(defectQuantity), observations.trim() || null);
+    
+    // Guardar último bloque para "Repetir"
+    setLastBlock({
+      startTime,
+      endTime,
+      producedQuantity: Number(producedQuantity),
+      defectQuantity: Number(defectQuantity),
+      observations: observations.trim(),
+    });
+    
     setStartTime(''); setEndTime(''); setProducedQuantity(''); setDefectQuantity('0'); setObservations('');
   };
 
@@ -182,5 +225,9 @@ export function useOperatorPanel(): OperatorPanelState {
     isSavingCustomFields,
     handleRegisterBlock, handleSaveCustomFields,
     schemaFields, customFields, filteredOrders, activeOrderCustomFields,
+    // New
+    lastBlock,
+    repeatLastBlock,
+    calculateShiftKPI,
   };
 }

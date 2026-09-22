@@ -37,6 +37,8 @@ import {
 } from './store/selectors.js';
 import { FailedEventsModal } from './components/operator/FailedEventsModal.js';
 import { IncidenciaModal } from './components/operator/IncidenciaModal.js'; // Note: we need to check the correct path
+import { ShiftKpiCard } from './components/operator/ShiftKpiCard.js';
+import { useMyShiftKPI } from './hooks/useMyShiftKPI.js';
 import { ThemeToggle } from './components/ThemeToggle.js';
 import { HelpModal } from './components/HelpModal.js';
 import { AiAdvisorFab } from './components/AiAdvisorFab.js';
@@ -134,7 +136,11 @@ export function OperatorPanel() {
     loadAvailableOrders,
     selectOrder,
     registerWorkBlock,
+    lastBlock,
+    repeatLastBlock,
   } = useOperatorPanel();
+
+  const { kpi: shiftKpi, isLoading: isShiftKpiLoading, error: shiftKpiError, refresh: refreshShiftKpi } = useMyShiftKPI();
 
   // Note: We are using both selectors and hook. This may cause duplication but ensures we have both.
   // For simplicity, we could rely solely on the hook, but the goal was to demonstrate selectors.
@@ -300,13 +306,31 @@ export function OperatorPanel() {
             </div>
             {/* Right Column - Registration Form */}
             <div className="flex flex-col gap-6">
+              <ShiftKpiCard
+                kpi={shiftKpi}
+                isLoading={isShiftKpiLoading}
+                error={shiftKpiError}
+                onRetry={() => void refreshShiftKpi()}
+              />
               {errorMsg && (
                 <div className="rounded-xl border border-red-500/40 bg-red-500/10 p-4 text-sm text-red-300">
                   {errorMsg}
                 </div>
               )}
               <div className="rounded-2xl border-2 border-kavana-orange/40 bg-kavana-dark/70 p-5 shadow-inner">
-                <p className="text-sm font-bold uppercase tracking-[0.24em] text-kavana-steel mb-4">Registrar Bloque de Tiempo</p>
+                <div className="mb-4 flex items-center justify-between gap-3">
+                  <p className="text-sm font-bold uppercase tracking-[0.24em] text-kavana-steel">Registrar Bloque de Tiempo</p>
+                  {lastBlock && (
+                    <button
+                      type="button"
+                      onClick={repeatLastBlock}
+                      title="Rellena el formulario con el último bloque declarado y pone la hora de fin a ahora"
+                      className="rounded-lg border border-kavana-orange/50 px-3 py-2 text-xs font-bold uppercase tracking-wider text-kavana-orange transition hover:bg-kavana-orange/10"
+                    >
+                      Repetir último bloque
+                    </button>
+                  )}
+                </div>
                 <form onSubmit={handleRegisterBlock} className="flex flex-col gap-4">
                   <div className="grid grid-cols-2 gap-4">
                     <div>

@@ -1,7 +1,8 @@
-import { Body, Controller, Get, NotFoundException, Param, Patch, Post, Inject, UseGuards} from '@nestjs/common';
+import { Body, Controller, Get, NotFoundException, Param, Patch, Post, Query, Inject, UseGuards} from '@nestjs/common';
 import { CoreMesProductionService } from './core-mes-production.service.js';
 import {
   createProductionOrderSchema,
+  listMyTimeLogsQuerySchema,
   syncWorkBlockSchema,
   transitionProductionOrderSchema,
   updateCustomFieldsSchema,
@@ -74,6 +75,12 @@ export class CoreMesProductionController {
   syncWorkBlock(@Body() body: unknown) {
     const dto = syncWorkBlockSchema.parse(body);
     return this.service.syncWorkBlock(dto);
+  }
+
+  @Get('time-logs/mine')
+  listMyTimeLogs(@Query() query: unknown) {
+    const dto = listMyTimeLogsQuerySchema.parse(query);
+    return this.service.listMyTimeLogs(dto);
   }
 
   @Get('orders/:id/logs')
