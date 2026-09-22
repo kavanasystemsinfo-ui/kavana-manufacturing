@@ -7,8 +7,10 @@ const INSTANT = /^\d{4}-\d{2}-\d{2}T[\d:.]+Z?$/;
 /** Una fila de `tenant_config_audit`. */
 export interface ConfigAuditEntry {
   id: string;
-  /** UUID del usuario que hizo el cambio; hoy siempre null (ver informe). */
+  /** UUID del usuario que hizo el cambio; null si lo hizo algo sin usuario. */
   actor_user_id: string | null;
+  /** Nombre del usuario, si sigue existiendo en la tabla de usuarios. */
+  actor_username: string | null;
   action: 'feature_matrix' | 'custom_fields_schema' | 'hard_limits';
   previous_value: unknown;
   new_value: unknown;

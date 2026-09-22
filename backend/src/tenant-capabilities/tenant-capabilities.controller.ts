@@ -85,7 +85,7 @@ export class TenantCapabilitiesController {
   @UseGuards(RolesGuard)
   async saveToolingTypes(@Body('types') types: string[]) {
     const context = getTenantContext();
-    await this.capabilities.saveToolingTypes(context.tenantId, types);
+    await this.capabilities.saveToolingTypes(context.tenantId, context.userId, types);
     return { success: true };
   }
 }
