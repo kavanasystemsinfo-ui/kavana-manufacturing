@@ -9,7 +9,14 @@
 #   frontend  → Nginx sirviendo React SPA (:80)
 #
 # Iniciar:
+#   cp .env.example .env   # y rellenar REDIS_PASSWORD
 #   docker compose up -d
+#
+# Los puertos publicados al host son configurables por variable de entorno,
+# porque los valores por defecto (5433 y 80) pueden estar ocupados por otro
+# servicio de la máquina. Ejemplo, si el 5433 ya está en uso:
+#   DB_PORT=5434 docker compose up -d
+# Ver .env.example para la lista completa.
 #
 # Observabilidad (opcional):
 #   docker compose -f docker-compose.yml -f docker-compose.observability.yml up -d
@@ -24,7 +31,10 @@ services:
       POSTGRES_PASSWORD: ${DB_PASSWORD:-kavana_v3_password}
       POSTGRES_DB: kavana_v3
     ports:
-      - '5433:5432'
+      # 127.0.0.1: Postgres no tiene que ser alcanzable desde la red; los
+      # servicios de compose lo ven por la red interna (db:5432). El puerto del
+      # host es configurable porque el 5433 por defecto puede estar ocupado.
+      - '127.0.0.1:${DB_PORT:-5433}:5432'
     volumes:
       - pgdata:/var/lib/postgresql/data
       - ./database/migrations:/docker-entrypoint-initdb.d:ro
@@ -60,7 +70,8 @@ services:
       dockerfile: backend/Dockerfile
     container_name: kavana-v3-backend
     ports:
-      - '3001:3001'
+      # Configurable: el 3001 puede estar ocupado en una máquina compartida.
+      - '${BACKEND_PORT:-3001}:3001'
     environment:
       PORT: '3001'
       DATABASE_URL: postgresql://kavana:***@db:5432/kavana_v3
@@ -106,7 +117,10 @@ services:
       dockerfile: frontend/Dockerfile
     container_name: kavana-v3-frontend
     ports:
-      - '80:80'
+      # Configurable: el 80 suele estar ocupado por el nginx del host, que es
+      # justo el caso de este VPS. Con FRONTEND_PORT=8080 el stack arranca sin
+      # tocar el nginx que ya sirve las landings.
+      - '${FRONTEND_PORT:-80}:80'
     depends_on:
       - backend
     restart: unless-stopped

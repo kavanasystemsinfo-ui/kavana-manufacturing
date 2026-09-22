@@ -28,7 +28,9 @@ async function check(conn, label) {
   await c.end();
 }
 
-const LOCAL = 'postgresql://kavana:kavana_v3_password@localhost:5433/kavana_v3';
+// Puerto configurable: debe coincidir con DB_PORT del docker-compose.
+const DB_PORT = process.env.DB_PORT || 5433;
+const LOCAL = `postgresql://kavana:kavana_v3_password@localhost:${DB_PORT}/kavana_v3`;
 const NEON = requireEnvNEON();
 
 (async () => {

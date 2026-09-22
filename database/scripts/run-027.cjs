@@ -1,6 +1,8 @@
 const { Client } = require('pg');
 const fs = require('fs');
-const client = new Client({ connectionString: 'postgresql://kavana:kavana_v3_password@localhost:5433/kavana_v3' });
+// Puerto configurable: debe coincidir con DB_PORT del docker-compose.
+const DB_PORT = process.env.DB_PORT || 5433;
+const client = new Client({ connectionString: `postgresql://kavana:kavana_v3_password@localhost:${DB_PORT}/kavana_v3` });
 (async () => {
   await client.connect();
   const sql = fs.readFileSync('database/migrations/027_create_incidencias.sql', 'utf8');
