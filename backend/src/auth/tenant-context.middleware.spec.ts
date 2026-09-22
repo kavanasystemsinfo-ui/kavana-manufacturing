@@ -5,9 +5,11 @@ const { verifyBearerTokenMock } = vi.hoisted(() => ({
 }));
 
 vi.mock('./jwt.service.js', () => ({
-  JwtServiceWrapper: vi.fn().mockImplementation(() => ({
-    verifyBearerToken: verifyBearerTokenMock,
-  })),
+  // Debe ser construible: el middleware hace `new JwtServiceWrapper()` a nivel
+  // de módulo, y una implementación de flecha no admite `new`.
+  JwtServiceWrapper: class {
+    verifyBearerToken = verifyBearerTokenMock;
+  },
 }));
 
 import { TenantContextMiddleware } from './tenant-context.middleware.js';
