@@ -115,7 +115,6 @@ export function OperatorPanel() {
     editingCustomFields,
     setEditingCustomFields,
     isSavingCustomFields,
-    handleTimeChange,
     handleRegisterBlock,
     handleSaveCustomFields,
     schemaFields,
@@ -316,20 +315,20 @@ export function OperatorPanel() {
                     <div>
                       <label className="block text-xs font-bold uppercase tracking-wider text-kavana-steel mb-1">Hora Inicio</label>
                       <input
-                        type="text"
+                        type="time"
                         value={startTime}
-                        onChange={(e) => handleTimeChange(e.target.value, setStartTime)}
-                        placeholder="HH:MM"
+                        onChange={(e) => setStartTime(e.target.value)}
+                        required
                         className="w-full rounded-xl border border-kavana-steel/30 bg-kavana-surface px-4 py-3 text-sm font-medium text-white placeholder-slate-500 focus:border-kavana-orange focus:outline-none"
                       />
                     </div>
                     <div>
                       <label className="block text-xs font-bold uppercase tracking-wider text-kavana-steel mb-1">Hora Fin</label>
                       <input
-                        type="text"
+                        type="time"
                         value={endTime}
-                        onChange={(e) => handleTimeChange(e.target.value, setEndTime)}
-                        placeholder="HH:MM"
+                        onChange={(e) => setEndTime(e.target.value)}
+                        required
                         className="w-full rounded-xl border border-kavana-steel/30 bg-kavana-surface px-4 py-3 text-sm font-medium text-white placeholder-slate-500 focus:border-kavana-orange focus:outline-none"
                       />
                     </div>

@@ -34,7 +34,7 @@ export function ClassicOperatorPanel() {
     observations, setObservations, errorMsg, setErrorMsg,
     editingCustomFields, setEditingCustomFields,
     isSavingCustomFields,
-    handleTimeChange, handleRegisterBlock, handleSaveCustomFields,
+    handleRegisterBlock, handleSaveCustomFields,
     schemaFields, customFields, filteredOrders,
   } = useOperatorPanel();
   const dateLabel = new Date().toLocaleDateString('es-ES', { weekday: 'long', day: '2-digit', month: 'short' });
@@ -201,20 +201,20 @@ export function ClassicOperatorPanel() {
               <div>
                 <label className="block text-sm font-medium text-slate-700">Hora Inicio</label>
                 <input
-                  type="text"
+                  type="time"
                   value={startTime}
-                  onChange={(e) => handleTimeChange(e.target.value, setStartTime)}
-                  placeholder="HH:MM"
+                  onChange={(e) => setStartTime(e.target.value)}
+                  required
                   className="mt-1 block w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm shadow-sm focus:border-kavana-orange focus:ring-1 focus:ring-kavana-orange"
                 />
               </div>
               <div>
                 <label className="block text-sm font-medium text-slate-700">Hora Fin</label>
                 <input
-                  type="text"
+                  type="time"
                   value={endTime}
-                  onChange={(e) => handleTimeChange(e.target.value, setEndTime)}
-                  placeholder="HH:MM"
+                  onChange={(e) => setEndTime(e.target.value)}
+                  required
                   className="mt-1 block w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm shadow-sm focus:border-kavana-orange focus:ring-1 focus:ring-kavana-orange"
                 />
               </div>
