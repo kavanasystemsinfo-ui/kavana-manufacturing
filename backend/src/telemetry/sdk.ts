@@ -12,7 +12,7 @@ import { OTLPTraceExporter } from '@opentelemetry/exporter-trace-otlp-http';
 import { OTLPMetricExporter } from '@opentelemetry/exporter-metrics-otlp-http';
 import { PrometheusExporter } from '@opentelemetry/exporter-prometheus';
 import { PeriodicExportingMetricReader } from '@opentelemetry/sdk-metrics';
-import { Resource } from '@opentelemetry/resources';
+import { resourceFromAttributes } from '@opentelemetry/resources';
 import { ATTR_SERVICE_NAME, ATTR_SERVICE_VERSION } from '@opentelemetry/semantic-conventions';
 
 // ── Métricas custom (singleton accesible desde cualquier módulo) ──
@@ -65,7 +65,7 @@ export async function initOtelSDK(): Promise<{ sdk: NodeSDK | null; mode: 'prome
     }, () => console.log(`[telemetry] Prometheus /metrics listo en :${metricsPort}`));
 
     const sdk = new NodeSDK({
-      resource: new Resource({
+      resource: resourceFromAttributes({
         [ATTR_SERVICE_NAME]: 'kavana-manufacturing',
         [ATTR_SERVICE_VERSION]: '3.0.0',
       }),
@@ -81,7 +81,7 @@ export async function initOtelSDK(): Promise<{ sdk: NodeSDK | null; mode: 'prome
     console.log(`[telemetry] Modo OTLP → ${otlpEndpoint}`);
 
     const sdk = new NodeSDK({
-      resource: new Resource({
+      resource: resourceFromAttributes({
         [ATTR_SERVICE_NAME]: 'kavana-manufacturing',
         [ATTR_SERVICE_VERSION]: '3.0.0',
       }),

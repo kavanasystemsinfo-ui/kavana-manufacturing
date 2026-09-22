@@ -255,3 +255,61 @@ describe('OrdersService', () => {
     });
   });
 });
+
+describe('OrdersService.getWorkstationStatus (2.3 — tiempo real)', () => {
+  const mockTenantQuery = vi.mocked(tenantQuery);
+  let service: OrdersService;
+
+  const hace = (min: number) => new Date(Date.now() - min * 60_000).toISOString();
+
+  beforeEach(() => {
+    vi.resetAllMocks();
+    service = new OrdersService();
+  });
+
+  it('añade el estado derivado a cada puesto', async () => {
+    mockTenantQuery.mockResolvedValue({
+      rows: [
+        { id: 'ws-1', name: 'Prensa', code: 'A', status: 'active', last_block_type: 'produccion', last_block_end: hace(5), operator_name: 'Ana' },
+        { id: 'ws-2', name: 'Sierra', code: 'B', status: 'active', last_block_type: 'parada', last_block_end: hace(10), operator_name: 'Luis' },
+        { id: 'ws-3', name: 'Torno', code: 'C', status: 'active', last_block_type: null, last_block_end: null, operator_name: null },
+      ],
+    } as any);
+
+    const result = await service.getWorkstationStatus();
+
+    expect(result.map((r) => r.state)).toEqual(['running', 'stopped', 'idle']);
+    expect(result[0].operator_name).toBe('Ana');
+  });
+
+  it('un puesto cuyo último parte es antiguo queda sin actividad, no en verde', async () => {
+    mockTenantQuery.mockResolvedValue({
+      rows: [{ id: 'ws-1', name: 'Prensa', code: 'A', status: 'active', last_block_type: 'produccion', last_block_end: hace(60 * 8), operator_name: 'Ana' }],
+    } as any);
+
+    const result = await service.getWorkstationStatus();
+
+    expect(result[0].state).toBe('idle');
+  });
+
+  it('consulta el fin del último parte, que es lo que mide la antigüedad', async () => {
+    mockTenantQuery.mockResolvedValue({ rows: [] } as any);
+
+    await service.getWorkstationStatus();
+
+    const [, sql] = mockTenantQuery.mock.calls[0];
+    expect(sql).toContain('end_time');
+    expect(sql).toContain('get_current_tenant()');
+  });
+
+  it('no deja la lista sin los puestos que nunca han registrado nada', async () => {
+    mockTenantQuery.mockResolvedValue({
+      rows: [{ id: 'ws-9', name: 'Sin uso', code: 'Z', status: 'active', last_block_type: null, last_block_end: null, operator_name: null }],
+    } as any);
+
+    const result = await service.getWorkstationStatus();
+
+    expect(result).toHaveLength(1);
+    expect(result[0].state).toBe('idle');
+  });
+});

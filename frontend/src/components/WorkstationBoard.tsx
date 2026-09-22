@@ -1,72 +1,61 @@
-import type { Workstation } from '../api/supervisor.js';
+import { workstationBadge } from '../utils/workstation-badge.js';
 
-const statusColor: Record<string, string> = {
-  produccion: 'border-emerald-500 bg-emerald-500/10',
-  parada: 'border-rose-500 bg-rose-500/10',
-  active: 'border-slate-500 bg-slate-500/10',
-  inactive: 'border-slate-700 bg-slate-800/50 opacity-50',
-};
+/** Lo que devuelve GET /orders/workstations-status: entidad + semáforo derivado. */
+export interface WorkstationLive {
+  id: string;
+  name: string;
+  code: string;
+  status: string;
+  state?: string | null;
+  last_block_type?: string | null;
+  last_block_start?: string | null;
+  last_block_end?: string | null;
+  operator_name?: string | null;
+}
 
-const statusDot: Record<string, string> = {
-  produccion: 'bg-emerald-400',
-  parada: 'bg-rose-400',
-  active: 'bg-slate-400',
-  inactive: 'bg-slate-600',
-};
-
-const statusLabel: Record<string, string> = {
-  produccion: 'En producción',
-  parada: 'Parada',
-  active: 'Libre',
-  inactive: 'Inactivo',
-};
-
-function formatTime(ts: string | null) {
+function formatTime(ts: string | null | undefined) {
   if (!ts) return '—';
   return new Date(ts).toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' });
 }
 
 interface Props {
-  workstations: Workstation[];
+  workstations: WorkstationLive[];
 }
 
+/**
+ * Tablero de puestos con su estado real.
+ *
+ * El semáforo lo deriva el backend (workstation-state.ts) y llega ya resuelto:
+ * antes esta pantalla lo calculaba con `ws.last_block_type`, un campo que
+ * /workstations no devuelve, así que el punto salía siempre verde mientras el
+ * puesto estuviera dado de alta. Parecía un indicador en vivo y nunca cambiaba.
+ */
 export function WorkstationBoard({ workstations }: Props) {
   if (workstations.length === 0) {
-    return (
-      <div className="py-12 text-center text-slate-500">
-        No hay puestos activos
-      </div>
-    );
+    return <div className="py-12 text-center text-slate-500">No hay puestos activos</div>;
   }
 
   return (
     <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
       {workstations.map((ws) => {
-        const state = ws.last_block_type ?? (ws.status === 'active' ? 'active' : 'inactive');
+        const badge = workstationBadge(ws.state);
+        const ultima = ws.last_block_end ?? ws.last_block_start;
         return (
-          <div
-            key={ws.id}
-            className={`rounded-xl border-2 p-5 transition ${statusColor[state] ?? statusColor.active}`}
-          >
-            <div className="flex items-center justify-between">
+          <div key={ws.id} className={`rounded-xl border-2 p-5 transition ${badge.chip}`}>
+            <div className="flex items-center justify-between gap-2">
               <h3 className="text-lg font-bold text-white">{ws.name}</h3>
               <div className="flex items-center gap-2">
-                <span className={`h-3 w-3 rounded-full ${statusDot[state] ?? statusDot.active}`} />
-                <span className="text-xs font-medium text-slate-300">
-                  {statusLabel[state] ?? state}
-                </span>
+                <span className={`h-3 w-3 shrink-0 rounded-full ${badge.dot}`} aria-hidden="true" />
+                <span className="text-xs font-bold">{badge.label}</span>
               </div>
             </div>
+            <p className="mt-1 text-xs text-slate-400">{ws.code}</p>
             {ws.operator_name && (
               <p className="mt-2 text-sm text-slate-300">
                 Operario: <span className="font-medium text-white">{ws.operator_name}</span>
               </p>
             )}
-            {ws.last_block_start && (
-              <p className="mt-1 text-xs text-slate-400">
-                Última actividad: {formatTime(ws.last_block_start)}
-              </p>
-            )}
+            {ultima && <p className="mt-1 text-xs text-slate-400">Última actividad: {formatTime(ultima)}</p>}
           </div>
         );
       })}

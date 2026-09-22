@@ -1,6 +1,23 @@
 import { useEffect, useState } from 'react';
 import { useHmiStore, triggerSyncEngine } from '../store/hmi-store.js';
 import { mapCustomFieldsToUI } from '../utils/customFieldsMapper.js';
+import {
+  useStartTime,
+  useSetStartTime,
+  useEndTime,
+  useSetEndTime,
+  useProducedQuantity,
+  useSetProducedQuantity,
+  useDefectQuantity,
+  useSetDefectQuantity,
+  useObservations,
+  useSetObservations,
+  useRepeatLastBlock,
+  useLastBlock,
+  useSetLastBlock,
+  useCalculateShiftKPI,
+} from '../store/operator-panel-store.js';
+import type { LastBlock, ShiftKPI } from '../store/operator-panel-store.js';
 
 export interface OperatorPanelState {
   // HMI Store
@@ -29,7 +46,7 @@ export interface OperatorPanelState {
   isLoadingOrders: boolean;
   selectedOrderCustomFields: any;
   triggerSyncEngine: () => Promise<void>;
-  // Local state
+  // Local state (from operator-panel-store)
   isFailedLogsModalOpen: boolean;
   setIsFailedLogsModalOpen: (v: boolean) => void;
   isIncidenciaModalOpen: boolean;
@@ -51,8 +68,12 @@ export interface OperatorPanelState {
   editingCustomFields: Record<string, any>;
   setEditingCustomFields: (v: Record<string, any>) => void;
   isSavingCustomFields: boolean;
+  
+  // New: last block & KPI
+  lastBlock: LastBlock | null;
+  repeatLastBlock: () => void;
+  calculateShiftKPI: (blocks: any[]) => ShiftKPI;
   // Handlers
-  handleTimeChange: (val: string, setter: (v: string) => void) => void;
   handleRegisterBlock: (e: React.FormEvent) => Promise<void>;
   handleSaveCustomFields: () => Promise<void>;
   // Derived
@@ -62,17 +83,43 @@ export interface OperatorPanelState {
   activeOrderCustomFields: any;
 }
 
+/**
+ * Valida las horas de un bloque de trabajo introducidas con input type="time".
+ * El navegador ya garantiza formato HH:MM; esto valida presencia, formato
+ * (defensa contra navegadores sin soporte) y orden temporal con cruce de
+ * medianoche permitido (turnos nocturnos).
+ */
+export function validateWorkBlockTimes(start: string, end: string): string | null {
+  if (!start || !end) return 'Las horas de inicio y fin son obligatorias.';
+  if (!/^\d{2}:\d{2}$/.test(start) || !/^\d{2}:\d{2}$/.test(end)) {
+    return 'Las horas deben tener formato HH:MM completo.';
+  }
+  if (start === end) return 'La hora de fin debe ser posterior a la de inicio.';
+  return null;
+}
+
 export function useOperatorPanel(): OperatorPanelState {
   const hmi = useHmiStore();
+
+  // New store selectors
+  const startTime = useStartTime();
+  const setStartTime = useSetStartTime();
+  const endTime = useEndTime();
+  const setEndTime = useSetEndTime();
+  const producedQuantity = useProducedQuantity();
+  const setProducedQuantity = useSetProducedQuantity();
+  const defectQuantity = useDefectQuantity();
+  const setDefectQuantity = useSetDefectQuantity();
+  const observations = useObservations();
+  const setObservations = useSetObservations();
+  const repeatLastBlock = useRepeatLastBlock();
+  const lastBlock = useLastBlock();
+  const setLastBlock = useSetLastBlock();
+  const calculateShiftKPI = useCalculateShiftKPI();
 
   const [isFailedLogsModalOpen, setIsFailedLogsModalOpen] = useState(false);
   const [isIncidenciaModalOpen, setIsIncidenciaModalOpen] = useState(false);
   const [orderSearch, setOrderSearch] = useState('');
-  const [startTime, setStartTime] = useState('');
-  const [endTime, setEndTime] = useState('');
-  const [producedQuantity, setProducedQuantity] = useState('');
-  const [defectQuantity, setDefectQuantity] = useState('0');
-  const [observations, setObservations] = useState('');
   const [errorMsg, setErrorMsg] = useState('');
   const [editingCustomFields, setEditingCustomFields] = useState<Record<string, any>>({});
   const [isSavingCustomFields, setIsSavingCustomFields] = useState(false);
@@ -101,24 +148,27 @@ export function useOperatorPanel(): OperatorPanelState {
     return d;
   };
 
-  const handleTimeChange = (val: string, setter: (v: string) => void) => {
-    let clean = val.replace(/[^\d:]/g, '');
-    if (clean.length === 2 && !clean.includes(':') && val.length === 2) clean += ':';
-    else if (clean.length > 2 && !clean.includes(':')) clean = clean.slice(0, 2) + ':' + clean.slice(2);
-    if (clean.length > 5) clean = clean.slice(0, 5);
-    setter(clean);
-  };
-
   const handleRegisterBlock = async (e: React.FormEvent) => {
     e.preventDefault();
     setErrorMsg('');
-    if (startTime.length < 5 || endTime.length < 5) { setErrorMsg('Las horas deben tener formato HH:MM completo.'); return; }
+    const timeError = validateWorkBlockTimes(startTime, endTime);
+    if (timeError) { setErrorMsg(timeError); return; }
     const startD = parseTimeStr(startTime);
     const endD = parseTimeStr(endTime);
     if (endD < startD) endD.setDate(endD.getDate() + 1);
     if (endD <= startD) { setErrorMsg('La hora de fin debe ser posterior a la de inicio.'); return; }
     if (!producedQuantity || Number(producedQuantity) < 0) { setErrorMsg('Debes introducir la cantidad producida.'); return; }
     await hmi.registerWorkBlock('produccion', startD.toISOString(), endD.toISOString(), null, Number(producedQuantity), Number(defectQuantity), observations.trim() || null);
+    
+    // Guardar último bloque para "Repetir"
+    setLastBlock({
+      startTime,
+      endTime,
+      producedQuantity: Number(producedQuantity),
+      defectQuantity: Number(defectQuantity),
+      observations: observations.trim(),
+    });
+    
     setStartTime(''); setEndTime(''); setProducedQuantity(''); setDefectQuantity('0'); setObservations('');
   };
 
@@ -173,7 +223,11 @@ export function useOperatorPanel(): OperatorPanelState {
     errorMsg, setErrorMsg,
     editingCustomFields, setEditingCustomFields,
     isSavingCustomFields,
-    handleTimeChange, handleRegisterBlock, handleSaveCustomFields,
+    handleRegisterBlock, handleSaveCustomFields,
     schemaFields, customFields, filteredOrders, activeOrderCustomFields,
+    // New
+    lastBlock,
+    repeatLastBlock,
+    calculateShiftKPI,
   };
 }

@@ -169,7 +169,7 @@ export async function toggleModuleCapability(moduleKey: string, enabled: boolean
 }
 
 export async function updateCustomFieldsSchema(schema: {
-  fields: Array<{ key: string; type: 'string' | 'number' | 'boolean'; required: boolean }>;
+  fields: Array<{ key: string; label?: string; type: string; required: boolean; options?: string[] }>;
 }): Promise<void> {
   await callApiWithTimeout<void>(`${API_BASE}/tenant/capabilities/custom-fields`, {
     method: 'PATCH',

@@ -1,5 +1,5 @@
 import type { ActivityBlock } from '../api/supervisor.js';
-import { formatQuantity } from '../utils/formatNumber.js';
+import { formatNumber } from '../utils/formatNumber.js';
 
 const typeLabel: Record<string, string> = {
   produccion: 'Producción',
@@ -56,7 +56,7 @@ export function ActivityFeed({ activity }: Props) {
             <p className="mt-1 text-sm font-medium text-white">{block.operator_name}</p>
             {block.type === 'produccion' && (
               <p className="text-xs text-slate-400">
-                Producido: {formatQuantity(block.produced_quantity)} · Defectos: {formatQuantity(block.defect_quantity)}
+                Producido: {formatNumber(block.produced_quantity)} · Defectos: {formatNumber(block.defect_quantity)}
               </p>
             )}
             {block.type === 'parada' && block.downtime_reason && (

@@ -1,22 +1,43 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { AiAdvisorChat, type AdvisorMode } from './AiAdvisorChat.js';
 import { useThemeStore } from '../store/theme-store.js';
+import { matchGlobalShortcut } from '../utils/keyboard-shortcuts.js';
 
 // Botón flotante "🤖 Asistente" que abre el chat IA en un modal con selector
 // de modo: MES (datos de producción) o Técnico (código/arquitectura).
 // Montado en los 3 paneles de rol (admin, supervisor, operario) y en el login.
+// Atajos globales: Cmd/Ctrl+K abre y cierra, Escape cierra.
 export function AiAdvisorFab() {
   const theme = useThemeStore((s) => s.theme);
   const isClassic = theme === 'classic';
   const [open, setOpen] = useState(false);
   const [mode, setMode] = useState<AdvisorMode>('mes');
 
+  useEffect(() => {
+    const onKeyDown = (event: KeyboardEvent) => {
+      const shortcut = matchGlobalShortcut(event);
+      if (shortcut === 'toggle-advisor') {
+        event.preventDefault();
+        setOpen((prev) => !prev);
+        return;
+      }
+      if (shortcut === 'close-advisor') {
+        // Sin preventDefault: los modales gestionan su propio Escape y no
+        // queremos robarles la tecla.
+        setOpen(false);
+      }
+    };
+    window.addEventListener('keydown', onKeyDown);
+    return () => window.removeEventListener('keydown', onKeyDown);
+  }, []);
+
   return (
     <>
       <button
         onClick={() => setOpen(!open)}
         aria-label="Asistente técnico IA"
-        title="Asistente técnico IA"
+        aria-keyshortcuts="Control+K Meta+K"
+        title="Asistente técnico IA (Ctrl/Cmd+K)"
         className={`fixed bottom-5 right-5 z-50 flex min-h-[56px] min-w-[56px] items-center justify-center rounded-full text-2xl shadow-2xl transition active:scale-95 ${
           isClassic
             ? 'bg-blue-600 text-white hover:bg-blue-700'

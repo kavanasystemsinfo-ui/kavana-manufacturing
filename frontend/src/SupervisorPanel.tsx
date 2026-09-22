@@ -2,11 +2,15 @@ import { useSupervisorPanel } from './hooks/useSupervisorPanel.js';
 import { ThemeToggle } from './components/ThemeToggle.js';
 import { ActivityFeed } from './components/ActivityFeed.js';
 import { WorkstationBoard } from './components/WorkstationBoard.js';
-import { IncidenciasList } from './components/IncidenciasList.js';
 import { HelpModal } from './components/HelpModal.js';
 import { AiAdvisorFab } from './components/AiAdvisorFab.js';
 import { SUPERVISOR_HELP } from './help-content.js';
-import { formatQuantity } from './utils/formatNumber.js';
+import { formatNumber } from './utils/formatNumber.js';
+import { Loading } from './components/ui/Loading.js';
+import { EmptyState } from './components/ui/EmptyState.js';
+import { ErrorState } from './components/ui/ErrorState.js';
+import { IncidenciasKanban } from './components/supervisor/IncidenciasKanban.js';
+import { KanbanBoard } from './components/KanbanBoard.js';
 
 const statusColors: Record<string, string> = {
   pending: 'bg-yellow-500/20 text-yellow-300 ring-yellow-500/40',
@@ -31,7 +35,7 @@ export function SupervisorPanel() {
     selectedWorkstation, setSelectedWorkstation, quantity, setQuantity,
     orderNumber, setOrderNumber, measurement, setMeasurement, material,
     setMaterial, notes, setNotes, activeTab, setActiveTab, expandedOrder,
-    incidencias, incidenciasLoading, incidenciasError,
+    incidencias, incidenciasLoading, incidenciasError, incidenciaNotice,
     handleSubmit, handleToggleExpand, changeOrderStatus, removeOrder,
     changeIncidenciaStatus, removeIncidencia, loadOrders,
   } = useSupervisorPanel();
@@ -59,9 +63,15 @@ export function SupervisorPanel() {
           </div>
         </header>
 
-        {error && (
-          <div className="mb-6 rounded-xl border-2 border-red-500/40 bg-red-500/10 p-4 text-center text-sm text-red-300">
-            {error}
+        {error && <ErrorState message={error} />}
+
+        {incidenciaNotice && (
+          <div
+            role="status"
+            aria-live="polite"
+            className="mb-4 rounded-xl border border-emerald-500/40 bg-emerald-500/10 px-4 py-2 text-sm font-semibold text-emerald-200"
+          >
+            {incidenciaNotice}
           </div>
         )}
 
@@ -177,54 +187,27 @@ export function SupervisorPanel() {
         </div>
 
         {isLoading && activeTab === 'orders' ? (
-          <div className="py-16 text-center text-slate-400 animate-pulse">Cargando...</div>
+          <Loading label="Cargando órdenes..." />
         ) : activeTab === 'orders' ? (
-          <div className="space-y-4">
-            {orders.length === 0 ? (
-              <div className="py-16 text-center text-slate-500">No hay órdenes. Crea la primera con + Nueva Orden.</div>
-            ) : (
-              orders.map((order: any) => (
-                <div key={order.id} className="rounded-xl border-2 border-kavana-steel/20 bg-kavana-surface p-5 transition hover:border-kavana-steel/40">
-                  <div className="flex flex-wrap items-center justify-between gap-3">
-                    <div className="flex items-center gap-4">
-                      <span className={`rounded-full px-3 py-1 text-xs font-bold ring-1 ${(statusColors as any)[order.status] || 'bg-slate-500/20 text-slate-300 ring-slate-500/40'}`}>
-                        {(statusLabels as any)[order.status] || order.status}
-                      </span>
-                      <span className="text-lg font-bold text-white">{order.code || '—'}</span>
-                      <span className="text-sm text-slate-400">{order.workstation_name || order.workstation_id}</span>
-                    </div>
-                    <div className="flex items-center gap-4 text-sm">
-                      <span className="text-slate-300">{formatQuantity(order.quantity)} uds.</span>
-                      <span className="text-slate-500">{order.model_name}</span>
-                      <div className="flex gap-1">
-                        {order.status !== 'completed' && order.status !== 'cancelled' && (
-                          <>
-                            <button onClick={() => changeOrderStatus(order.id, 'in_progress')} className="rounded-lg bg-blue-600/20 px-3 py-1 text-xs font-bold text-blue-300 hover:bg-blue-600/40">Iniciar</button>
-                            <button onClick={() => changeOrderStatus(order.id, 'completed')} className="rounded-lg bg-green-600/20 px-3 py-1 text-xs font-bold text-green-300 hover:bg-green-600/40">Completar</button>
-                          </>
-                        )}
-                        <button onClick={() => { if (confirm('¿Cancelar esta orden?')) changeOrderStatus(order.id, 'cancelled'); }} className="rounded-lg bg-red-600/20 px-3 py-1 text-xs font-bold text-red-300 hover:bg-red-600/40">✕</button>
-                      </div>
-                    </div>
-                  </div>
-                  <div className="mt-3 flex items-center gap-4 border-t border-kavana-steel/10 pt-3">
-                    <button onClick={() => handleToggleExpand(order.id)} className="text-xs font-bold text-kavana-orange-light hover:text-kavana-orange">
-                      {expandedOrder === order.id ? '▲ Ocultar actividad' : '▼ Ver actividad'}
-                    </button>
-                    {expandedOrder === order.id && (
-                      <div className="min-w-0 flex-1">
-                        <ActivityFeed activity={activity} />
-                      </div>
-                    )}
-                  </div>
-                </div>
-              ))
-            )}
-          </div>
+          <KanbanBoard
+            orders={orders}
+            changeOrderStatus={changeOrderStatus}
+            loadOrders={loadOrders}
+          />
         ) : activeTab === 'workstations' ? (
-          <WorkstationBoard workstations={workstations} />
+          <WorkstationBoard workstations={workstationStatus ?? []} />
+        ) : incidenciasLoading ? (
+          <Loading label="Cargando incidencias..." />
+        ) : incidenciasError ? (
+          <ErrorState message={incidenciasError} />
+        ) : incidencias.length === 0 ? (
+          <EmptyState title="No hay incidencias" description="Cuando un operario registre una, aparecerá aquí." />
         ) : (
-          <IncidenciasList incidencias={incidencias} loading={incidenciasLoading} error={incidenciasError} onStatusChange={changeIncidenciaStatus} onDelete={removeIncidencia} />
+          <IncidenciasKanban
+            incidencias={incidencias}
+            onStatusChange={changeIncidenciaStatus}
+            onDelete={removeIncidencia}
+          />
         )}
       </section>
     </main>

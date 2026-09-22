@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { useSupervisorStore } from '../store/supervisor-store.js';
 import { listIncidencias, updateIncidencia, deleteIncidencia } from '../api/admin-entities.js';
 import type { Incidencia } from '../api/admin-entities.js';
+import { incidenciaMoveNotice } from '../utils/incidencia-notice.js';
 
 export type SupervisorTab = 'orders' | 'workstations' | 'incidencias';
 
@@ -39,6 +40,8 @@ export interface SupervisorPanelState {
   incidencias: Incidencia[];
   incidenciasLoading: boolean;
   incidenciasError: string | null;
+  /** Confirmación transitoria del último movimiento en el tablero. */
+  incidenciaNotice: string | null;
   // Acciones
   handleSubmit: (e: React.FormEvent) => Promise<void>;
   handleToggleExpand: (orderId: string) => void;
@@ -65,6 +68,15 @@ export function useSupervisorPanel(): SupervisorPanelState {
   const [incidencias, setIncidencias] = useState<Incidencia[]>([]);
   const [incidenciasLoading, setIncidenciasLoading] = useState(false);
   const [incidenciasError, setIncidenciasError] = useState<string | null>(null);
+  const [notice, setNotice] = useState<string | null>(null);
+
+  // El aviso se borra solo: es una confirmación de un movimiento, no un estado
+  // que el supervisor tenga que cerrar a mano.
+  useEffect(() => {
+    if (!notice) return;
+    const timer = setTimeout(() => setNotice(null), 4000);
+    return () => clearTimeout(timer);
+  }, [notice]);
 
   useEffect(() => {
     if (activeTab !== 'incidencias') return;
@@ -146,8 +158,12 @@ export function useSupervisorPanel(): SupervisorPanelState {
 
   const changeIncidenciaStatus = async (id: string, status: string) => {
     try {
+      const title = incidencias.find((inc) => inc.id === id)?.title ?? 'Incidencia';
       await updateIncidencia(id, { status });
       await reloadIncidencias();
+      // El tablero se recoloca solo; sin este aviso, mover una tarjeta parece
+      // no haber hecho nada hasta que se mira la columna de destino.
+      setNotice(incidenciaMoveNotice(title, status));
     } catch {
       setIncidenciasError('No se pudo cambiar el estado de la incidencia');
     }
@@ -181,6 +197,7 @@ export function useSupervisorPanel(): SupervisorPanelState {
     activeTab, setActiveTab,
     expandedOrder, setExpandedOrder,
     incidencias, incidenciasLoading, incidenciasError,
+    incidenciaNotice: notice,
     handleSubmit,
     handleToggleExpand,
     changeOrderStatus: store.changeOrderStatus,
