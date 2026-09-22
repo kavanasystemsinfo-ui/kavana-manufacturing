@@ -29,8 +29,9 @@ import { CustomFieldsTab } from './components/tabs/CustomFieldsTab.js';
 import { ToolingsTab } from './components/tabs/ToolingsTab.js';
 import { IncidenciasTab } from './components/tabs/IncidenciasTab.js';
 import { MaterialsTab } from './components/tabs/MaterialsTab.js';
+import { AuditoriaTab } from './components/tabs/AuditoriaTab.js';
 
-type Tab = 'users' | 'workstations' | 'models' | 'orders' | 'modules' | 'custom-fields' | 'oee' | 'quality' | 'cost' | 'toolings' | 'incidencias' | 'materials';
+type Tab = 'users' | 'workstations' | 'models' | 'orders' | 'modules' | 'custom-fields' | 'auditoria' | 'oee' | 'quality' | 'cost' | 'toolings' | 'incidencias' | 'materials';
 
 interface TabGroup {
   key: string;
@@ -85,6 +86,7 @@ const TAB_GROUPS: TabGroup[] = [
     tabs: [
       { key: 'modules', label: 'Módulos' },
       { key: 'custom-fields', label: 'Campos' },
+      { key: 'auditoria', label: 'Auditoría' },
     ],
   },
 ];
@@ -133,6 +135,7 @@ export function AdminPanel() {
       case 'incidencias': return <IncidenciasTab />;
       case 'modules': return <ModulesTab />;
       case 'custom-fields': return <CustomFieldsTab />;
+      case 'auditoria': return <AuditoriaTab />;
       case 'oee': return <OeeDashboard />;
       case 'quality': return <QualityDashboard />;
       case 'cost': return <CostDashboard />;

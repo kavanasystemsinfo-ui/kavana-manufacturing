@@ -8,6 +8,7 @@ import {
   invalidateCachedCapabilities,
 } from './capabilities-cache.js';
 import { CUSTOM_FIELD_TYPES, customFieldsSchemaValidator, type CustomFieldType } from '../common/custom-fields.js';
+import { parseAuditQuery, type ConfigAuditEntry } from './audit-query.js';
 
 // ponytail: known module keys from migration 005 seed. Add here when a new module is created.
 const KNOWN_MODULE_KEYS = new Set([
@@ -224,6 +225,47 @@ export class TenantCapabilitiesService {
 
   invalidateCache(tenantId: bigint): void {
     invalidateCachedCapabilities(tenantId);
+  }
+
+  /**
+   * Historial de cambios de configuración del tenant (auditoría).
+   *
+   * Lo escribe un trigger sobre `tenants`, no esta capa, así que aquí solo se
+   * lee: si alguien cambia la configuración por SQL directo, también queda.
+   */
+  async getConfigAudit(
+    tenantId: bigint,
+    query: { limit?: string; offset?: string; from?: string; to?: string },
+  ): Promise<{ entries: ConfigAuditEntry[]; total: number }> {
+    const { limit, offset, from, to } = parseAuditQuery(query);
+
+    const conditions = ['tenant_id = $1'];
+    const params: unknown[] = [String(tenantId)];
+    if (from) {
+      params.push(from);
+      conditions.push(`created_at >= $${params.length}`);
+    }
+    if (to) {
+      params.push(to);
+      conditions.push(`created_at <= $${params.length}`);
+    }
+    const where = conditions.join(' AND ');
+
+    const totalResult = await postgresPool.query<{ total: number }>(
+      `SELECT COUNT(*)::int AS total FROM tenant_config_audit WHERE ${where}`,
+      params,
+    );
+
+    const rows = await postgresPool.query<ConfigAuditEntry>(
+      `SELECT id, actor_user_id, action, previous_value, new_value, metadata, created_at
+       FROM tenant_config_audit
+       WHERE ${where}
+       ORDER BY created_at DESC, id DESC
+       LIMIT $${params.length + 1} OFFSET $${params.length + 2}`,
+      [...params, limit, offset],
+    );
+
+    return { entries: rows.rows, total: totalResult.rows[0]?.total ?? 0 };
   }
 
   async getToolingTypes(tenantId: bigint): Promise<string[]> {
