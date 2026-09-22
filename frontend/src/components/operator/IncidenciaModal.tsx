@@ -3,6 +3,7 @@ import { QRCodeSVG } from 'qrcode.react';
 import { createUploadSession, getUploadSession } from '../../api/incidencias.js';
 import type { UploadSession } from '../../api/incidencias.js';
 import { createIncidencia } from '../../api/admin-entities.js';
+import { Modal } from '../ui/Modal.js';
 
 interface Props {
   isOpen: boolean;
@@ -16,12 +17,6 @@ type ModalStatus = 'creating' | 'waiting' | 'photo' | 'expired' | 'error' | 'sub
 
 const POLL_MS = 2000;
 
-/**
- * Modal de reporte de incidencia con evidencia fotográfica (flujo QR + móvil).
- * Recreación del patrón del MES original con mejores prácticas: la sesión se
- * crea en el backend (no en el cliente), el QR apunta a /mobile-upload/:id y
- * el panel hace polling del estado; la foto llega como data URL (una sola vez).
- */
 export function IncidenciaModal({ isOpen, onClose, operatorId, workstationId, orderId }: Props) {
   const [session, setSession] = useState<UploadSession | null>(null);
   const [photoDataUrl, setPhotoDataUrl] = useState<string | null>(null);
@@ -113,144 +108,157 @@ export function IncidenciaModal({ isOpen, onClose, operatorId, workstationId, or
     }
   };
 
-  if (!isOpen) return null;
-
   const qrUrl = session
     ? `${window.location.origin}/mobile-upload/${session.session_id}`
     : '';
 
-  return (
-    <div className="fixed inset-0 z-[70] flex items-center justify-center bg-black/70 p-4 backdrop-blur-sm">
-      <div className="w-full max-w-lg rounded-2xl border-2 border-kavana-orange/50 bg-kavana-panel p-6 text-slate-100 shadow-2xl">
-        <div className="mb-5 flex items-center justify-between border-b border-kavana-orange/30 pb-4">
-          <h2 className="text-xl font-black uppercase tracking-wider text-white">Reportar Incidencia</h2>
-          <button
-            onClick={() => onClose()}
-            className="rounded-lg px-3 py-1.5 text-slate-400 transition hover:bg-kavana-surface hover:text-white"
-            aria-label="Cerrar"
-          >
-            ✕
-          </button>
-        </div>
+  const creatingState = (
+    <div className="flex flex-col items-center gap-4 py-10 text-slate-400">
+      <div className="h-8 w-8 animate-spin rounded-full border-2 border-kavana-orange border-t-transparent" />
+      <p className="text-sm font-bold uppercase tracking-wider">Creando sesión…</p>
+    </div>
+  );
 
-        {errorMsg && (
-          <div className="mb-4 rounded-xl border border-red-500/40 bg-red-500/10 p-3 text-sm text-red-300">
-            {errorMsg}
-          </div>
-        )}
+  const waitingState = (
+    <div className="mb-5 rounded-xl border-2 border-dashed border-kavana-steel/40 bg-kavana-dark/60 p-5 text-center">
+      <div className="mx-auto mb-4 w-fit rounded-xl bg-white p-3">
+        <QRCodeSVG value={qrUrl} size={150} />
+      </div>
+      <p className="text-sm font-bold uppercase tracking-wider text-white">Escanea con tu móvil</p>
+      <p className="mt-1 text-xs text-slate-400">
+        Abre la cámara del móvil, escanea el QR y sube la foto de la incidencia.
+      </p>
+    </div>
+  );
 
-        {status === 'creating' && (
-          <div className="flex flex-col items-center gap-4 py-10 text-slate-400">
-            <div className="h-8 w-8 animate-spin rounded-full border-2 border-kavana-orange border-t-transparent" />
-            <p className="text-sm font-bold uppercase tracking-wider">Creando sesión…</p>
-          </div>
-        )}
-
-        {(status === 'waiting' || status === 'photo' || status === 'expired') && (
-          <div className="mb-5 rounded-xl border-2 border-dashed border-kavana-steel/40 bg-kavana-dark/60 p-5 text-center">
-            {status === 'photo' && photoDataUrl ? (
-              <div className="relative">
-                <img
-                  src={photoDataUrl}
-                  alt="Evidencia"
-                  className="mx-auto max-h-56 w-full rounded-lg object-cover"
-                />
-                <span className="absolute right-2 top-2 rounded-full bg-emerald-500/90 px-3 py-1 text-xs font-black uppercase text-white">
-                  Foto recibida
-                </span>
-                <button
-                  onClick={() => {
-                    setPhotoDataUrl(null);
-                    setStatus('waiting');
-                  }}
-                  className="absolute bottom-2 right-2 rounded-lg bg-red-600 px-3 py-1.5 text-xs font-bold text-white transition hover:bg-red-500"
-                >
-                  Quitar foto
-                </button>
-              </div>
-            ) : (
-              <>
-                <div className="mx-auto mb-4 w-fit rounded-xl bg-white p-3">
-                  <QRCodeSVG value={qrUrl} size={150} />
-                </div>
-                <p className="text-sm font-bold uppercase tracking-wider text-white">Escanea con tu móvil</p>
-                <p className="mt-1 text-xs text-slate-400">
-                  Abre la cámara del móvil, escanea el QR y sube la foto de la incidencia.
-                </p>
-                {status === 'expired' && (
-                  <p className="mt-3 text-xs font-bold text-amber-400">
-                    La sesión caducó. Cierra y vuelve a abrir el modal para generar un QR nuevo.
-                  </p>
-                )}
-              </>
-            )}
-          </div>
-        )}
-
-        <div className="space-y-4">
-          <div>
-            <label className="mb-1 block text-xs font-bold uppercase tracking-wider text-kavana-steel">Título *</label>
-            <input
-              value={title}
-              onChange={(e) => setTitle(e.target.value)}
-              placeholder="Descripción breve del problema"
-              maxLength={255}
-              className="w-full rounded-xl border border-kavana-steel/30 bg-kavana-surface px-4 py-3 text-sm font-medium text-white placeholder-slate-500 focus:border-kavana-orange focus:outline-none"
-            />
-          </div>
-
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <label className="mb-1 block text-xs font-bold uppercase tracking-wider text-kavana-steel">Tipo</label>
-              <select
-                value={type}
-                onChange={(e) => setType(e.target.value)}
-                className="w-full rounded-xl border border-kavana-steel/30 bg-kavana-surface px-3 py-3 text-sm font-medium text-white focus:border-kavana-orange focus:outline-none"
-              >
-                <option value="produccion">Producción</option>
-                <option value="calidad">Calidad</option>
-                <option value="seguridad">Seguridad</option>
-                <option value="mantenimiento">Mantenimiento</option>
-                <option value="otro">Otro</option>
-              </select>
-            </div>
-            <div className="flex items-end">
-              {/* La severidad la decide el supervisor/gestión, no el operario
-                  (decisión de producto 2026-08-15): fuera del formulario. */}
-              <p className="text-[10px] font-bold uppercase tracking-widest text-kavana-steel/60">
-                La prioridad la valora el supervisor
-              </p>
-            </div>
-          </div>
-
-          <div>
-            <label className="mb-1 block text-xs font-bold uppercase tracking-wider text-kavana-steel">Descripción</label>
-            <textarea
-              value={description}
-              onChange={(e) => setDescription(e.target.value)}
-              rows={3}
-              placeholder="Detalles adicionales (opcional)"
-              className="w-full resize-none rounded-xl border border-kavana-steel/30 bg-kavana-surface px-4 py-3 text-sm font-medium text-white placeholder-slate-500 focus:border-kavana-orange focus:outline-none"
-            />
-          </div>
-
-          <div className="flex gap-3 pt-1">
-            <button
-              onClick={() => onClose()}
-              className="flex-1 rounded-xl border border-kavana-steel/40 px-4 py-3 text-sm font-bold text-slate-300 transition hover:bg-kavana-surface"
-            >
-              Cancelar
-            </button>
-            <button
-              onClick={handleSubmit}
-              disabled={status === 'submitting' || status === 'creating' || !title.trim()}
-              className="flex-1 rounded-xl bg-kavana-orange px-4 py-3 text-sm font-black uppercase tracking-wider text-white transition hover:bg-kavana-orange-light disabled:cursor-not-allowed disabled:opacity-50"
-            >
-              {status === 'submitting' ? 'Enviando…' : 'Reportar Incidencia'}
-            </button>
-          </div>
-        </div>
+  const photoState = (
+    <div className="mb-5 rounded-xl border-2 border-dashed border-kavana-steel/40 bg-kavana-dark/60 p-5 text-center">
+      <div className="relative">
+        {photoDataUrl ? (
+          <img
+            src={photoDataUrl}
+            alt="Evidencia"
+            className="mx-auto max-h-56 w-full rounded-lg object-cover"
+          />
+        ) : null}
+        <span className="absolute right-2 top-2 rounded-full bg-emerald-500/90 px-3 py-1 text-xs font-black uppercase text-white">
+          Foto recibida
+        </span>
+        <button
+          onClick={() => {
+            setPhotoDataUrl(null);
+            setStatus('waiting');
+          }}
+          className="absolute bottom-2 right-2 rounded-lg bg-red-600 px-3 py-1.5 text-xs font-bold text-white transition hover:bg-red-500"
+        >
+          Quitar foto
+        </button>
       </div>
     </div>
+  );
+
+  const expiredState = (
+    <div className="mb-5 rounded-xl border-2 border-dashed border-kavana-steel/40 bg-kavana-dark/60 p-5 text-center">
+      <div className="mx-auto mb-4 w-fit rounded-xl bg-white p-3">
+        <QRCodeSVG value={qrUrl} size={150} />
+      </div>
+      <p className="text-sm font-bold uppercase tracking-wider text-white">Escanea con tu móvil</p>
+      <p className="mt-1 text-xs text-slate-400">
+        Abre la cámara del móvil, escanea el QR y sube la foto de la incidencia.
+      </p>
+      <p className="mt-3 text-xs font-bold text-amber-400">
+        La sesión caducó. Cierra y vuelve a abrir el modal para generar un QR nuevo.
+      </p>
+    </div>
+  );
+
+  const formContent = (
+    <div className="space-y-4">
+      <div>
+        <label className="mb-1 block text-xs font-bold uppercase tracking-wider text-kavana-steel">Título *</label>
+        <input
+          value={title}
+          onChange={(e) => setTitle(e.target.value)}
+          placeholder="Descripción breve del problema"
+          maxLength={255}
+          className="w-full rounded-xl border border-kavana-steel/30 bg-kavana-surface px-4 py-3 text-sm font-medium text-white placeholder-slate-500 focus:border-kavana-orange focus:outline-none"
+        />
+      </div>
+
+      <div className="grid grid-cols-2 gap-4">
+        <div>
+          <label className="mb-1 block text-xs font-bold uppercase tracking-wider text-kavana-steel">Tipo</label>
+          <select
+            value={type}
+            onChange={(e) => setType(e.target.value)}
+            className="w-full rounded-xl border border-kavana-steel/30 bg-kavana-surface px-3 py-3 text-sm font-medium text-white focus:border-kavana-orange focus:outline-none"
+          >
+            <option value="produccion">Producción</option>
+            <option value="calidad">Calidad</option>
+            <option value="seguridad">Seguridad</option>
+            <option value="mantenimiento">Mantenimiento</option>
+            <option value="otro">Otro</option>
+          </select>
+        </div>
+        <div className="flex items-end">
+          <p className="text-[10px] font-bold uppercase tracking-widest text-kavana-steel/60">
+            La prioridad la valora el supervisor
+          </p>
+        </div>
+      </div>
+
+      <div>
+        <label className="mb-1 block text-xs font-bold uppercase tracking-wider text-kavana-steel">Descripción</label>
+        <textarea
+          value={description}
+          onChange={(e) => setDescription(e.target.value)}
+          rows={3}
+          placeholder="Detalles adicionales (opcional)"
+          className="w-full resize-none rounded-xl border border-kavana-steel/30 bg-kavana-surface px-4 py-3 text-sm font-medium text-white placeholder-slate-500 focus:border-kavana-orange focus:outline-none"
+        />
+      </div>
+
+      <div className="flex gap-3 pt-1">
+        <button
+          onClick={() => onClose()}
+          className="flex-1 rounded-xl border border-kavana-steel/40 px-4 py-3 text-sm font-bold text-slate-300 transition hover:bg-kavana-surface"
+        >
+          Cancelar
+        </button>
+        <button
+          onClick={handleSubmit}
+          disabled={status === 'submitting' || status === 'creating' || !title.trim()}
+          className="flex-1 rounded-xl bg-kavana-orange px-4 py-3 text-sm font-black uppercase tracking-wider text-white transition hover:bg-kavana-orange-light disabled:cursor-not-allowed disabled:opacity-50"
+        >
+          {status === 'submitting' ? 'Enviando…' : 'Reportar Incidencia'}
+        </button>
+      </div>
+    </div>
+  );
+
+  return (
+    <Modal
+      isOpen={isOpen}
+      onClose={() => onClose()}
+      title="Reportar Incidencia"
+      maxWidthClass="max-w-lg"
+    >
+      {errorMsg ? (
+        <div className="mb-4 rounded-xl border border-red-500/40 bg-red-500/10 p-3 text-sm text-red-300">
+          {errorMsg}
+        </div>
+      ) : null}
+
+      {status === 'creating' && creatingState}
+      {(status === 'waiting' || status === 'photo' || status === 'expired') && (
+        <>
+          {status === 'photo' && photoDataUrl ? photoState : null}
+          {status === 'waiting' ? waitingState : null}
+          {status === 'expired' ? expiredState : null}
+        </>
+      )}
+
+      {formContent}
+    </Modal>
   );
 }
