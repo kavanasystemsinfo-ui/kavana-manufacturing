@@ -2,7 +2,6 @@ import { useSupervisorPanel } from './hooks/useSupervisorPanel.js';
 import { ThemeToggle } from './components/ThemeToggle.js';
 import { ActivityFeed } from './components/ActivityFeed.js';
 import { WorkstationBoard } from './components/WorkstationBoard.js';
-import { IncidenciasList } from './components/IncidenciasList.js';
 import { HelpModal } from './components/HelpModal.js';
 import { AiAdvisorFab } from './components/AiAdvisorFab.js';
 import { SUPERVISOR_HELP } from './help-content.js';
@@ -10,7 +9,7 @@ import { formatNumber } from './utils/formatNumber.js';
 import { Loading } from './components/ui/Loading.js';
 import { EmptyState } from './components/ui/EmptyState.js';
 import { ErrorState } from './components/ui/ErrorState.js';
-import { WorkstationSemaforo } from './components/supervisor/WorkstationSemaforo.js';
+import { IncidenciasKanban } from './components/supervisor/IncidenciasKanban.js';
 import { KanbanBoard } from './components/KanbanBoard.js';
 
 const statusColors: Record<string, string> = {
@@ -36,7 +35,7 @@ export function SupervisorPanel() {
     selectedWorkstation, setSelectedWorkstation, quantity, setQuantity,
     orderNumber, setOrderNumber, measurement, setMeasurement, material,
     setMaterial, notes, setNotes, activeTab, setActiveTab, expandedOrder,
-    incidencias, incidenciasLoading, incidenciasError,
+    incidencias, incidenciasLoading, incidenciasError, incidenciaNotice,
     handleSubmit, handleToggleExpand, changeOrderStatus, removeOrder,
     changeIncidenciaStatus, removeIncidencia, loadOrders,
   } = useSupervisorPanel();
@@ -66,7 +65,15 @@ export function SupervisorPanel() {
 
         {error && <ErrorState message={error} />}
 
-        <WorkstationSemaforo workstations={workstationStatus ?? []} />
+        {incidenciaNotice && (
+          <div
+            role="status"
+            aria-live="polite"
+            className="mb-4 rounded-xl border border-emerald-500/40 bg-emerald-500/10 px-4 py-2 text-sm font-semibold text-emerald-200"
+          >
+            {incidenciaNotice}
+          </div>
+        )}
 
         {showForm && (
           <form onSubmit={handleSubmit} className="mb-8 rounded-2xl border-2 border-kavana-orange/30 bg-kavana-surface p-6">
@@ -188,9 +195,19 @@ export function SupervisorPanel() {
             loadOrders={loadOrders}
           />
         ) : activeTab === 'workstations' ? (
-          <WorkstationBoard workstations={workstations} />
+          <WorkstationBoard workstations={workstationStatus ?? []} />
+        ) : incidenciasLoading ? (
+          <Loading label="Cargando incidencias..." />
+        ) : incidenciasError ? (
+          <ErrorState message={incidenciasError} />
+        ) : incidencias.length === 0 ? (
+          <EmptyState title="No hay incidencias" description="Cuando un operario registre una, aparecerá aquí." />
         ) : (
-          <IncidenciasList incidencias={incidencias} loading={incidenciasLoading} error={incidenciasError} onStatusChange={changeIncidenciaStatus} onDelete={removeIncidencia} />
+          <IncidenciasKanban
+            incidencias={incidencias}
+            onStatusChange={changeIncidenciaStatus}
+            onDelete={removeIncidencia}
+          />
         )}
       </section>
     </main>
