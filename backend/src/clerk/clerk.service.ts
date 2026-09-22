@@ -106,7 +106,10 @@ export class ClerkService implements OnModuleInit {
   }
 
   async getOrganizationMembershipList(orgId: string): Promise<OrganizationMembership[]> {
-    return this.getClient().organizations.getOrganizationMembershipList({ organizationId: orgId });
+    // El SDK devuelve una respuesta paginada; aquí solo nos interesa la página
+    // de miembros, no el envoltorio con metadatos de paginación.
+    const response = await this.getClient().organizations.getOrganizationMembershipList({ organizationId: orgId });
+    return response.data;
   }
 
   async createOrganizationMembership(data: {
@@ -166,11 +169,13 @@ export class ClerkService implements OnModuleInit {
 
   async decodeToken(token: string): Promise<Record<string, unknown> | null> {
     try {
-      const { decodeJwt } = await import('@clerk/clerk-sdk-node');
-      const decoded = decodeJwt(token);
-      // decodeJwt devuelve una estructura Jwt del SDK (no Record puro); lo
-      // aplanamos a objeto plano para la API interna.
-      return { ...(decoded as unknown as Record<string, unknown>) };
+      // Decodificación SIN verificar firma: el nombre del método lo dice y
+      // quien valida de verdad es verifyToken/JwtServiceWrapper. El SDK de
+      // Clerk ya no exporta decodeJwt, así que se lee el payload directamente
+      // igual que hace JwtServiceWrapper con los tokens HMAC.
+      const parts = token.split('.');
+      if (parts.length !== 3) return null;
+      return JSON.parse(Buffer.from(parts[1], 'base64url').toString()) as Record<string, unknown>;
     } catch (error) {
       this.logger.error('Token decoding failed', error);
       return null;
