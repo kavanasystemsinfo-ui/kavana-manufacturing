@@ -166,11 +166,14 @@ cd backend && npm install && npm run dev      # http://localhost:3001
 cd frontend && npm install && npm run dev      # http://localhost:5173
 
 # 5. Tests
-npm run test                                   # 26 frontend tests
-cd backend && npm run test                     # 286 API tests
+npm run test                                   # 44 frontend tests
+cd backend && npm run test                     # 302 API tests
 
 # 6. Docker (stack completo)
+cp .env.example .env                           # REDIS_PASSWORD es obligatoria
 docker compose up -d
+# Si el 5433 o el 80 están ocupados en tu máquina, cambia DB_PORT / FRONTEND_PORT
+# en .env (ver los comentarios del fichero).
 ```
 
 **Demo online:** https://manufacturing.kavanasystems.com  

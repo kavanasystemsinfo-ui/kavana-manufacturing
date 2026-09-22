@@ -1,5 +1,8 @@
 const { Client } = require('pg');
-const c = new Client({ connectionString: 'postgresql://kavana:kavana_v3_password@localhost:5433/kavana_v3' });
+// Puerto configurable: si el 5433 está ocupado y arrancas el compose con
+// DB_PORT=5434, este script tiene que apuntar al mismo sitio.
+const DB_PORT = process.env.DB_PORT || 5433;
+const c = new Client({ connectionString: `postgresql://kavana:kavana_v3_password@localhost:${DB_PORT}/kavana_v3` });
 
 async function main() {
   await c.connect();
