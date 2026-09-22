@@ -1,4 +1,4 @@
-import { Controller, Get, Patch, Param, Body, UseGuards, BadRequestException, Inject } from '@nestjs/common';
+import { Controller, Get, Patch, Param, Body, Query, UseGuards, BadRequestException, Inject } from '@nestjs/common';
 import { getTenantContext } from '../auth/tenant-context.storage.js';
 import { TenantCapabilitiesService } from './tenant-capabilities.service.js';
 import { RequireRole } from '../auth/roles.decorator.js';
@@ -59,6 +59,19 @@ export class TenantCapabilitiesController {
     );
 
     return { success: true, message: 'Custom fields schema updated.' };
+  }
+
+  @Get('capabilities/audit')
+  @RequireRole('tenant_admin')
+  @UseGuards(RolesGuard)
+  async getConfigAudit(
+    @Query('limit') limit?: string,
+    @Query('offset') offset?: string,
+    @Query('from') from?: string,
+    @Query('to') to?: string,
+  ) {
+    const context = getTenantContext();
+    return this.capabilities.getConfigAudit(context.tenantId, { limit, offset, from, to });
   }
 
   @Get('tooling-types')

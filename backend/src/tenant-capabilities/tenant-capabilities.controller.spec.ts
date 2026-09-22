@@ -19,6 +19,7 @@ describe('TenantCapabilitiesController', () => {
       updateCustomFieldsSchema: vi.fn(),
       isModuleEnabled: vi.fn(),
       invalidateCache: vi.fn(),
+      getConfigAudit: vi.fn(),
       getToolingTypes: vi.fn(),
       saveToolingTypes: vi.fn(),
     };
