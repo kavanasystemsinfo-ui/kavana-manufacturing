@@ -62,9 +62,9 @@ export function AuditoriaTab({ isClassic }: Props) {
       <PeriodoSelector isClassic={isClassic} />
 
       <p className={hint}>
-        Se registran los cambios de módulos, campos personalizados y límites, los haga esta pantalla o alguien
-        directamente sobre la base de datos. El usuario que hizo el cambio todavía no queda registrado: el disparador
-        guarda el cambio sin autor, así que aparece como sistema.
+        Se registran los cambios de módulos, campos personalizados y límites, con el usuario que los hizo. Los cambios
+        hechos directamente sobre la base de datos, sin pasar por la aplicación, aparecen como sistema: el registro no
+        se pierde, solo que no hay usuario al que atribuirlos.
       </p>
 
       {error && (
@@ -96,7 +96,7 @@ export function AuditoriaTab({ isClassic }: Props) {
                   <tr key={entry.id} className={isClassic ? 'border-b border-gray-100' : 'border-b border-kavana-steel/10'}>
                     <td className={`${td} whitespace-nowrap`}>{formatAuditDate(entry.created_at)}</td>
                     <td className={`${td} ${entry.actor_user_id ? '' : isClassic ? 'text-gray-400' : 'text-slate-500'}`}>
-                      {describeActor(entry.actor_user_id)}
+                      {describeActor(entry.actor_user_id, entry.actor_username)}
                     </td>
                     <td className={td}>{summarizeAuditEntry(entry)}</td>
                   </tr>

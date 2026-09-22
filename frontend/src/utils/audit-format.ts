@@ -1,6 +1,7 @@
 export interface AuditEntry {
   id: string;
   actor_user_id: string | null;
+  actor_username?: string | null;
   action: 'feature_matrix' | 'custom_fields_schema' | 'hard_limits' | string;
   previous_value: unknown;
   new_value: unknown;
@@ -35,8 +36,14 @@ export function changedKeys(previous: unknown, next: unknown): string[] {
   return [...claves].filter((clave) => JSON.stringify(antes[clave]) !== JSON.stringify(despues[clave]));
 }
 
-/** El trigger no guarda el usuario, así que se dice explícitamente. */
-export function describeActor(actorUserId: string | null): string {
+/**
+ * El autor puede faltar por dos motivos distintos: el cambio lo hizo algo sin
+ * usuario (SQL directo, migración) o el usuario ya no existe en la tabla. En el
+ * primer caso se dice; en el segundo queda el identificador, que al menos
+ * permite cruzarlo con el registro de accesos.
+ */
+export function describeActor(actorUserId: string | null, actorUsername?: string | null): string {
+  if (actorUsername) return actorUsername;
   if (!actorUserId) return 'Sistema (sin usuario registrado)';
   return actorUserId.slice(0, 8);
 }

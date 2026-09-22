@@ -9,6 +9,7 @@ import {
 } from './capabilities-cache.js';
 import { CUSTOM_FIELD_TYPES, customFieldsSchemaValidator, type CustomFieldType } from '../common/custom-fields.js';
 import { parseAuditQuery, type ConfigAuditEntry } from './audit-query.js';
+import type { PoolClient } from 'pg';
 
 // ponytail: known module keys from migration 005 seed. Add here when a new module is created.
 const KNOWN_MODULE_KEYS = new Set([
@@ -101,6 +102,7 @@ export class TenantCapabilitiesService {
     const client = await postgresPool.connect();
     try {
       await client.query('BEGIN');
+      await this.setAuditActor(client, userId);
 
       // Capture hard_limits before update for integrity check
       const hardLimitsBefore = await client.query(
@@ -181,6 +183,7 @@ export class TenantCapabilitiesService {
     const client = await postgresPool.connect();
     try {
       await client.query('BEGIN');
+      await this.setAuditActor(client, userId);
 
       // Capture hard_limits before update for integrity check
       const hardLimitsBefore = await client.query(
@@ -239,15 +242,15 @@ export class TenantCapabilitiesService {
   ): Promise<{ entries: ConfigAuditEntry[]; total: number }> {
     const { limit, offset, from, to } = parseAuditQuery(query);
 
-    const conditions = ['tenant_id = $1'];
+    const conditions = ['a.tenant_id = $1'];
     const params: unknown[] = [String(tenantId)];
     if (from) {
       params.push(from);
-      conditions.push(`created_at >= $${params.length}`);
+      conditions.push(`a.created_at >= $${params.length}`);
     }
     if (to) {
       params.push(to);
-      conditions.push(`created_at <= $${params.length}`);
+      conditions.push(`a.created_at <= $${params.length}`);
     }
     const where = conditions.join(' AND ');
 
@@ -257,10 +260,12 @@ export class TenantCapabilitiesService {
     );
 
     const rows = await postgresPool.query<ConfigAuditEntry>(
-      `SELECT id, actor_user_id, action, previous_value, new_value, metadata, created_at
-       FROM tenant_config_audit
+      `SELECT a.id, a.actor_user_id, u.username AS actor_username, a.action,
+              a.previous_value, a.new_value, a.metadata, a.created_at
+       FROM tenant_config_audit a
+       LEFT JOIN users u ON u.id = a.actor_user_id
        WHERE ${where}
-       ORDER BY created_at DESC, id DESC
+       ORDER BY a.created_at DESC, a.id DESC
        LIMIT $${params.length + 1} OFFSET $${params.length + 2}`,
       [...params, limit, offset],
     );
@@ -277,18 +282,43 @@ export class TenantCapabilitiesService {
     return result.rows[0]?.types ?? [];
   }
 
-  async saveToolingTypes(tenantId: bigint, types: string[]): Promise<void> {
-    await postgresPool.query(
-      `UPDATE tenants
-       SET feature_matrix = jsonb_set(
-             COALESCE(feature_matrix, '{}'::jsonb),
-             '{tooling,types}',
-             $2::jsonb
-           ),
-           updated_at = NOW()
-       WHERE id = $1`,
-      [tenantId.toString(), JSON.stringify(types)],
-    );
+  /**
+   * Deja constancia de quién hace el cambio, para el historial de auditoría.
+   *
+   * Tiene que ir dentro de la misma transacción que el UPDATE (set_config con
+   * is_local = true), porque si no el disparador que escribe la auditoría no ve
+   * el valor y el cambio queda sin autor.
+   */
+  private async setAuditActor(client: PoolClient, userId: string): Promise<void> {
+    await client.query(`SELECT set_config('app.actor_user_id', $1, true)`, [userId ?? '']);
+  }
+
+  async saveToolingTypes(tenantId: bigint, userId: string, types: string[]): Promise<void> {
+    const client = await postgresPool.connect();
+    try {
+      await client.query('BEGIN');
+      await this.setAuditActor(client, userId);
+
+      await client.query(
+        `UPDATE tenants
+         SET feature_matrix = jsonb_set(
+               COALESCE(feature_matrix, '{}'::jsonb),
+               '{tooling,types}',
+               $2::jsonb
+             ),
+             updated_at = NOW()
+         WHERE id = $1`,
+        [tenantId.toString(), JSON.stringify(types)],
+      );
+
+      await client.query('COMMIT');
+    } catch (err) {
+      await client.query('ROLLBACK');
+      throw err;
+    } finally {
+      client.release();
+    }
+
     this.invalidateCache(tenantId);
   }
 }

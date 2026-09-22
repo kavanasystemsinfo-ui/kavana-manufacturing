@@ -44,6 +44,14 @@ describe('describeActor', () => {
   it('si algún día llega el usuario, se muestra', () => {
     expect(describeActor('7f3a1c2e-0000-0000-0000-000000000000')).toBe('7f3a1c2e');
   });
+
+  it('con el nombre del usuario se muestra el nombre, no el identificador', () => {
+    expect(describeActor('7f3a1c2e-0000-0000-0000-000000000000', 'admin')).toBe('admin');
+  });
+
+  it('si el usuario ya no existe queda el identificador, no un hueco', () => {
+    expect(describeActor('7f3a1c2e-0000-0000-0000-000000000000', null)).toBe('7f3a1c2e');
+  });
 });
 
 describe('summarizeAuditEntry', () => {
