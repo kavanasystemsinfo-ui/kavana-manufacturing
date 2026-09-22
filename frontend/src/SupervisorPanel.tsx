@@ -7,6 +7,9 @@ import { HelpModal } from './components/HelpModal.js';
 import { AiAdvisorFab } from './components/AiAdvisorFab.js';
 import { SUPERVISOR_HELP } from './help-content.js';
 import { formatNumber } from './utils/formatNumber.js';
+import { Loading } from './components/ui/Loading.js';
+import { EmptyState } from './components/ui/EmptyState.js';
+import { ErrorState } from './components/ui/ErrorState.js';
 
 const statusColors: Record<string, string> = {
   pending: 'bg-yellow-500/20 text-yellow-300 ring-yellow-500/40',
@@ -59,11 +62,7 @@ export function SupervisorPanel() {
           </div>
         </header>
 
-        {error && (
-          <div className="mb-6 rounded-xl border-2 border-red-500/40 bg-red-500/10 p-4 text-center text-sm text-red-300">
-            {error}
-          </div>
-        )}
+        {error && <ErrorState message={error} />}
 
         {showForm && (
           <form onSubmit={handleSubmit} className="mb-8 rounded-2xl border-2 border-kavana-orange/30 bg-kavana-surface p-6">
@@ -177,11 +176,14 @@ export function SupervisorPanel() {
         </div>
 
         {isLoading && activeTab === 'orders' ? (
-          <div className="py-16 text-center text-slate-400 animate-pulse">Cargando...</div>
+          <Loading label="Cargando órdenes..." />
         ) : activeTab === 'orders' ? (
           <div className="space-y-4">
             {orders.length === 0 ? (
-              <div className="py-16 text-center text-slate-500">No hay órdenes. Crea la primera con + Nueva Orden.</div>
+              <EmptyState
+                title="No hay órdenes"
+                description="Crea la primera con + Nueva Orden."
+              />
             ) : (
               orders.map((order: any) => (
                 <div key={order.id} className="rounded-xl border-2 border-kavana-steel/20 bg-kavana-surface p-5 transition hover:border-kavana-steel/40">

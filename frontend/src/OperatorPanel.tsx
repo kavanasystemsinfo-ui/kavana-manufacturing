@@ -42,6 +42,8 @@ import { HelpModal } from './components/HelpModal.js';
 import { AiAdvisorFab } from './components/AiAdvisorFab.js';
 import { OPERATOR_HELP } from './help-content.js';
 import { mapCustomFieldsToUI, type CustomFieldUI } from './utils/customFieldsMapper.js';
+import { Loading } from './components/ui/Loading.js';
+import { EmptyState } from './components/ui/EmptyState.js';
 
 const statusLabel: Record<string, string> = {
   pending: 'Pendiente',
@@ -170,17 +172,12 @@ export function OperatorPanel() {
           </div>
 
           {isLoadingOrders ? (
-            <div className="py-12 text-center text-slate-400">
-              <div className="mx-auto mb-4 h-8 w-8 animate-spin rounded-full border-2 border-kavana-orange border-t-transparent" />
-              Cargando órdenes...
-            </div>
+            <Loading label="Cargando órdenes..." />
           ) : filteredOrders.length === 0 ? (
-            <div className="py-12 text-center">
-              <p className="text-lg font-bold text-slate-300">Sin órdenes disponibles</p>
-              <p className="mt-2 text-sm text-slate-500">
-                {orderSearch ? 'No se encontraron órdenes con ese criterio' : 'No hay órdenes asignadas a tu puesto'}
-              </p>
-            </div>
+            <EmptyState
+              title="Sin órdenes disponibles"
+              description={orderSearch ? 'No se encontraron órdenes con ese criterio' : 'No hay órdenes asignadas a tu puesto'}
+            />
           ) : (
             <div className="space-y-3">
               {filteredOrders.map((order) => (
