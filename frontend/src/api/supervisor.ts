@@ -19,6 +19,10 @@ export interface Workstation {
   status: 'active' | 'inactive';
   last_block_type: string | null;
   last_block_start: string | null;
+  /** Fin del último parte: es lo que mide la antigüedad del estado. */
+  last_block_end: string | null;
+  /** Semáforo que deriva el backend: no se recalcula en la UI. */
+  state: 'running' | 'stopped' | 'idle';
   operator_name: string | null;
   created_at: string;
   updated_at: string;

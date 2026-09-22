@@ -4,6 +4,7 @@ import { postgresPool } from '../db/postgres.provider.js';
 import { tenantQuery } from '../db/tenant-query.js';
 import { getTenantContext } from '../auth/tenant-context.storage.js';
 import type { CreateOrderDto, UpdateOrderDto } from './dto.js';
+import { deriveWorkstationState } from '../workstations/workstation-state.js';
 
 const ORDER_FIELDS = `o.id, o.model_id, o.workstation_id, o.quantity, o.status, o.created_by,
   o.custom_fields, o.produced_quantity, o.defect_quantity, o.created_at, o.updated_at,
@@ -131,19 +132,27 @@ export class OrdersService {
       postgresPool,
       `SELECT w.id, w.name, w.code, w.status,
               pwb.type as last_block_type, pwb.start_time as last_block_start,
+              pwb.end_time as last_block_end,
               COALESCE(u.first_name || ' ' || u.last_name, u.username) as operator_name
        FROM workstations w
        LEFT JOIN LATERAL (
-         SELECT pwb.type, pwb.start_time, pwb.operator_id
+         SELECT pwb.type, pwb.start_time, pwb.end_time, pwb.operator_id
          FROM production_work_blocks pwb
          WHERE pwb.tenant_id = w.tenant_id AND pwb.workstation_id = w.id
-         ORDER BY pwb.start_time DESC
+         ORDER BY pwb.end_time DESC
          LIMIT 1
        ) pwb ON true
        LEFT JOIN users u ON u.tenant_id = w.tenant_id AND u.id = pwb.operator_id
        WHERE w.tenant_id = get_current_tenant() AND w.status = 'active'
        ORDER BY w.name`,
     );
-    return result.rows;
+
+    // El estado del semáforo se deriva aquí, en un único sitio, para que todos
+    // los que lean el endpoint vean el mismo criterio.
+    const now = new Date();
+    return result.rows.map((row) => ({
+      ...row,
+      state: deriveWorkstationState({ lastType: row.last_block_type, lastEndTime: row.last_block_end }, now),
+    }));
   }
 }

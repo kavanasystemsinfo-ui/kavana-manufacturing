@@ -10,6 +10,7 @@ import { formatNumber } from './utils/formatNumber.js';
 import { Loading } from './components/ui/Loading.js';
 import { EmptyState } from './components/ui/EmptyState.js';
 import { ErrorState } from './components/ui/ErrorState.js';
+import { WorkstationSemaforo } from './components/supervisor/WorkstationSemaforo.js';
 import { KanbanBoard } from './components/KanbanBoard.js';
 
 const statusColors: Record<string, string> = {
@@ -64,6 +65,8 @@ export function SupervisorPanel() {
         </header>
 
         {error && <ErrorState message={error} />}
+
+        <WorkstationSemaforo workstations={workstationStatus ?? []} />
 
         {showForm && (
           <form onSubmit={handleSubmit} className="mb-8 rounded-2xl border-2 border-kavana-orange/30 bg-kavana-surface p-6">
