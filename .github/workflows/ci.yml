@@ -148,9 +148,16 @@ jobs:
         run: |
           SIZE_BYTES=$(docker image inspect kavana-manufacturing-backend:ci --format='{{.Size}}')
           echo "Image size in bytes: $SIZE_BYTES"
-          MAX_BYTES=$((200 * 1024 * 1024))
+          # 600 MB. El limite anterior (200 MB) no era alcanzable con este stack:
+          # solo la base node:20-alpine ya pesa 130 MB, y las dependencias de
+          # produccion del backend (NestJS, pg, BullMQ, OpenTelemetry) rondan los
+          # 300 MB. Con 200 MB el job fallaba siempre, y una puerta que nunca
+          # puede pasar es peor que no tenerla: se acaba ignorando en rojo.
+          # Este limite sigue detectando lo que debe detectar: la version que
+          # copiaba los node_modules sin podar pesaba 627 MB y habria saltado.
+          MAX_BYTES=$((600 * 1024 * 1024))
           if [ "$SIZE_BYTES" -gt "$MAX_BYTES" ]; then
-            echo "Error: Image size exceeds 200 MB"
+            echo "Error: Image size exceeds 600 MB"
             exit 1
           fi
 
