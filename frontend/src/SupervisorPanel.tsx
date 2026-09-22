@@ -6,7 +6,7 @@ import { IncidenciasList } from './components/IncidenciasList.js';
 import { HelpModal } from './components/HelpModal.js';
 import { AiAdvisorFab } from './components/AiAdvisorFab.js';
 import { SUPERVISOR_HELP } from './help-content.js';
-import { formatQuantity } from './utils/formatNumber.js';
+import { formatNumber } from './utils/formatNumber.js';
 
 const statusColors: Record<string, string> = {
   pending: 'bg-yellow-500/20 text-yellow-300 ring-yellow-500/40',
@@ -194,7 +194,7 @@ export function SupervisorPanel() {
                       <span className="text-sm text-slate-400">{order.workstation_name || order.workstation_id}</span>
                     </div>
                     <div className="flex items-center gap-4 text-sm">
-                      <span className="text-slate-300">{formatQuantity(order.quantity)} uds.</span>
+                      <span className="text-slate-300">{formatNumber(order.quantity)} uds.</span>
                       <span className="text-slate-500">{order.model_name}</span>
                       <div className="flex gap-1">
                         {order.status !== 'completed' && order.status !== 'cancelled' && (
