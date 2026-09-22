@@ -43,7 +43,10 @@ import { ThemeToggle } from './components/ThemeToggle.js';
 import { HelpModal } from './components/HelpModal.js';
 import { AiAdvisorFab } from './components/AiAdvisorFab.js';
 import { OPERATOR_HELP } from './help-content.js';
+import { useState } from 'react';
 import { mapCustomFieldsToUI, type CustomFieldUI } from './utils/customFieldsMapper.js';
+import { buildDraftValues } from './utils/custom-field-values.js';
+import { CustomFieldsEditor } from './components/operator/CustomFieldsEditor.js';
 import { Loading } from './components/ui/Loading.js';
 import { EmptyState } from './components/ui/EmptyState.js';
 
@@ -141,6 +144,8 @@ export function OperatorPanel() {
   } = useOperatorPanel();
 
   const { kpi: shiftKpi, isLoading: isShiftKpiLoading, error: shiftKpiError, refresh: refreshShiftKpi } = useMyShiftKPI();
+
+  const [isEditingFields, setIsEditingFields] = useState(false);
 
   // Note: We are using both selectors and hook. This may cause duplication but ensures we have both.
   // For simplicity, we could rely solely on the hook, but the goal was to demonstrate selectors.
@@ -302,6 +307,37 @@ export function OperatorPanel() {
                     </div>
                   ))}
                 </div>
+              )}
+
+              {customFields.length > 0 && !isEditingFields && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    // Se parte de lo que ya tiene la orden para editar sobre ello,
+                    // no de un formulario en blanco.
+                    setEditingCustomFields(buildDraftValues(schemaFields, activeOrderCustomFields));
+                    setIsEditingFields(true);
+                  }}
+                  className="mt-3 rounded-lg border border-kavana-steel/30 px-3 py-1.5 text-sm font-medium text-slate-300 hover:text-white"
+                >
+                  Rellenar campos de la orden
+                </button>
+              )}
+
+              {customFields.length > 0 && isEditingFields && (
+                <CustomFieldsEditor
+                  fields={schemaFields}
+                  values={editingCustomFields}
+                  onChange={(key, value) => setEditingCustomFields((prev: Record<string, unknown>) => ({ ...prev, [key]: value }))}
+                  onSave={async () => {
+                    // Solo se cierra si se ha guardado: si falla, se queda abierto
+                    // con lo que el operario había escrito.
+                    const guardado = await handleSaveCustomFields();
+                    if (guardado) setIsEditingFields(false);
+                  }}
+                  onCancel={() => setIsEditingFields(false)}
+                  saving={isSavingCustomFields}
+                />
               )}
             </div>
             {/* Right Column - Registration Form */}

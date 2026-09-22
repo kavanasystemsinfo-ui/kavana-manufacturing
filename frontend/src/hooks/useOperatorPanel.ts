@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useHmiStore, triggerSyncEngine } from '../store/hmi-store.js';
 import { mapCustomFieldsToUI } from '../utils/customFieldsMapper.js';
+import { buildPayload } from '../utils/custom-field-values.js';
 import {
   useStartTime,
   useSetStartTime,
@@ -75,7 +76,7 @@ export interface OperatorPanelState {
   calculateShiftKPI: (blocks: any[]) => ShiftKPI;
   // Handlers
   handleRegisterBlock: (e: React.FormEvent) => Promise<void>;
-  handleSaveCustomFields: () => Promise<void>;
+  handleSaveCustomFields: () => Promise<boolean | undefined>;
   // Derived
   schemaFields: any[];
   customFields: any[];
@@ -175,8 +176,19 @@ export function useOperatorPanel(): OperatorPanelState {
   const handleSaveCustomFields = async () => {
     if (!hmi.orderId) return;
     setIsSavingCustomFields(true);
-    try { await hmi.updateCustomFields(hmi.orderId, editingCustomFields); }
-    finally { setIsSavingCustomFields(false); }
+    try {
+      // Los controles del formulario devuelven texto, así que se convierte cada
+      // valor al tipo que declara el esquema antes de mandarlo: un número como
+      // "3" lo rechaza el backend. Los campos vacíos no se envían.
+      await hmi.updateCustomFields(hmi.orderId, buildPayload(schemaFields, editingCustomFields));
+      setErrorMsg('');
+      return true;
+    } catch (err) {
+      setErrorMsg(err instanceof Error ? err.message : 'No se pudieron guardar los campos');
+      return false;
+    } finally {
+      setIsSavingCustomFields(false);
+    }
   };
 
   const activeOrderCustomFields = useHmiStore((s) => s.activeOrder?.custom_fields);
