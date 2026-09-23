@@ -55,8 +55,8 @@ cerró después, con el módulo de incidencias desbloqueado (los endpoints devol
 | 3.2 | **Migración `api/v1`** (middleware + frontend + landing) | Orquestador | 0 404 prod; `/api/v1/health` | 4h |
 | 3.3 | **Tests frontend ≥100** (stores, hooks, componentes críticos) | Subagente | `npm test` ≥100 `it()`; CI verde | 6h |
 | 3.4 | **Contract tests OpenAPI** (spec desde código + validación) | Subagente | `test:contract` verde; `/api/docs` | 4h |
-| 3.5 | **Design tokens** (`docs/design-tokens.md` + `tailwind.config.js`) | Orquestador | 0 colores hardcodeados | 2h |
-| 3.6 | **ADRs 007-010** + `METRICS.md` + `HISTORY.md` + `SECURITY.md` + `LICENSE` + `.env.example` | Orquestador | Todos en repo; landing sync | 3h |
+| 3.5 | ✅ **Design tokens** (`docs/design-tokens.md` + clases semánticas) | Orquestador | Documentados y el aviso de error sin duplicar; quedan 514 usos directos, migración por pasos | 2h |
+| 3.6 | ✅ **ADRs 007-010** + `METRICS.md` + `HISTORY.md` + `SECURITY.md` + `LICENSE` (MIT) + `.env.example` | Orquestador | Todos en repo; métricas al día | 3h |
 | 3.7 | **Reactivar Render + Vercel auto** + health check prod | Orquestador | `curl /health` → 200 | 2h |
 | 3.8 | **Mutation testing** (Stryker) ≥80% | Subagente | Badge en README | 3h |
 

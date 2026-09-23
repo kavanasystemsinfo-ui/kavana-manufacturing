@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { alertClass } from '../../utils/ui-tokens.js';
 import { fetchCapabilities, updateCustomFieldsSchema } from '../../api/admin-entities.js';
 import type { TenantCapabilities } from '../../api/admin-entities.js';
 import { HelpModal } from '../HelpModal.js';
@@ -75,7 +76,7 @@ export function CustomFieldsTab({ isClassic }: Props) {
   const btnSm = 'text-xs font-medium px-2 py-1 rounded transition-colors';
   const btnPrimary = isClassic ? `${btnSm} bg-kavana-orange text-white hover:bg-kavana-orange-light` : `px-4 py-2 bg-indigo-600 hover:bg-indigo-700 rounded-lg text-sm font-medium transition-colors`;
   const btnDanger = isClassic ? `${btnSm} text-red-600 hover:text-red-800 hover:bg-red-50` : 'text-red-400 hover:text-red-300 text-sm';
-  const errBg = isClassic ? 'bg-red-50 border border-red-200 rounded px-3 py-2 text-red-700 text-sm' : 'bg-red-900/50 border border-red-700 rounded-lg p-3 text-red-300 text-sm';
+  const errBg = alertClass('error', isClassic);
   const hintCls = isClassic ? 'text-xs text-gray-500' : 'text-xs text-gray-400';
 
   const schemaPreview = JSON.stringify({ fields }, null, 2);

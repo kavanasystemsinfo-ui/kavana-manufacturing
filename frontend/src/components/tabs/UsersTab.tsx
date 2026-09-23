@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback, useRef, useMemo } from 'react';
+import { alertClass } from '../../utils/ui-tokens.js';
 import type { User, Workstation, ManufacturingModel, Order, Tooling, Incidencia, IncidenciaStats, TenantCapabilities, BomItem } from '../../api/admin-entities.js';
 import { listUsers, createUser, updateUser, deleteUser, listWorkstations } from '../../api/admin-entities.js';
 import { HelpModal } from '../HelpModal.js';
@@ -111,7 +112,7 @@ export function UsersTab({ isClassic }: Props) {
         </button>
       </div>
 
-      {error && <div className={isClassic ? "bg-red-50 border border-red-200 rounded px-3 py-2 text-red-700 text-sm" : "bg-red-900/50 border border-red-700 rounded-lg p-3 text-red-300 text-sm"}>{error}</div>}
+      {error && <div className={alertClass('error', isClassic)}>{error}</div>}
 
       {showCreate && (
         <div className={isClassic ? "bg-white border border-gray-200 rounded-lg p-4 shadow-sm" : "bg-gray-800/80 backdrop-blur-sm rounded-xl border border-gray-700 p-4 space-y-3"}>

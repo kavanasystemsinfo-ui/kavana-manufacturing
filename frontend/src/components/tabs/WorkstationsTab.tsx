@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
+import { alertClass } from '../../utils/ui-tokens.js';
 import { listWorkstations, createWorkstation, updateWorkstation, deleteWorkstation } from '../../api/admin-entities.js';
 import type { Workstation } from '../../api/admin-entities.js';
 import { HelpModal } from '../HelpModal.js';
@@ -45,7 +46,7 @@ export function WorkstationsTab({ isClassic }: Props) {
   const btnSuccess = isClassic ? `${btn} bg-green-600 text-white hover:bg-green-700` : 'px-4 py-2 bg-green-600 hover:bg-green-700 rounded-lg text-sm font-medium transition-colors';
   const btnGhost = isClassic ? `${btn} text-gray-500 hover:text-gray-700 hover:bg-gray-100` : 'px-4 py-2 bg-gray-600 hover:bg-gray-700 rounded-lg text-sm font-medium transition-colors';
   const btnDanger = isClassic ? `${btn} text-red-600 hover:text-red-800 hover:bg-red-50` : 'text-red-400 hover:text-red-300 text-sm';
-  const errBg = isClassic ? 'mx-4 mt-3 bg-red-50 border border-red-200 rounded px-3 py-2 text-red-700 text-sm' : 'bg-red-900/50 border border-red-700 rounded-lg p-3 text-red-300 text-sm';
+  const errBg = isClassic ? `mx-4 mt-3 ${alertClass('error', true)}` : alertClass('error', false);
   const card = isClassic ? 'bg-white rounded-lg border border-gray-200 shadow-sm' : 'space-y-4';
   const tableBg = isClassic ? 'overflow-x-auto' : 'bg-gray-800/80 backdrop-blur-sm rounded-xl border border-gray-700 overflow-hidden';
   const label = isClassic ? 'text-sm font-semibold text-gray-700' : 'text-lg font-semibold';
