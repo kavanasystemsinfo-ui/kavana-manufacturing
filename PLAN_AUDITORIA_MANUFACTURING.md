@@ -27,12 +27,18 @@ registro de producción (ver `docs/KNOWN_ISSUES.md`, ronda 4).
 
 ## Horizonte 2 — IMPORTANTE (Semana 3-4)
 
+**Estado (2026-09-23): completado.** Las nueve tareas están hechas. Dos matices: la
+2.3 (semáforo de puestos en vivo) ya estaba implementada —el panel del supervisor
+refresca cada 10 s— y esta auditoría la daba por pendiente por error; y la 2.4 se
+cerró después, con el módulo de incidencias desbloqueado (los endpoints devolvían
+403 a todos los roles por falta de política, ver `docs/AUDITORIA_USABILIDAD_2026-09-23.md`).
+
 | # | Tarea | Responsable | Criterio de aceptación | Est. |
 |---|-------|-------------|------------------------|------|
 | 2.1 | **Operario: "Repetir último bloque"** (pre-rellena fin=ahora, cant=última) | Subagente | 1 click → listo submit | 2h |
 | 2.2 | **Operario: "Mi turno hoy"** KPI (horas netas, buenas, defectos, % OEE) | Subagente | Card superior con datos día | 3h |
 | 2.3 | **Supervisor: Workstations real-time** (polling 30s / WS) | Subagente | Badge verde/amarillo/rojo auto | 3h |
-| 2.4 | **Supervisor: Kanban incidencias** (Abierto→En Progreso→Resuelto→Cerrado) | Subagente | Drag&drop persiste + notifica | 4h |
+| 2.4 | ✅ **Supervisor: Kanban incidencias** (Abierto→En Progreso→Resuelto→Cerrado) | Subagente | Drag&drop persiste + notifica | 4h |
 | 2.5 | **Admin: Custom Fields Builder visual** (drag: texto, número, select, boolean, fecha) | Subagente | JSON schema válido; 0 JSON a mano | 5h |
 | 2.6 | **Selector periodo global** (hoy/semana/mes/custom) + URL + localStorage | Orquestador | Dashboards reaccionan; shareable | 3h |
 | 2.7 | **Auditoría visible Admin** (tab: quién, qué, cuándo, IP) | Subagente | Lee `tenant_config_audit` + triggers | 4h |
