@@ -2,6 +2,8 @@ import { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import { listIncidencias, createIncidencia, updateIncidencia, deleteIncidencia, getIncidenciaStats } from '../../api/admin-entities.js';
 import type { Incidencia, IncidenciaStats } from '../../api/admin-entities.js';
 import { IncidenciaPhoto } from '../IncidenciaPhoto.js';
+import { KanbanColumns } from '../ui/KanbanColumns.js';
+import { COLUMNAS_INCIDENCIAS, incidenciasHuerfanas } from '../../utils/incidencias-kanban.js';
 
 interface Props { isClassic?: boolean; }
 
@@ -13,6 +15,9 @@ export function IncidenciasTab({ isClassic }: Props) {
   const [editing, setEditing] = useState<string | null>(null);
   const [showCreate, setShowCreate] = useState(false);
   const [filterStatus, setFilterStatus] = useState<string>('all');
+  // El tablero es la vista de gestión (arrastrar para mover el flujo); la lista
+  // sigue siendo la de consulta y edición.
+  const [vista, setVista] = useState<'lista' | 'tablero'>('lista');
   const emptyForm = { title: '', type: 'produccion', description: '', assigned_to: '' };
   const [form, setForm] = useState(emptyForm);
 
@@ -82,6 +87,7 @@ export function IncidenciasTab({ isClassic }: Props) {
   };
 
   const filtered = filterStatus === 'all' ? incidencias : incidencias.filter(i => i.status === filterStatus);
+  const huerfanas = incidenciasHuerfanas(incidencias);
 
   const getStatusBadge = (status: string) => {
     if (status === 'abierto') return 'bg-red-900/50 text-red-300 border border-red-700';
@@ -144,7 +150,19 @@ export function IncidenciasTab({ isClassic }: Props) {
       )}
 
       <div className="flex gap-2">
-        {['all', 'abierto', 'en_progreso', 'resuelto', 'cerrado'].map(s => (
+        <div className="flex rounded-lg border border-gray-700 p-0.5">
+          {(['lista', 'tablero'] as const).map((v) => (
+            <button
+              key={v}
+              onClick={() => setVista(v)}
+              aria-pressed={vista === v}
+              className={`px-3 py-1 rounded text-xs font-medium transition-colors ${vista === v ? 'bg-indigo-600 text-white' : 'text-gray-400 hover:text-white'}`}
+            >
+              {v === 'lista' ? 'Lista' : 'Tablero'}
+            </button>
+          ))}
+        </div>
+        {vista === 'lista' && ['all', 'abierto', 'en_progreso', 'resuelto', 'cerrado'].map(s => (
           <button
             key={s}
             onClick={() => setFilterStatus(s)}
@@ -155,6 +173,34 @@ export function IncidenciasTab({ isClassic }: Props) {
         ))}
       </div>
 
+      {vista === 'tablero' ? (
+        <div className="space-y-3">
+          <KanbanColumns
+            columns={[...COLUMNAS_INCIDENCIAS]}
+            items={incidencias}
+            onMove={(id, nuevoEstado) => { void handleStatusChange(id, nuevoEstado); }}
+            ariaLabel="Tablero de incidencias"
+            emptyLabel="Sin incidencias"
+            renderCard={(inc) => (
+              <div>
+                <div className="text-sm font-semibold text-white">{inc.title}</div>
+                <div className="mt-1 text-xs text-slate-400">
+                  {getTypeLabel(inc.type)} · {new Date(inc.created_at).toLocaleDateString()}
+                </div>
+                {inc.description && <div className="mt-1 text-xs text-slate-300">{inc.description}</div>}
+              </div>
+            )}
+          />
+          {huerfanas.length > 0 && (
+            <div className="rounded-lg border border-amber-700 bg-amber-900/20 px-4 py-3 text-sm text-amber-200">
+              {huerfanas.length === 1
+                ? '1 incidencia tiene un estado sin columna en el tablero:'
+                : `${huerfanas.length} incidencias tienen un estado sin columna en el tablero:`}{' '}
+              {huerfanas.map((i) => i.title).join(', ')}. Se quedan fuera del flujo hasta corregir su estado.
+            </div>
+          )}
+        </div>
+      ) : (
       <div className="space-y-3">
         {filtered.map((inc) => (
           <div key={inc.id} className="bg-gray-800 rounded-xl border border-gray-700 p-4 hover:border-indigo-500/50 transition-all">
@@ -209,6 +255,7 @@ export function IncidenciasTab({ isClassic }: Props) {
           </div>
         )}
       </div>
+      )}
 
       {/* Create/Edit Modal */}
       {(showCreate || editing) && (

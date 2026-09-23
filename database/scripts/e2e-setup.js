@@ -34,6 +34,7 @@ export const E2E = {
   workstationCode: 'E2E-WS',
   workstationName: 'Puesto E2E',
   modelName: 'Modelo E2E',
+  incidenciaTitulo: 'Incidencia E2E',
   orderCode: 'E2E-ORD-1',
   orderQuantity: 100,
 };
@@ -191,6 +192,17 @@ async function seedE2eData(client) {
       noWsRows[0].id,
     ]);
   }
+
+  // Una incidencia para el tablero: se borra y se recrea en cada corrida para que
+  // el arrastre empiece siempre desde «Abierto».
+  await client.query(`DELETE FROM incidencias WHERE tenant_id = 1 AND title = $1::text`, [
+    E2E.incidenciaTitulo,
+  ]);
+  await client.query(
+    `INSERT INTO incidencias (tenant_id, reported_by, type, title, description, status)
+     VALUES (1, $1::uuid, 'calidad', $2::text, 'Creada por el seed del E2E', 'abierto')`,
+    [createdBy, E2E.incidenciaTitulo],
+  );
 
   return { workstationId, orderId };
 }
