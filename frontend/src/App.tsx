@@ -68,6 +68,7 @@ function handleLogoutStorage(): void {
   localStorage.removeItem('kavana_user_id');
   localStorage.removeItem('kavana_role');
   localStorage.removeItem('kavana_tenant_name');
+  localStorage.removeItem('kavana_workstation_name');
 }
 
 export function AppRoutes() {
@@ -77,9 +78,23 @@ export function AppRoutes() {
   const urlTenant = getTenantFromUrl();
   const [auth, setAuth] = useState<AuthState | null>(getInitialAuth);
 
-  function handleLogin(token: string, tenantId: string, userId: string, role: string, tenantName: string) {
+  function handleLogin(
+    token: string,
+    tenantId: string,
+    userId: string,
+    role: string,
+    tenantName: string,
+    workstationName?: string | null,
+  ) {
     localStorage.setItem('kavana_dev_token', token);
     localStorage.setItem('kavana_tenant_name', tenantName);
+    // El puesto decide qué mensaje ve el operario cuando su lista sale vacía: sin
+    // este dato no puede distinguir «no tengo puesto» de «no tengo trabajo».
+    if (workstationName) {
+      localStorage.setItem('kavana_workstation_name', workstationName);
+    } else {
+      localStorage.removeItem('kavana_workstation_name');
+    }
     setAuth({ token, tenantId, userId, role, tenantName });
   }
 
@@ -88,6 +103,11 @@ export function AppRoutes() {
     // FIX A6: purgar también el IndexedDB (logs offline, config de tenant).
     setAuth(null);
     void purgeLocalData();
+    // U2: cerrar sesión recarga la aplicación en vez de limitarse a cambiar el
+    // estado. Así mueren también los temporizadores y la cola en memoria, y el
+    // usuario ve que ha salido de verdad (antes se repintaba el login encima del
+    // panel y parecía que seguía dentro).
+    window.location.reload();
   }
 
   // Ruta pública de subida de foto de incidencia (flujo QR + móvil).

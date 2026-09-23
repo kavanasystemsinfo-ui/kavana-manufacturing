@@ -12,6 +12,28 @@ if (!process.env.JWT_HMAC_SECRET && !process.env.JWT_SECRET) {
   console.warn('⚠ JWT_HMAC_SECRET not set — using dev fallback (not for production)');
 }
 
+/** Lo que devuelve el login. El puesto va en la respuesta para que el panel del
+ * operario pueda distinguir «no tengo puesto» de «no tengo órdenes». */
+interface LoginResult {
+  token: string;
+  tenantId: string;
+  userId: string;
+  role: string;
+  tenantName: string;
+  default_workstation_id: string | null;
+  workstation_name: string | null;
+}
+
+/** El puesto se resuelve con LEFT JOIN: un operario sin puesto debe poder entrar
+ * (con INNER se quedaría fuera del login y no podría ni ver el aviso). */
+const LOGIN_SELECT = `
+  SELECT u.id, u.username, u.password_hash, u.role, u.tenant_id, t.name as tenant_name,
+         u.default_workstation_id, w.name as workstation_name
+  FROM users u
+  JOIN tenants t ON t.id = u.tenant_id
+  LEFT JOIN workstations w
+    ON w.id = u.default_workstation_id AND w.tenant_id = u.tenant_id`;
+
 @Injectable()
 export class AuthLoginService {
   // A7: lockout progresivo por cuenta, en memoria (1 réplica; migrar a Redis si
@@ -53,15 +75,13 @@ export class AuthLoginService {
     this.accountFailures.delete(usernameKey);
   }
 
-  async login(username: string, password: string): Promise<{ token: string; tenantId: string; userId: string; role: string; tenantName: string }> {
+  async login(username: string, password: string): Promise<LoginResult> {
     const key = username.trim().toLowerCase();
     if (this.isLocked(key)) {
       throw new HttpException('Cuenta temporalmente bloqueada por intentos fallidos. Espera unos minutos.', 429);
     }
     const r = await postgresPool.query(
-      `SELECT u.id, u.username, u.password_hash, u.role, u.tenant_id, t.name as tenant_name
-       FROM users u
-       JOIN tenants t ON t.id = u.tenant_id
+      `${LOGIN_SELECT}
        WHERE LOWER(u.username) = LOWER($1)
        LIMIT 1`,
       [username],
@@ -92,14 +112,14 @@ export class AuthLoginService {
       userId: user.id,
       role: user.role,
       tenantName: user.tenant_name,
+      default_workstation_id: user.default_workstation_id ?? null,
+      workstation_name: user.workstation_name ?? null,
     };
   }
 
-  async loginByTenant(subdomain: string, username: string, password: string): Promise<{ token: string; tenantId: string; userId: string; role: string; tenantName: string }> {
+  async loginByTenant(subdomain: string, username: string, password: string): Promise<LoginResult> {
     const r = await postgresPool.query(
-      `SELECT u.id, u.username, u.password_hash, u.role, u.tenant_id, t.name as tenant_name
-       FROM users u
-       JOIN tenants t ON t.id = u.tenant_id
+      `${LOGIN_SELECT}
        WHERE t.subdomain = $1 AND LOWER(u.username) = LOWER($2)
        LIMIT 1`,
       [subdomain, username],
@@ -123,6 +143,8 @@ export class AuthLoginService {
       userId: user.id,
       role: user.role,
       tenantName: user.tenant_name,
+      default_workstation_id: user.default_workstation_id ?? null,
+      workstation_name: user.workstation_name ?? null,
     };
   }
 

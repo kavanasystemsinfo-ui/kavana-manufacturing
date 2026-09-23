@@ -49,6 +49,13 @@ export function LoginPage({ onLogin }: LoginPageProps) {
       localStorage.setItem('kavana_role', data.role);
       localStorage.setItem('kavana_tenant_name', data.tenantName);
       localStorage.setItem('kavana_tenant_slug', slug);
+      // El puesto del operario, para que su panel sepa si el problema es que no
+      // tiene trabajo o que no tiene puesto (ver ordersEmptyState).
+      if (data.workstation_name) {
+        localStorage.setItem('kavana_workstation_name', data.workstation_name);
+      } else {
+        localStorage.removeItem('kavana_workstation_name');
+      }
       window.location.href = `/${slug}`;
     } catch (e) {
       setError(e instanceof Error ? e.message : String(e));

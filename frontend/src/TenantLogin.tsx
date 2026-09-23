@@ -5,7 +5,14 @@ import { AiAdvisorFab } from './components/AiAdvisorFab.js';
 
 interface TenantLoginProps {
   subdomain: string;
-  onLogin: (token: string, tenantId: string, userId: string, role: string, tenantName: string) => void;
+  onLogin: (
+    token: string,
+    tenantId: string,
+    userId: string,
+    role: string,
+    tenantName: string,
+    workstationName?: string | null,
+  ) => void;
 }
 
 export function TenantLogin({ subdomain, onLogin }: TenantLoginProps) {
@@ -61,7 +68,7 @@ export function TenantLogin({ subdomain, onLogin }: TenantLoginProps) {
       localStorage.setItem('kavana_tenant_id', data.tenantId);
       localStorage.setItem('kavana_user_id', data.userId);
       localStorage.setItem('kavana_role', data.role);
-      onLogin(data.token, data.tenantId, data.userId, data.role, data.tenantName);
+      onLogin(data.token, data.tenantId, data.userId, data.role, data.tenantName, data.workstation_name ?? null);
     } catch (e) {
       setError(e instanceof Error ? e.message : String(e));
     } finally {

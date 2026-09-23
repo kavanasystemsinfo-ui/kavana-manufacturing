@@ -14,6 +14,7 @@
 import { readdirSync, readFileSync } from 'node:fs';
 import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { randomBytes, scryptSync } from 'node:crypto';
 import pg from 'pg';
 
 const { Client } = pg;
@@ -26,6 +27,7 @@ const seedFile = resolve(projectRoot, 'database', 'seed.sql');
 export const E2E = {
   tenantSubdomain: 'demo',
   operatorUsername: '1094',
+  operatorWithoutWorkstation: '1095',
   operatorPassword: 'kavana',
   supervisorUsername: '047',
   supervisorPassword: 'kavana',
@@ -35,6 +37,14 @@ export const E2E = {
   orderCode: 'E2E-ORD-1',
   orderQuantity: 100,
 };
+
+/** Mismo formato que el backend (`scrypt:salt:hash`), para poder entrar con
+ * usuario y contraseña desde el E2E. */
+function scryptHash(password) {
+  const salt = randomBytes(16).toString('hex');
+  const hash = scryptSync(password, salt, 64).toString('hex');
+  return `scrypt:${salt}:${hash}`;
+}
 
 async function columnExists(client, table, column) {
   const { rows } = await client.query(
@@ -160,6 +170,25 @@ async function seedE2eData(client) {
   if (opRows.length > 0) {
     await client.query(`DELETE FROM production_work_blocks WHERE tenant_id = 1 AND operator_id = $1`, [
       opRows[0].id,
+    ]);
+  }
+
+  // Operario SIN puesto: su panel tiene que decirle que pida un puesto, no un
+  // «no hay órdenes» que él no puede resolver. Se crea aquí, no en el seed de
+  // desarrollo, porque solo existe para este E2E.
+  const { rows: noWsRows } = await client.query(
+    `SELECT id FROM users WHERE tenant_id = 1 AND lower(username) = lower($1::text)`,
+    [E2E.operatorWithoutWorkstation],
+  );
+  if (noWsRows.length === 0) {
+    await client.query(
+      `INSERT INTO users (tenant_id, username, password_hash, role, first_name, default_workstation_id)
+       VALUES (1, $1::text, $2::text, 'operario', 'Sin puesto', NULL)`,
+      [E2E.operatorWithoutWorkstation, scryptHash(E2E.operatorPassword)],
+    );
+  } else {
+    await client.query(`UPDATE users SET default_workstation_id = NULL WHERE tenant_id = 1 AND id = $1`, [
+      noWsRows[0].id,
     ]);
   }
 
