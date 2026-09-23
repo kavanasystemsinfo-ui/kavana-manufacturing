@@ -19,13 +19,12 @@ import { REQUIRED_ROLES_KEY } from './roles.decorator.js';
 const reflector = new Reflector();
 
 function rolesOf(prototype: object, method: string): string[] {
-  const handler = (prototype as Record<string, unknown>)[method] as object;
-  return (
-    reflector.getAllAndOverride<string[]>(REQUIRED_ROLES_KEY, [
-      handler,
-      prototype.constructor as object,
-    ]) ?? []
-  );
+  const handler = (prototype as Record<string, unknown>)[method] as () => unknown;
+  const roles = reflector.getAllAndOverride(REQUIRED_ROLES_KEY, [
+    handler,
+    prototype.constructor,
+  ]) as string[] | undefined;
+  return roles ?? [];
 }
 
 describe('Catálogos del supervisor', () => {
