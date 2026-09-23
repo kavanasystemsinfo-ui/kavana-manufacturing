@@ -26,8 +26,8 @@
 **Objetivo:** Construir la base multi-tenant sobre la que crecer.
 
 **Decisiones:**
-- PostgreSQL 16 con RLS como pilar de aislamiento (→ [ADR-001](docs/adr/001-shared-schema-multi-tenant-rls.md))
-- Feature flags como JSONB para flexibilidad sin migraciones (→ [ADR-002](docs/adr/002-feature-flags-jsonb.md))
+- PostgreSQL 16 con RLS como pilar de aislamiento (→ [ADR-001](adr/001-shared-schema-multi-tenant-rls.md))
+- Feature flags como JSONB para flexibilidad sin migraciones (→ [ADR-002](adr/002-feature-flags-jsonb.md))
 - NestJS como framework backend por su modularidad nativa y DI
 
 **Resultado:**
@@ -47,8 +47,8 @@
 
 **Decisiones:**
 - Work blocks (bloques de tiempo) en lugar de máquina de estados en tiempo real (→ [Decisión Estratégica](DECISIONES_ESTRATEGICAS.md))
-- Offline-first desde el inicio (→ [ADR-003](docs/adr/003-offline-first-dexie.md))
-- UX Tunnel Vision para operarios con guantes (→ [ADR-004](docs/adr/004-ux-tunnel-vision.md))
+- Offline-first desde el inicio (→ [ADR-003](adr/003-offline-first-dexie.md))
+- UX Tunnel Vision para operarios con guantes (→ [ADR-004](adr/004-ux-tunnel-vision.md))
 
 **Resultado:**
 - ✅ Módulo `core-mes-production` con registro de work blocks
@@ -109,8 +109,8 @@
 **Objetivo:** Funcionalidades de valor añadido: AI Advisor, Toolings, Incidencias, BOM.
 
 **Decisiones:**
-- AI Advisor como módulo independiente con proveedores intercambiables (→ [Executive Summary](docs/commercial/00_executive-summary.md))
-- Toolings con estimación preventiva (→ [ADR-005](docs/adr/005-toolings-estimacion-preventiva.md))
+- AI Advisor como módulo independiente con proveedores intercambiables (→ [Executive Summary](commercial/00_executive-summary.md))
+- Toolings con estimación preventiva (→ [ADR-005](adr/005-toolings-estimacion-preventiva.md))
 - BOM como feature flag `materials_management`
 
 **Resultado:**
@@ -143,6 +143,41 @@
 
 ---
 
+## Fase 7: Auditoría y endurecimiento (Septiembre 2026)
+
+Auditoría formal del proyecto en tres horizontes (`PLAN_AUDITORIA_MANUFACTURING.md`),
+con los horizontes 1 (crítico) y 2 (importante) cerrados.
+
+**Lo que destapó la auditoría y no se veía desde fuera:**
+
+- **El registro de producción estaba roto, también en producción.** Una migración
+  que añadía una columna vivía fuera de `database/migrations/`, así que nadie la
+  aplicaba, y el INSERT del bloque enviaba un valor menos de los que pedía. Los dos
+  arreglados, y el flujo completo quedó cubierto por un E2E que corre en el CI.
+- **Siete endpoints devolvían 403 a todo el mundo, administrador incluido.** El
+  guard de roles cierra por defecto y esos endpoints no declaraban política:
+  `GET /tenant/capabilities` (que cada panel pide al arrancar, así que el panel caía
+  a su almacén local y **un módulo desactivado seguía viéndose**) y todo el CRUD de
+  incidencias. Lo encontró el test de contrato de roles, que ahora recorre todos los
+  controllers ([ADR-007](adr/007-politicas-roles-por-metodo.md)).
+- **El supervisor no podía crear órdenes**: los catálogos que alimentan su
+  formulario exigían rol de administrador y los desplegables salían vacíos.
+- **Un fallo falso en la bandeja del operario**: el reenvío de un parte chocaba con
+  el bloque que él mismo acababa de crear, así que el parte entraba bien pero
+  aparecía un error que no había ocurrido
+  ([ADR-008](adr/008-huella-antes-que-solape.md)).
+- **Dos suites E2E**, y el script de la raíz apuntaba a la que mockea la API, no a
+  la que ejecuta el CI ([ADR-010](adr/010-una-sola-suite-e2e.md)).
+
+**Lo añadido en esta fase:** el flujo vertical completo corriendo en el CI, el
+tablero de incidencias con arrastre (supervisor y administrador, con un solo
+componente), el KPI del turno, el aviso al operario sin puesto asignado, una sola
+suite E2E, los permisos por método, y `npm install` funcionando
+([ADR-009](adr/009-nestjs-una-version.md)).
+
+**Métricas al cierre de la fase:** 409 tests de backend, 155 de frontend y 9
+end-to-end, con los seis jobs del CI en verde.
+
 ## Resumen de Evolución
 
 ```
@@ -173,4 +208,4 @@ Jul W4    │  F6: Deploy, live demo, documentación profesional
 
 *Cada fase documentada con su justificación. Cada decisión descartada, también.*
 
-*Última actualización: 2026-07-23*
+*Última actualización: 2026-09-23*
