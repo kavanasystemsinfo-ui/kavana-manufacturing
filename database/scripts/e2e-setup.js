@@ -31,6 +31,7 @@ export const E2E = {
   supervisorPassword: 'kavana',
   workstationCode: 'E2E-WS',
   workstationName: 'Puesto E2E',
+  modelName: 'Modelo E2E',
   orderCode: 'E2E-ORD-1',
   orderQuantity: 100,
 };
@@ -87,6 +88,17 @@ async function seedE2eData(client) {
   );
   const workstationId = wsRows[0].id;
 
+  // El desplegable de Modelo del formulario de nueva orden se alimenta de este
+  // catálogo: sin al menos un modelo, el supervisor no puede crear nada.
+  await client.query(
+    `INSERT INTO manufacturing_models (tenant_id, name, unit_of_measure)
+     SELECT 1, $1::text, 'piezas/h'
+      WHERE NOT EXISTS (
+        SELECT 1 FROM manufacturing_models WHERE tenant_id = 1 AND name = $1::text
+      )`,
+    [E2E.modelName],
+  );
+
   const { rows: supRows } = await client.query(
     `SELECT id FROM users WHERE tenant_id = 1 AND lower(username) = lower($1::text)`,
     [E2E.supervisorUsername],
@@ -111,6 +123,18 @@ async function seedE2eData(client) {
   // La orden arranca de cero en cada ejecución: los partes de la corrida
   // anterior harían pasar la aserción del supervisor sin trabajar nada.
   await client.query(`DELETE FROM production_work_blocks WHERE tenant_id = 1 AND order_id = $1`, [orderId]);
+
+  // Y se borran las órdenes que hayan dejado las corridas anteriores del E2E en
+  // este puesto (el formulario del supervisor crea una orden nueva cada vez, con
+  // sus defectos y su progreso). Sin esto, la lista acumula filas idénticas y las
+  // aserciones del panel dejan de ser únicas. Se acota al puesto del E2E: la base
+  // es de pruebas, pero no se toca nada que no haya creado este script.
+  await client.query(
+    `DELETE FROM orders
+      WHERE tenant_id = 1 AND workstation_id = $1 AND COALESCE(upper(code), '') <> upper($2::text)`,
+    [workstationId, E2E.orderCode],
+  );
+
   await client.query(
     `UPDATE orders SET produced_quantity = 0, defect_quantity = 0, status = 'pending', updated_at = now()
       WHERE tenant_id = 1 AND id = $1`,
@@ -124,6 +148,20 @@ async function seedE2eData(client) {
       WHERE tenant_id = 1 AND lower(username) = lower($1)`,
     [E2E.operatorUsername, workstationId],
   );
+
+  // Los partes del operario de pruebas también se limpian: el E2E declara siempre
+  // el mismo tramo horario, y un bloque que sobreviva de una corrida anterior
+  // (por ejemplo, uno que acabó en otra orden) hace que el nuevo se rechace por
+  // solape y el test falle por un motivo que no tiene nada que ver con el código.
+  const { rows: opRows } = await client.query(
+    `SELECT id FROM users WHERE tenant_id = 1 AND lower(username) = lower($1::text)`,
+    [E2E.operatorUsername],
+  );
+  if (opRows.length > 0) {
+    await client.query(`DELETE FROM production_work_blocks WHERE tenant_id = 1 AND operator_id = $1`, [
+      opRows[0].id,
+    ]);
+  }
 
   return { workstationId, orderId };
 }

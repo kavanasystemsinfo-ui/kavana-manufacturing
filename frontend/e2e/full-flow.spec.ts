@@ -43,7 +43,14 @@ test.describe('Flujo completo: operario produce y supervisor lo ve', () => {
     await expect(page.getByRole('heading', { name: 'Seleccionar Orden' })).toBeVisible();
 
     // --- 2. Elige la orden de su puesto ---
-    const orden = page.getByRole('button').filter({ hasText: PUESTO_E2E }).first();
+    // Se ancla en la cantidad y no solo en el puesto: el otro spec del E2E crea
+    // órdenes nuevas en este mismo puesto y el operario cogería la primera de la
+    // lista, que no es la suya.
+    const orden = page
+      .getByRole('button')
+      .filter({ hasText: PUESTO_E2E })
+      .filter({ hasText: 'Cant: 100' })
+      .first();
     await expect(orden).toBeVisible();
     await orden.click();
     await expect(page.getByRole('heading', { name: 'Panel de Operario' })).toBeVisible();
