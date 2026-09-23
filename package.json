@@ -23,6 +23,9 @@
   "engines": {
     "node": ">=20"
   },
+  "overrides": {
+    "js-cookie": "^3.0.7"
+  },
   "devDependencies": {
     "@playwright/test": "^1.61.1",
     "concurrently": "^10.0.3",
