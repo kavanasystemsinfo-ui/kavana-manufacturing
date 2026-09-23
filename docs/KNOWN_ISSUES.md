@@ -38,18 +38,18 @@ Metodología nueva: en lugar de un auditor con checklist, 4 subagentes adversari
 
 ---
 
-## 3. Migración 003 fuera de secuencia — parcialmente resuelto
+## 3. Migración 003 fuera de secuencia — ✅ RESUELTO (2026-09-23)
 
 **Problema**:
-- `database/migration-003-offline-conflicts.sql` añade columnas `version` y `device_id` a `production_work_blocks`
-- `020_create_production_work_blocks.sql` no crea esas columnas
-- El backend (`insertWorkBlock`) sí utiliza `version`
-- La secuencia numérica saltó de 022 a 032, dejando un hueco
-- Tres ficheros comparten hoy el número 028; el orden real depende del sort() alfabético del smoke script
+- `database/migration-003-offline-conflicts.sql` añadía las columnas `version` y `device_id` a `production_work_blocks`, pero vivía FUERA de `database/migrations/`, así que la cadena de migraciones nunca lo aplicaba.
+- El backend (`insertWorkBlock`) escribe `version` en el INSERT, de modo que cualquier base creada desde cero devolvía 400 en `POST /production/time-logs/sync`: `column "version" of relation "production_work_blocks" does not exist`. En producción funcionaba porque se había aplicado a mano.
+- La secuencia numérica saltó de 022 a 032, dejando un hueco. Tres ficheros comparten hoy el número 028; el orden real depende del sort() alfabético del smoke script.
 
 **Resuelto (2026-08-21)**: `run-postgres-smoke.js` ya lee el directorio y aplica todas las migraciones en orden — verificado desde BD limpia con 000..036.
 
-**Pendiente**: renombrar `migration-003-offline-conflicts.sql` → `033_offline_conflicts_columns.sql` y normalizar los 028 duplicados.
+**Resuelto (2026-09-23)**: el fichero es ahora `database/migrations/041_offline_conflicts_columns.sql`, idempotente y dentro de la cadena. Lo destapó el E2E de flujo completo: el parte del operario acababa en la bandeja de fallos en lugar de llegar al supervisor.
+
+**Pendiente**: normalizar los tres ficheros 028 duplicados.
 
 ---
 
@@ -145,6 +145,37 @@ SQL injection (todo parametrizado), upload móvil (tenant desde sesión single-u
 
 ---
 
+## Ronda 4 — El E2E de flujo completo destapa dos P0 en el core (2026-09-23)
+
+El E2E de flujo completo (login del operario → registra un parte → el supervisor
+lo ve) encontró dos fallos que ninguna suite unitaria cubría, porque los dos viven
+en el camino `POST /production/time-logs/sync` contra una base de datos real.
+
+**P0-A · El sync no podía escribir la columna `version`.**
+`production_work_blocks` no tenía esa columna en una base creada desde cero: la
+migración que la añadía estaba fuera de la carpeta de migraciones (ver el punto 3).
+El INSERT moría con `column "version" ... does not exist` y el parte del operario
+acababa en la bandeja de fallos del HMI.
+**Fix**: migración `041_offline_conflicts_columns.sql` dentro de la cadena.
+
+**P0-B · El INSERT del sync pasaba 16 valores para 17 marcadores.**
+`insertWorkBlock` calculaba el `fingerprint` semántico (el dedup anti-replay de la
+migración 039) y después no lo incluía en el array de valores, así que Postgres
+respondía `bind message supplies 16 parameters, but prepared statement requires 17`.
+Es decir: **el registro de producción estaba roto en producción**, no solo en local.
+**Fix**: pasar `fingerprint` como último valor del INSERT.
+
+**Por qué no lo cazó nada antes**: el CI no tenía ningún test que ejecutase el
+sync de punta a punta contra una base de datos. Los specs del backend mockean el
+pool o no tocan esta consulta, y el smoke de migraciones comprueba que la cadena
+aplica, no que las columnas que el código escribe existan.
+
+**Regla que queda**: un endpoint que escribe en base de datos necesita al menos un
+test que lo ejecute de verdad. Un `grep` del SQL y una suite verde no son prueba de
+que la consulta corra.
+
+---
+
 ## Nota para entrevistas
 
 Si un entrevistador detecta alguno de estos problemas y te pregunta:
@@ -193,5 +224,7 @@ Si un entrevistador detecta alguno de estos problemas y te pregunta:
 | PWA/Service Worker | P2 | 📋 Documentado | Roadmap producto |
 | DLQ administrativa | P2 | 📋 Documentado | Decisión UX |
 | kavana_app real | P1 | 📋 Documentado | ADR-008 |
-| Migraciones duplicadas/fuera de secuencia | P2 | 📋 Parcial | Renombrar migration-003 y 028s |
+| Migraciones duplicadas/fuera de secuencia | P2 | ✅ Cerrado (migración 041) | 2026-09-23 |
+| Sync de partes roto: columna `version` ausente en BD limpia | P0 | ✅ Corregido | 2026-09-23 (041) |
+| Sync de partes roto: 16 valores para 17 marcadores | P0 | ✅ Corregido | 2026-09-23 |
 | OEE performance=0.85 | P1 | 📋 Documentado | README |

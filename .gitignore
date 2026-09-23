@@ -35,3 +35,8 @@ graphify-out/cache/
 backend/*.cjs
 backend/*.mjs
 .graphifyignore
+
+# Artefactos de Playwright: se regeneran en cada ejecución del E2E y no son
+# fuente de nada. Estaban versionados, así que cada corrida dejaba el árbol sucio.
+frontend/playwright-report/
+frontend/test-results/

@@ -8,9 +8,14 @@
 
 ## Horizonte 1 — CRÍTICO (Semana 1-2)
 
+**Estado (2026-09-23): completado.** Las siete tareas están implementadas y
+verificadas; la 1.1 con el flujo completo corriendo contra backend, frontend y base
+de datos reales, y añadida como job `e2e` del CI. El propio E2E destapó dos P0 del
+registro de producción (ver `docs/KNOWN_ISSUES.md`, ronda 4).
+
 | # | Tarea | Responsable | Criterio de aceptación | Est. |
 |---|-------|-------------|------------------------|------|
-| 1.1 | **E2E Playwright smoke**: login → operario registra bloque → supervisor ve completada | Subagente A | Pasa en CI BD efímera | 4h |
+| 1.1 | ✅ **E2E Playwright smoke**: login → operario registra bloque → supervisor ve completada | Subagente A | Pasa en CI BD efímera | 4h |
 | 1.2 | **Fix CI lint cache**: `cache-dependency-path` = hash `package-lock.json` + workflow | Subagente A | 3 runs verdes seguidos | 1h |
 | 1.3 | **Formato numérico unificado**: migrar `formatQuantity` → `formatNumber` | Subagente B | 0 `formatQuantity`; build+tests verdes | 2h |
 | 1.4 | **Componentes base**: `<Loading/>`, `<EmptyState/>`, `<ErrorState/>`, `<Modal/>` + migrar 3 paneles | Subagente B | 0 duplicados | 3h |

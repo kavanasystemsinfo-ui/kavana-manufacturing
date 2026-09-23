@@ -271,6 +271,7 @@ private async insertWorkBlock(
       dto.is_offline_event ?? false,
       dto.client_device_id || null,
       (dto as any).version ?? 1,
+      fingerprint,
     ];
     const result = await client.query(sql, values);
     return result.rowCount !== null && result.rowCount > 0;
