@@ -118,6 +118,29 @@ WHERE tenant_id = $1::bigint AND id = $2::uuid
         throw new BadRequestException('The requested production order does not exist or you do not have permission.');
       }
 
+      // Antes de mirar solapes: si este mismo hecho de producción ya está
+      // registrado, la respuesta correcta es "ya sincronizado", no un error.
+      // El motor de sync del HMI puede reenviar el bloque (dos ciclos solapados)
+      // y sin esta comprobación el reenvío chocaba con el solape del bloque que
+      // él mismo acababa de crear: el parte entraba bien, pero al operario le
+      // aparecía un fallo en su bandeja y no había fallado nada.
+      const fingerprint = this.computeFingerprint(dto, tenantId);
+      const alreadySynced = await client.query(
+        `SELECT 1 FROM production_work_blocks
+          WHERE tenant_id = $1::bigint AND event_fingerprint = $2
+          LIMIT 1`,
+        [tenantId, fingerprint],
+      );
+
+      if (alreadySynced.rows.length > 0) {
+        const existingOrder = await client.query(
+          `SELECT id, code, quantity, produced_quantity, defect_quantity, status, workstation_id, custom_fields, created_at, updated_at
+             FROM orders WHERE tenant_id = $1::bigint AND id = $2::uuid`,
+          [tenantId, dto.order_id],
+        );
+        return { synced: true, client_event_id: dto.id, order: existingOrder.rows[0] };
+      }
+
       const overlapCheck = await client.query(
         `SELECT 1 FROM production_work_blocks
          WHERE operator_id = $1::uuid AND tenant_id = $2::bigint AND id != $3::uuid
@@ -218,18 +241,15 @@ WHERE tenant_id = $1::bigint AND id = $2::uuid
     return result.rows[0] ?? null;
   }
 
-private async insertWorkBlock(
-    client: PoolClient,
-    dto: SyncWorkBlockDto,
-    tenantId: string,
-  ): Promise<boolean> {
-    // FIX A4 (2026-08-21): fingerprint del contenido semántico del bloque.
-    // El dedup por client_event_id solo atrapa el MISMO uuid; un replay con
-    // uuid nuevo y produced_quantity cambiada duplicaba producción. Con el
-    // fingerprint (hash de orden+operario+times+cantidades), el mismo hecho
-    // de producción es irrepetible aunque cambie el uuid. El UNIQUE en BD
-    // (migración 039) rechaza el duplicado; lo tratamos como ya-sincronizado.
-    const fingerprint = createHash('sha256')
+  /**
+   * Huella del contenido semántico de un bloque: orden, operario, tipo, tramo y
+   * cantidades. El mismo hecho de producción es irrepetible aunque cambie el
+   * uuid, así que el UNIQUE de la migración 039 rechaza el duplicado y aquí se
+   * trata como ya sincronizado. Vive en un método porque lo usan el INSERT y la
+   * comprobación previa de duplicados.
+   */
+  private computeFingerprint(dto: SyncWorkBlockDto, tenantId: string): string {
+    return createHash('sha256')
       .update([
         tenantId,
         dto.order_id,
@@ -241,6 +261,18 @@ private async insertWorkBlock(
         String(dto.type === 'produccion' ? (dto.defect_quantity ?? 0) : ''),
       ].join('|'))
       .digest('hex');
+  }
+
+private async insertWorkBlock(
+    client: PoolClient,
+    dto: SyncWorkBlockDto,
+    tenantId: string,
+  ): Promise<boolean> {
+    // FIX A4 (2026-08-21): el dedup por client_event_id solo atrapa el MISMO uuid;
+    // un replay con uuid nuevo y produced_quantity cambiada duplicaba producción.
+    // El UNIQUE en BD (migración 039) rechaza el duplicado y lo tratamos como
+    // ya-sincronizado.
+    const fingerprint = this.computeFingerprint(dto, tenantId);
 
     const sql = `
       INSERT INTO production_work_blocks (
