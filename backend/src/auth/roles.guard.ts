@@ -14,7 +14,7 @@ import type { KavanaRole } from './tenant-context.interface.js';
 // Excepciones declaradas por ruta en PUBLIC_ROUTES (login, health y las dos
 // rutas públicas por diseño: ai-advisor demo y upload móvil de incidencias).
 // El resto exige @RequireRole explícito en el controller.
-const PUBLIC_ROUTES: ReadonlySet<string> = new Set([
+export const PUBLIC_ROUTES: ReadonlySet<string> = new Set([
   'auth', // login: es el endpoint que emite el token
   'health',
   'ai-advisor', // demo pública con rate limit propio

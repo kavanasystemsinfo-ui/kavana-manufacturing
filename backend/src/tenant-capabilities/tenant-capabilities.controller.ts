@@ -8,7 +8,11 @@ import { RolesGuard } from '../auth/roles.guard.js';
 export class TenantCapabilitiesController {
   constructor(@Inject(TenantCapabilitiesService) private readonly capabilities: TenantCapabilitiesService) {}
 
+  // Lo pide el frontend en TODOS los paneles (feature flags y campos
+  // personalizados). Sin política devolvía 403 y el panel caía a su almacén
+  // local: un módulo desactivado seguía viéndose porque nadie se lo decía.
   @Get('capabilities')
+  @RequireRole('operario', 'supervisor', 'tenant_admin')
   async getCapabilities() {
     const context = getTenantContext();
     const caps = await this.capabilities.getCapabilities(context.tenantId);
@@ -75,6 +79,7 @@ export class TenantCapabilitiesController {
   }
 
   @Get('tooling-types')
+  @RequireRole('supervisor', 'tenant_admin')
   async getToolingTypes() {
     const context = getTenantContext();
     return this.capabilities.getToolingTypes(context.tenantId);

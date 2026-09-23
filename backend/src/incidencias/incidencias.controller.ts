@@ -44,12 +44,16 @@ export class IncidenciasController {
     @Inject(IncidenciaUploadsService) private readonly uploads: IncidenciaUploadsService,
   ) {}
 
+  // El guard es fail-closed y este endpoint no declaraba política: devolvía 403
+  // a todo el mundo, así que la lista de incidencias salía siempre vacía.
   @Get()
+  @RequireRole('operario', 'supervisor', 'tenant_admin')
   async list() {
     return this.service.list(getTenantContext().tenantId);
   }
 
   @Get('stats')
+  @RequireRole('supervisor', 'tenant_admin')
   async stats() {
     return this.service.getStats(getTenantContext().tenantId);
   }
@@ -85,6 +89,7 @@ export class IncidenciasController {
 
   /** Polling del modal del operario (auth): estado de la sesión, sin bytes. */
   @Get('upload-session/:sessionId')
+  @RequireRole('operario', 'supervisor', 'tenant_admin')
   async getUploadSession(@Param('sessionId') sessionId: string) {
     requireUuid(sessionId);
     const session = await this.uploads.getSession(getTenantContext().tenantId, sessionId);
@@ -94,6 +99,7 @@ export class IncidenciasController {
 
   /** Bytes de la foto para el preview del modal (auth, tenant aislado). */
   @Get('upload-session/:sessionId/photo')
+  @RequireRole('operario', 'supervisor', 'tenant_admin')
   async getUploadPhoto(@Param('sessionId') sessionId: string, @Res() res: Response) {
     requireUuid(sessionId);
     const photo = await this.uploads.getPhoto(getTenantContext().tenantId, sessionId);
@@ -104,20 +110,26 @@ export class IncidenciasController {
   }
 
   @Get(':id')
+  @RequireRole('operario', 'supervisor', 'tenant_admin')
   async getById(@Param('id') id: string) {
     const incidencia = await this.service.getById(getTenantContext().tenantId, id);
     if (!incidencia) throw new BadRequestException('Incidencia not found.');
     return incidencia;
   }
 
+  // El operario es quien reporta incidencias: sin política, el botón del panel
+  // devolvía 403 y no se podía crear ninguna.
   @Post()
+  @RequireRole('operario', 'supervisor', 'tenant_admin')
   async create(@Body() body: unknown) {
     const parsed = createIncidenciaSchema.safeParse(body);
     if (!parsed.success) throw new BadRequestException(parsed.error.message);
     return this.service.create(getTenantContext().tenantId, parsed.data);
   }
 
+  // Cerrar o reclasificar una incidencia es de supervisor y administrador.
   @Put(':id')
+  @RequireRole('supervisor', 'tenant_admin')
   async update(@Param('id') id: string, @Body() body: unknown) {
     const parsed = updateIncidenciaSchema.safeParse(body);
     if (!parsed.success) throw new BadRequestException(parsed.error.message);
@@ -125,6 +137,7 @@ export class IncidenciasController {
   }
 
   @Delete(':id')
+  @RequireRole('tenant_admin')
   async delete(@Param('id') id: string) {
     await this.service.delete(getTenantContext().tenantId, id);
     return { deleted: true };
