@@ -59,58 +59,64 @@ Detalle completo en `docs/KNOWN_ISSUES.md` (ronda 4).
 `GHSA-qjx8-664m-686j`, que entraba de forma transitiva por el SDK de Clerk.
 Cerrada fijando `js-cookie` en `^3.0.7` y alineando el lock.
 
-## Propuesto, sin implementar todavía
+## Corregido después de la auditoría (2026-09-23, tarde)
 
-Ordenado por lo que más nota el usuario por unidad de esfuerzo.
+**U1 · El operario sin puesto ya sabe a quién pedírselo.** El login devuelve el
+puesto del usuario (con `LEFT JOIN`, para que quien no lo tiene pueda entrar igual)
+y el panel distingue tres casos: buscando, con puesto y sin trabajo, y sin puesto.
+El mensaje vive en una función pura (`frontend/src/utils/orders-empty-state.ts`)
+con sus tests, y hay un E2E con un operario sin puesto que crea el seed.
 
-### Usabilidad
+**U2 · Cerrar sesión sale de verdad.** Limpiaba el almacén pero dejaba la
+aplicación montada, así que el login se repintaba encima del panel y parecía que
+seguías dentro. Ahora recarga: mueren también los temporizadores y la cola en
+memoria.
 
-**U1 · El operario sin puesto asignado no entiende por qué no tiene trabajo.**
-`GET /orders/available` filtra por `users.default_workstation_id`. Si el operario
-no tiene puesto, la pantalla dice "Sin órdenes asignadas a tu puesto", que es
-cierto pero no accionable: el operario no puede arreglarlo. Propuesta: detectar el
-caso (puesto nulo) y mostrar "No tienes un puesto asignado. Pídeselo a tu
-supervisor" con el nombre del puesto si lo hay. Es un cambio pequeño en el
-`EmptyState` del panel y hace que el operario sepa a quién acudir.
+**C1 · Una sola suite E2E.** La de `e2e/` en la raíz mockeaba la API y el CI no la
+ejecutaba, pero era la que apuntaba el script `test:e2e` de la raíz. Se conservó lo
+único que aportaba (que el tema moderno pinte de verdad y que el administrador
+entre y vea su panel) como dos tests contra la aplicación real, se borró la vieja y
+el script apunta ya a la suite que prueba de verdad.
 
-**U2 · Cerrar sesión no navega.** `handleLogout` limpia el almacén y pinta el login
-del tenant en la misma URL, así que la barra de direcciones sigue diciendo `/demo`.
-Para quien lo usa parece que no ha salido. Propuesta: volver a `/` al cerrar.
+**C2 · `npm install` funciona.** El backend declaraba `@nestjs/core@12` junto a
+`@nestjs/common@11`, así que había que instalar siempre con `npm ci`. Alineado a la
+12: el lock pierde los duplicados de la 11, `npm ci` sigue en 0 vulnerabilidades y
+el backend compila y arranca.
 
-**U3 · Un puesto ocupado no se ve ocupado.** El estado por puesto (verde/amarillo/
-rojo) existe en el backend (`workstations-status`, con corte de 4 h) y el
-supervisor lo tiene, pero el semáforo no se actualiza solo: hay que recargar.
-Propuesta del plan (H2.3): refresco cada 30 s. Es el tipo de detalle que hace que
-una demo parezca viva.
+**C3 · El contrato de roles cubre toda la API, y ha encontrado siete endpoints
+mudos.** El guard es fail-closed: sin `@RequireRole`, un endpoint devuelve 403 a
+todo el mundo, administrador incluido. Estaban así `GET /tenant/capabilities` (lo
+pide el frontend en cada panel al arrancar, así que el panel caía a su almacén
+local y un módulo desactivado seguía viéndose), `GET /tenant/tooling-types` y todo
+el CRUD de `/incidencias` con sus estadísticas. Se fijaron las políticas por método
+y el spec recorre ahora todos los controllers: es el test que los encontró.
 
-**U4 · El aviso de "sin conexión" solo lo ve el operario.** El resto de paneles
-siguen como si nada mientras el backend no responde. Propuesta (H2.9): banner
-global persistente.
+Verificado contra la API real, con los tres roles (admin / supervisor / operario):
 
-**U5 · Falta el atajo de teclado del asistente.** `Cmd/Ctrl+K` para abrir el
-AI Advisor y `Esc` para cerrar (H2.8). Barato y muy visible en una demo.
+| Ruta | Antes | Después |
+|------|-------|---------|
+| `GET /tenant/capabilities` | 403 / 403 / 403 | 200 / 200 / 200 |
+| `GET /tenant/tooling-types` | 403 / 403 / 403 | 200 / 200 / 403 |
+| `GET /incidencias` | 403 / 403 / 403 | 200 / 200 / 200 |
+| `GET /incidencias/stats` | 403 / 403 / 403 | 200 / 200 / 403 |
+| `PUT /incidencias/:id` | 403 / 403 / 403 | 400 / 400 / 403 |
+| `DELETE /incidencias/:id` | 403 / 403 / 403 | 200 / 403 / 403 |
 
-### Código y proyecto
+## Lo que queda
 
-**C1 · Hay dos suites E2E.** La antigua, en `e2e/` de la raíz, mockea la API y no
-la ejecuta el CI; la nueva, en `frontend/e2e/`, va contra la aplicación real. El
-script `test:e2e` de la raíz apunta a la vieja. Propuesta: dejar una sola (la que
-prueba de verdad) y borrar la otra.
-
-**C2 · `npm install` no funciona en el repo.** `@nestjs/core@12` pide
-`@nestjs/common@^12` y el proyecto usa la 11, así que hay que instalar siempre con
-`npm ci`. Es una trampa para quien clone el proyecto: la primera orden que prueba
-cualquiera falla. Propuesta: alinear las versiones de NestJS en una tarea propia,
-con las suites como red.
-
-**C3 · El contrato de roles no estaba cubierto por tests.** Los specs unitarios
-mockean el servicio y no ven los decoradores, así que un permiso mal puesto no
-rompe nada hasta que lo sufre un usuario. Añadido `catalog-roles.spec.ts`, que
-comprueba la metadata que lee el guard. Merece la pena extenderlo a los demás
-controllers con rol.
+- **2.4 · Kanban de incidencias** con arrastre (Abierto → En Progreso → Resuelto →
+  Cerrado). El backend ya tiene el cambio de estado; falta la vista.
+- **Pulido de portfolio**: design tokens, ADRs 007-010 y licencia.
+- **Ingeniería pendiente**: migración a `api/v1` con sus dos consumidores, contract
+  tests OpenAPI, mutation testing con Stryker y el asistente de alta de tenant en
+  tres pasos.
+- **Corrección a esta auditoría**: la tarea 2.3 del plan (semáforo de puestos en
+  vivo) YA estaba implementada, el panel del supervisor refresca cada 10 s. Aquí
+  figuraba como pendiente y era un error.
 
 ## Cómo se ha verificado
 
-- Base de datos desde cero (40 migraciones + seed) y el flujo completo en verde.
-- API real: supervisor y operario, antes y después del cambio de permisos.
-- 352 tests de backend, 148 de frontend, lint y typecheck limpios, CI en verde.
+- Base de datos desde cero (migraciones + seed) y los siete flujos E2E en verde.
+- API real con los tres roles, antes y después de cada cambio de permisos.
+- Backend 409/409, frontend 151/151, E2E 7/7, lint y typecheck sin errores, y los
+  seis jobs del CI en verde.
