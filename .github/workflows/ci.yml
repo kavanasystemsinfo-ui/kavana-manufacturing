@@ -204,3 +204,65 @@ jobs:
           name: frontend-dist
           path: ./frontend/dist
           retention-days: 1
+
+  e2e:
+    name: E2E
+    runs-on: ubuntu-latest
+    needs: [build]
+    services:
+      postgres:
+        image: postgres:18
+        env:
+          POSTGRES_USER: kavana
+          POSTGRES_PASSWORD: kavana_e2e
+          POSTGRES_DB: kavana_e2e
+        ports: ['5432:5432']
+        # needed because the postgres container does not emit a ready signal
+        options: >-
+          --health-cmd="pg_isready -U kavana -d kavana_e2e"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=5
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+          cache-dependency-path: |
+            package-lock.json
+            backend/package-lock.json
+            frontend/package-lock.json
+            .github/workflows/ci.yml
+
+      - name: Install root dependencies
+        run: npm ci
+
+      # El E2E arranca el backend compilado, así que necesita su dist.
+      - name: Build backend
+        run: npm run build
+        working-directory: ./backend
+
+      - name: Install Playwright browsers
+        run: npx playwright install --with-deps chromium
+        working-directory: ./frontend
+
+      # El globalSetup aplica migraciones, seed y datos del flujo sobre la base
+      # efímera, y los webServer levantan backend y frontend.
+      - name: Run end-to-end flow
+        env:
+          DATABASE_URL: postgresql://kavana:kavana_e2e@localhost:5432/kavana_e2e
+        run: npx playwright test --reporter=line
+        working-directory: ./frontend
+
+      - name: Upload Playwright report on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report
+          path: ./frontend/test-results
+          retention-days: 3

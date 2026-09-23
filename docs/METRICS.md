@@ -48,19 +48,22 @@
 
 ## Cobertura de Tests
 
-### Frontend (Vitest)
-| Archivo | Tests | Estado |
-|---------|-------|--------|
-| `hmi-store.spec.ts` | 3 | ✅ |
-| `local-db.spec.ts` | 2 | ✅ |
-| `supervisor-store.spec.ts` | 5 | ✅ |
-| `customFieldsMapper.spec.ts` | 4 | ✅ |
-| `client.spec.ts` | 3 | ✅ |
-| **Total** | **17** | **✅ Todos pasando** |
+Cifras de la última ejecución verificada (2026-09-23). Se actualizan ejecutando
+la suite, no contando `it(` con un `grep`.
 
-### Backend (Vitest — documentado)
-- **229 tests** en 30 archivos de test
-- Cobertura de módulos: auth, orders, OEE, quality, cost, workstations, manufacturing-models, users
+### Backend (Vitest)
+- **346 tests en 44 archivos** (`npm run test` en `backend/`, con `DATABASE_URL`).
+- Cubre auth, orders, OEE, quality, cost, workstations, manufacturing-models,
+  users, tenant-capabilities, incidencias, materials, toolings, queue.
+
+### Frontend (Vitest)
+- **148 tests** (`npm run test` en `frontend/`): stores, hooks, utilidades puras y
+  componentes con Testing Library.
+
+### End-to-end (Playwright)
+- **3 tests** (`npm run test:e2e` en `frontend/`): el flujo completo
+  (login del operario → registra un parte → el supervisor lo ve) más dos de smoke.
+  Corren contra el backend y el frontend reales, con base de datos efímera.
 
 ## Desglose por Módulo (Backend)
 
@@ -94,4 +97,5 @@
 
 ---
 
-*Métricas generadas automáticamente. Actualizadas el 2026-07-23.*
+*Métricas de composición generadas el 2026-07-23. Las cifras de tests se
+verificaron por última vez el 2026-09-23 ejecutando las suites.*
