@@ -104,8 +104,13 @@ Verificado contra la API real, con los tres roles (admin / supervisor / operario
 
 ## Lo que queda
 
-- **2.4 · Kanban de incidencias** con arrastre (Abierto → En Progreso → Resuelto →
-  Cerrado). El backend ya tiene el cambio de estado; falta la vista.
+- **Decisión de producto pendiente (tablero de incidencias en el tema clásico).**
+  El tablero existe en el panel moderno del supervisor (y ahora también en el tab
+  de incidencias del admin, con el mismo componente). El tema **clásico**, que es
+  el que viene por defecto, sigue mostrando la lista con botones
+  (Iniciar/Resolver/Cerrar) sin arrastre. Llevarlo ahí es reutilizar el componente
+  compartido, pero cambia la pantalla que ven los usuarios hoy: se decide con
+  Jorge, no por iniciativa propia.
 - **Pulido de portfolio**: design tokens, ADRs 007-010 y licencia.
 - **Ingeniería pendiente**: migración a `api/v1` con sus dos consumidores, contract
   tests OpenAPI, mutation testing con Stryker y el asistente de alta de tenant en

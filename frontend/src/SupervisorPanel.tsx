@@ -9,7 +9,7 @@ import { formatNumber } from './utils/formatNumber.js';
 import { Loading } from './components/ui/Loading.js';
 import { EmptyState } from './components/ui/EmptyState.js';
 import { ErrorState } from './components/ui/ErrorState.js';
-import { IncidenciasKanban } from './components/supervisor/IncidenciasKanban.js';
+import { IncidenciasKanban } from './components/incidencias/IncidenciasKanban.js';
 import { KanbanBoard } from './components/KanbanBoard.js';
 
 const statusColors: Record<string, string> = {

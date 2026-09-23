@@ -46,9 +46,9 @@ test.describe('Tablero de incidencias', () => {
 
     // La vista de consulta sigue siendo la de siempre; el tablero es la de gestión.
     await page.getByRole('button', { name: 'Tablero' }).click();
-    await expect(page.getByLabel('Abierto')).toContainText(INCIDENCIA);
+    await expect(page.getByLabel('Abiertas')).toContainText(INCIDENCIA);
 
-    await arrastrarA(page, INCIDENCIA, 'En Progreso');
+    await arrastrarA(page, INCIDENCIA, 'En progreso');
 
     // El cambio se comprueba en la lista, que es donde se lee el estado: si el
     // arrastre no hubiera guardado, el badge seguiría diciendo «abierto».
@@ -60,6 +60,19 @@ test.describe('Tablero de incidencias', () => {
     await page.reload();
     await page.getByRole('button', { name: 'Incidencias', exact: true }).click();
     await page.getByRole('button', { name: 'Tablero' }).click();
-    await expect(page.getByLabel('En Progreso')).toContainText(INCIDENCIA, { timeout: 15000 });
+    await expect(page.getByLabel('En progreso')).toContainText(INCIDENCIA, { timeout: 15000 });
+  });
+
+  test('el supervisor ve el mismo tablero (es el mismo componente)', async ({ page }) => {
+    // El componente vive en `components/incidencias/` y lo usan los dos paneles.
+    // El tablero está en el panel moderno: el tema clásico del supervisor todavía
+    // usa su vista con botones (ver la nota al final del spec).
+    await login(page, '047', 'kavana');
+    await page.getByRole('button', { name: 'Kavana', exact: true }).click();
+    await page.getByRole('button', { name: /Incidencias/ }).first().click();
+
+    await expect(page.getByLabel('Incidencias por estado')).toBeVisible({ timeout: 15000 });
+    await expect(page.getByText(INCIDENCIA)).toBeVisible();
   });
 });
+
