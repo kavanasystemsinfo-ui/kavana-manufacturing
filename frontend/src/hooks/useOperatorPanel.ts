@@ -45,6 +45,7 @@ export interface OperatorPanelState {
   operatorName: any;
   availableOrders: any[];
   isLoadingOrders: boolean;
+  assignedWorkstationName: string | null;
   selectedOrderCustomFields: any;
   triggerSyncEngine: () => Promise<void>;
   // Local state (from operator-panel-store)
@@ -121,6 +122,11 @@ export function useOperatorPanel(): OperatorPanelState {
   const [isFailedLogsModalOpen, setIsFailedLogsModalOpen] = useState(false);
   const [isIncidenciaModalOpen, setIsIncidenciaModalOpen] = useState(false);
   const [orderSearch, setOrderSearch] = useState('');
+  // Puesto asignado AL USUARIO (no el de la orden activa, que es lo que guarda el
+  // store). Llega del login porque el endpoint /production/operator/context que
+  // intentaba usar el store no existe todavía: sin este dato el panel no puede
+  // distinguir «no tengo puesto» de «no tengo trabajo».
+  const [assignedWorkstationName] = useState<string | null>(() => localStorage.getItem('kavana_workstation_name'));
   const [errorMsg, setErrorMsg] = useState('');
   const [editingCustomFields, setEditingCustomFields] = useState<Record<string, any>>({});
   const [isSavingCustomFields, setIsSavingCustomFields] = useState(false);
@@ -223,6 +229,7 @@ export function useOperatorPanel(): OperatorPanelState {
     operatorName: hmi.operatorName,
     availableOrders: hmi.availableOrders,
     isLoadingOrders: hmi.isLoadingOrders,
+    assignedWorkstationName,
     selectedOrderCustomFields: hmi.selectedOrderCustomFields,
     triggerSyncEngine: triggerSyncEngine,
     isFailedLogsModalOpen, setIsFailedLogsModalOpen,

@@ -7,6 +7,7 @@ import { ThemeToggle } from './components/ThemeToggle.js';
 import { HelpModal } from './components/HelpModal.js';
 import { OPERATOR_HELP } from './help-content.js';
 import { mapCustomFieldsToUI, type CustomFieldUI } from './utils/customFieldsMapper.js';
+import { ordersEmptyState } from './utils/orders-empty-state.js';
 
 const statusLabels: Record<string, string> = {
   pendiente: 'Pendiente',
@@ -25,6 +26,7 @@ export function ClassicOperatorPanel() {
     orderId, workstationId, operatorId, activeOrder,
     workstationName, operatorName,
     availableOrders, isLoadingOrders, activeOrderCustomFields,
+    assignedWorkstationName,
     selectOrder, loadAvailableOrders,
     isFailedLogsModalOpen, setIsFailedLogsModalOpen,
     orderSearch, setOrderSearch,
@@ -37,6 +39,8 @@ export function ClassicOperatorPanel() {
     handleRegisterBlock, handleSaveCustomFields,
     schemaFields, customFields, filteredOrders,
   } = useOperatorPanel();
+
+  const emptyState = ordersEmptyState(orderSearch, assignedWorkstationName);
   const dateLabel = new Date().toLocaleDateString('es-ES', { weekday: 'long', day: '2-digit', month: 'short' });
   if (!orderId) {
     return (
@@ -75,10 +79,8 @@ export function ClassicOperatorPanel() {
             </div>
           ) : filteredOrders.length === 0 ? (
             <div className="py-12 text-center">
-              <p className="text-lg font-medium text-slate-700">Sin órdenes disponibles</p>
-              <p className="mt-1 text-sm text-slate-500">
-                {orderSearch ? 'No se encontraron órdenes con ese criterio' : 'No hay órdenes asignadas a tu puesto'}
-              </p>
+              <p className="text-lg font-medium text-slate-700">{emptyState.title}</p>
+              <p className="mt-1 text-sm text-slate-500">{emptyState.description}</p>
             </div>
           ) : (
             <div className="space-y-3">

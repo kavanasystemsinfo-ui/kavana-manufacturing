@@ -27,8 +27,9 @@ async function login(page: Page, usuario: string, password: string) {
 
 async function logout(page: Page) {
   await page.getByRole('button', { name: /^Salir/ }).click();
-  // El cierre de sesión no navega: deja la misma URL y pinta el login del
-  // tenant. Por eso se espera al formulario, no a un cambio de dirección.
+  // El cierre de sesión limpia el almacén y recarga la aplicación en la misma
+  // URL del tenant, así que se espera al formulario de login, no a un cambio de
+  // dirección (la URL del tenant es la correcta para volver a entrar).
   await expect(page.getByText('Inicia sesión para continuar')).toBeVisible();
 }
 

@@ -1,6 +1,7 @@
 import logo from '../../logo.png';
 import { useHmiStore } from './store/hmi-store.js';
 import { useOperatorPanel } from './hooks/useOperatorPanel.js';
+import { ordersEmptyState } from './utils/orders-empty-state.js';
 import { 
   useCapabilities, 
   useAvailableOrders, 
@@ -136,12 +137,17 @@ export function OperatorPanel() {
     updateCustomFields,
     loadCapabilities,
     loadOperatorContext,
+    assignedWorkstationName,
     loadAvailableOrders,
     selectOrder,
     registerWorkBlock,
     lastBlock,
     repeatLastBlock,
   } = useOperatorPanel();
+
+  // Qué decir cuando no hay órdenes: si el problema es que no tiene puesto, el
+  // mensaje tiene que decírselo a quien pueda arreglarlo.
+  const emptyState = ordersEmptyState(orderSearch, assignedWorkstationName);
 
   const { kpi: shiftKpi, isLoading: isShiftKpiLoading, error: shiftKpiError, refresh: refreshShiftKpi } = useMyShiftKPI();
 
@@ -185,10 +191,7 @@ export function OperatorPanel() {
           {isLoadingOrders ? (
             <Loading label="Cargando órdenes..." />
           ) : filteredOrders.length === 0 ? (
-            <EmptyState
-              title="Sin órdenes disponibles"
-              description={orderSearch ? 'No se encontraron órdenes con ese criterio' : 'No hay órdenes asignadas a tu puesto'}
-            />
+            <EmptyState title={emptyState.title} description={emptyState.description} />
           ) : (
             <div className="space-y-3">
               {filteredOrders.map((order) => (
