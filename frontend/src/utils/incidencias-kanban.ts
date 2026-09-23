@@ -11,10 +11,10 @@ export interface IncidenciaKanban {
 }
 
 export const COLUMNAS_INCIDENCIAS: ReadonlyArray<{ status: string; title: string }> = [
-  { status: 'abierto', title: 'Abierto' },
-  { status: 'en_progreso', title: 'En Progreso' },
-  { status: 'resuelto', title: 'Resuelto' },
-  { status: 'cerrado', title: 'Cerrado' },
+  { status: 'abierto', title: 'Abiertas' },
+  { status: 'en_progreso', title: 'En progreso' },
+  { status: 'resuelto', title: 'Resueltas' },
+  { status: 'cerrado', title: 'Cerradas' },
 ];
 
 /**

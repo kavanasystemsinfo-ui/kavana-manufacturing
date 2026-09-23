@@ -2,8 +2,7 @@ import { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import { listIncidencias, createIncidencia, updateIncidencia, deleteIncidencia, getIncidenciaStats } from '../../api/admin-entities.js';
 import type { Incidencia, IncidenciaStats } from '../../api/admin-entities.js';
 import { IncidenciaPhoto } from '../IncidenciaPhoto.js';
-import { KanbanColumns } from '../ui/KanbanColumns.js';
-import { COLUMNAS_INCIDENCIAS, incidenciasHuerfanas } from '../../utils/incidencias-kanban.js';
+import { IncidenciasKanban } from '../incidencias/IncidenciasKanban.js';
 
 interface Props { isClassic?: boolean; }
 
@@ -87,7 +86,6 @@ export function IncidenciasTab({ isClassic }: Props) {
   };
 
   const filtered = filterStatus === 'all' ? incidencias : incidencias.filter(i => i.status === filterStatus);
-  const huerfanas = incidenciasHuerfanas(incidencias);
 
   const getStatusBadge = (status: string) => {
     if (status === 'abierto') return 'bg-red-900/50 text-red-300 border border-red-700';
@@ -174,32 +172,11 @@ export function IncidenciasTab({ isClassic }: Props) {
       </div>
 
       {vista === 'tablero' ? (
-        <div className="space-y-3">
-          <KanbanColumns
-            columns={[...COLUMNAS_INCIDENCIAS]}
-            items={incidencias}
-            onMove={(id, nuevoEstado) => { void handleStatusChange(id, nuevoEstado); }}
-            ariaLabel="Tablero de incidencias"
-            emptyLabel="Sin incidencias"
-            renderCard={(inc) => (
-              <div>
-                <div className="text-sm font-semibold text-white">{inc.title}</div>
-                <div className="mt-1 text-xs text-slate-400">
-                  {getTypeLabel(inc.type)} · {new Date(inc.created_at).toLocaleDateString()}
-                </div>
-                {inc.description && <div className="mt-1 text-xs text-slate-300">{inc.description}</div>}
-              </div>
-            )}
-          />
-          {huerfanas.length > 0 && (
-            <div className="rounded-lg border border-amber-700 bg-amber-900/20 px-4 py-3 text-sm text-amber-200">
-              {huerfanas.length === 1
-                ? '1 incidencia tiene un estado sin columna en el tablero:'
-                : `${huerfanas.length} incidencias tienen un estado sin columna en el tablero:`}{' '}
-              {huerfanas.map((i) => i.title).join(', ')}. Se quedan fuera del flujo hasta corregir su estado.
-            </div>
-          )}
-        </div>
+        <IncidenciasKanban
+          incidencias={incidencias}
+          onStatusChange={handleStatusChange}
+          onDelete={handleDelete}
+        />
       ) : (
       <div className="space-y-3">
         {filtered.map((inc) => (
