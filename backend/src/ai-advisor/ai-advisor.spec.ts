@@ -11,6 +11,17 @@ vi.mock('../telemetry/metrics.js', () => ({
   tracePrompt: vi.fn(() => ({ ok: vi.fn(), error: vi.fn() })),
 }));
 
+// Estos tests comprueban el comportamiento cuando el modelo NO responde, así que
+// la llamada se mockea para que falle: sin esto dependían de la red y de si el
+// entorno tenía clave, y con la suite en paralelo tardaban más que el margen de
+// vitest (fallaba uno u otro según la carga de la máquina).
+vi.mock('openai', () => {
+  class OpenAIMock {
+    chat = { completions: { create: vi.fn().mockRejectedValue(new Error('sin modelo en el test')) } };
+  }
+  return { default: { OpenAI: OpenAIMock } };
+});
+
 describe('AiAdvisorService', () => {
   let service: AiAdvisorService;
 
