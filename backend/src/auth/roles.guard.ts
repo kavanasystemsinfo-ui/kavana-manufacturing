@@ -19,6 +19,7 @@ export const PUBLIC_ROUTES: ReadonlySet<string> = new Set([
   'health',
   'ai-advisor', // demo pública con rate limit propio
   'upload-mobile', // subida QR móvil: la credencial es el sessionId single-use
+  'docs', // spec OpenAPI de solo lectura, sin datos de tenant (3.4)
 ]);
 
 @Injectable()

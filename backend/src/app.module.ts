@@ -18,11 +18,12 @@ import { QueueModule } from './queue/queue.module.js';
 import { IncidenciasModule } from './incidencias/incidencias.module.js';
 import { ToolingsModule } from './toolings/toolings.module.js';
 import { MaterialsModule } from './materials/materials.module.js';
+import { OpenApiModule } from './openapi/openapi.module.js';
 
 import { JwtServiceWrapper } from './auth/jwt.service.js';
 
 @Module({
-  imports: [TenantCapabilitiesModule, CoreMesProductionModule, UsersModule, WorkstationsModule, ManufacturingModelsModule, OrdersModule, OeeModule, QualityModule, CostModule, GlobalAdminModule, AuthLoginModule, AiAdvisorModule, QueueModule, IncidenciasModule, ToolingsModule, MaterialsModule],
+  imports: [TenantCapabilitiesModule, CoreMesProductionModule, UsersModule, WorkstationsModule, ManufacturingModelsModule, OrdersModule, OeeModule, QualityModule, CostModule, GlobalAdminModule, AuthLoginModule, AiAdvisorModule, QueueModule, IncidenciasModule, ToolingsModule, MaterialsModule, OpenApiModule],
   controllers: [HealthController],
   providers: [JwtServiceWrapper],
 })

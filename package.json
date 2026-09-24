@@ -16,6 +16,7 @@
     "build:backend": "npm run build --workspace backend",
     "build:frontend": "npm run build --workspace frontend",
     "test": "npm run test --workspaces --if-present",
+    "test:contract": "npm run test:contract --workspace backend",
     "lint": "npm run lint --workspaces --if-present",
     "database:smoke": "node database/scripts/run-postgres-smoke.js",
     "test:e2e": "npm run test:e2e --workspace frontend"
