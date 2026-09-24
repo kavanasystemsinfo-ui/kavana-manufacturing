@@ -2,7 +2,8 @@ import { useSupervisorPanel } from './hooks/useSupervisorPanel.js';
 import { ThemeToggle } from './components/ThemeToggle.js';
 import { ActivityFeed } from './components/ActivityFeed.js';
 import { WorkstationBoard } from './components/WorkstationBoard.js';
-import { IncidenciasList } from './components/IncidenciasList.js';
+import { IncidenciasKanban } from './components/incidencias/IncidenciasKanban.js';
+import type { Incidencia } from './api/admin-entities.js';
 import { HelpModal } from './components/HelpModal.js';
 import { SUPERVISOR_HELP } from './help-content.js';
 import { formatNumber } from './utils/formatNumber.js';
@@ -22,6 +23,29 @@ const statusLabels: Record<string, string> = {
 };
 
 type Tab = 'orders' | 'workstations';
+
+/**
+ * El tablero de incidencias con su carga y su error, como lo pintaba la lista que
+ * sustituye. Decision de Jorge (2026-09-24): el supervisor ve el tablero tambien
+ * en el tema clasico, que es el que viene por defecto, no solo en el moderno.
+ */
+function IncidenciasTablero({ incidencias, loading, error, onStatusChange, onDelete }: {
+  incidencias: Incidencia[];
+  loading: boolean;
+  error: string | null;
+  onStatusChange: (id: string, status: string) => Promise<void>;
+  onDelete: (id: string) => Promise<void>;
+}) {
+  if (loading) return <div className="py-12 text-center text-slate-500">Cargando incidencias...</div>;
+  if (error) return <div className="py-12 text-center text-red-600">{error}</div>;
+  if (incidencias.length === 0)
+    return (
+      <div className="py-12 text-center text-slate-500">
+        No hay incidencias. Cuando alguien registre una, aparecerá aquí.
+      </div>
+    );
+  return <IncidenciasKanban incidencias={incidencias} onStatusChange={onStatusChange} onDelete={onDelete} />;
+}
 
 export function ClassicSupervisorPanel() {
   const {
@@ -210,7 +234,13 @@ export function ClassicSupervisorPanel() {
         ) : activeTab === 'workstations' ? (
           <WorkstationBoard workstations={workstationStatus} />
         ) : (
-          <IncidenciasList incidencias={incidencias} loading={incidenciasLoading} error={incidenciasError} isClassic onStatusChange={changeIncidenciaStatus} onDelete={removeIncidencia} />
+          <IncidenciasTablero
+            incidencias={incidencias}
+            loading={incidenciasLoading}
+            error={incidenciasError}
+            onStatusChange={changeIncidenciaStatus}
+            onDelete={removeIncidencia}
+          />
         )}
       </main>
     </div>

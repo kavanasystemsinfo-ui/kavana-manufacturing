@@ -1,5 +1,6 @@
 import type { Incidencia } from '../api/admin-entities.js';
 import { IncidenciaPhoto } from './IncidenciaPhoto.js';
+import { colorEstadoIncidencia } from '../utils/incidencias-kanban.js';
 
 interface Props {
   incidencias: Incidencia[];
@@ -25,22 +26,10 @@ const typeLabels: Record<string, string> = {
   otro: 'Otro',
 };
 
-const statusDark: Record<string, string> = {
-  abierto: 'bg-red-500/20 text-red-300 ring-red-500/40',
-  en_progreso: 'bg-blue-500/20 text-blue-300 ring-blue-500/40',
-  resuelto: 'bg-emerald-500/20 text-emerald-300 ring-emerald-500/40',
-  cerrado: 'bg-slate-500/20 text-slate-300 ring-slate-500/40',
-};
-
-const statusClassic: Record<string, string> = {
-  abierto: 'bg-red-100 text-red-800 border-red-300',
-  en_progreso: 'bg-blue-100 text-blue-800 border-blue-300',
-  resuelto: 'bg-emerald-100 text-emerald-800 border-emerald-300',
-  cerrado: 'bg-slate-100 text-slate-600 border-slate-300',
-};
-
 export function IncidenciasList({ incidencias, loading, error, isClassic, onStatusChange, onDelete }: Props) {
-  const status = isClassic ? statusClassic : statusDark;
+  // El color de cada estado vive en utils/incidencias-kanban.ts: el mismo estado
+  // se pinta igual en cualquier pantalla y en los dos temas.
+  const status = (s: string) => colorEstadoIncidencia(s, isClassic);
   const card = isClassic
     ? 'rounded-lg border border-slate-200 bg-white shadow-sm'
     : 'rounded-xl border-2 border-kavana-steel/20 bg-kavana-surface';
@@ -85,7 +74,7 @@ export function IncidenciasList({ incidencias, loading, error, isClassic, onStat
         <div key={inc.id} className={`p-5 ${card}`}>
           <div className="flex items-center gap-2">
             <span className={`text-sm md:text-base ${titleCls}`}>{inc.title}</span>
-            <span className={`rounded-full px-3 py-1 text-xs font-bold ring-1 ${status[inc.status] || status.abierto}`}>
+            <span className={`rounded-full px-3 py-1 text-xs font-bold ring-1 ${status(inc.status) || status('abierto')}`}>
               {statusLabels[inc.status] || inc.status}
             </span>
           </div>

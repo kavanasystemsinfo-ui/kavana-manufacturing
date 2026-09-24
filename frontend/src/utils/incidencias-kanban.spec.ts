@@ -1,5 +1,29 @@
 import { describe, it, expect } from 'vitest';
-import { COLUMNAS_INCIDENCIAS, incidenciasHuerfanas } from './incidencias-kanban.js';
+import {
+  COLUMNAS_INCIDENCIAS,
+  COLOR_ESTADO_INCIDENCIA,
+  colorEstadoIncidencia,
+  incidenciasHuerfanas,
+} from './incidencias-kanban.js';
+
+describe('El color de los estados (mismo estado, misma pinta)', () => {
+  it('cada columna tiene su color en los dos temas', () => {
+    for (const { status } of COLUMNAS_INCIDENCIAS) {
+      expect(COLOR_ESTADO_INCIDENCIA[status].classic.length).toBeGreaterThan(0);
+      expect(COLOR_ESTADO_INCIDENCIA[status].modern.length).toBeGreaterThan(0);
+    }
+  });
+
+  it('el clásico usa tonos claros y el moderno oscuros: no se pintan con el mismo', () => {
+    expect(colorEstadoIncidencia('abierto', true)).toContain('red-100');
+    expect(colorEstadoIncidencia('abierto', false)).toContain('red-500');
+  });
+
+  it('un estado desconocido se queda neutro, no desaparece', () => {
+    expect(colorEstadoIncidencia('pendiente_de_pieza', true)).toContain('slate');
+    expect(colorEstadoIncidencia(null, false)).toContain('slate');
+  });
+});
 
 describe('Tablero de incidencias', () => {
   it('las columnas son los cuatro estados que acepta el backend, en orden de flujo', () => {

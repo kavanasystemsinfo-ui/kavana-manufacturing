@@ -3,6 +3,7 @@ import { listIncidencias, createIncidencia, updateIncidencia, deleteIncidencia, 
 import type { Incidencia, IncidenciaStats } from '../../api/admin-entities.js';
 import { IncidenciaPhoto } from '../IncidenciaPhoto.js';
 import { IncidenciasKanban } from '../incidencias/IncidenciasKanban.js';
+import { colorEstadoIncidencia } from '../../utils/incidencias-kanban.js';
 
 interface Props { isClassic?: boolean; }
 
@@ -87,12 +88,9 @@ export function IncidenciasTab({ isClassic }: Props) {
 
   const filtered = filterStatus === 'all' ? incidencias : incidencias.filter(i => i.status === filterStatus);
 
-  const getStatusBadge = (status: string) => {
-    if (status === 'abierto') return 'bg-red-900/50 text-red-300 border border-red-700';
-    if (status === 'en_progreso') return 'bg-blue-900/50 text-blue-300 border border-blue-700';
-    if (status === 'resuelto') return 'bg-emerald-900/50 text-emerald-300 border border-emerald-700';
-    return 'bg-gray-700/50 text-gray-400 border border-gray-600';
-  };
+  // El color del badge vive en utils/incidencias-kanban.ts, igual que en el
+  // tablero y en la lista: el mismo estado, la misma pinta.
+  const getStatusBadge = (status: string) => colorEstadoIncidencia(status, isClassic);
 
   const getTypeLabel = (type: string) => {
     const labels: Record<string, string> = { calidad: 'Calidad', seguridad: 'Seguridad', mantenimiento: 'Mantenimiento', produccion: 'Producción', otro: 'Otro' };
