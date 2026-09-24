@@ -41,6 +41,10 @@ export default defineConfig({
         METRICS_PORT: '0',
         JWT_SECRET: process.env.JWT_SECRET ?? 'e2e-secret',
         JWT_HMAC_SECRET: process.env.JWT_HMAC_SECRET ?? 'e2e-secret',
+        // Identidad de plataforma del usuario kavana_admin que siembra el
+        // e2e-setup: sin esta lista el guard del Global Admin deniega a todos.
+        GLOBAL_ADMIN_USER_IDS:
+          process.env.GLOBAL_ADMIN_USER_IDS ?? '00000000-0000-4000-8000-0000000000aa',
       },
     },
     {

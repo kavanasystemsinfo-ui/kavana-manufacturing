@@ -1,11 +1,12 @@
 import { useEffect, useState, useCallback } from 'react';
 import {
-  listTenants, getTenantStats, createTenant, updateTenant, deleteTenant, toggleTenantModule,
+  listTenants, getTenantStats, updateTenant, deleteTenant, toggleTenantModule,
   type GlobalTenant, type TenantStats,
 } from './api/admin-entities.js';
 import { useGlobalAdmin } from './hooks/useGlobalAdmin.js';
 import { ThemeToggle } from './components/ThemeToggle.js';
 import { HelpModal } from './components/HelpModal.js';
+import { TenantWizard } from './components/global-admin/TenantWizard.js';
 import { GLOBAL_ADMIN_HELP } from './help-content.js';
 
 const MODULE_KEYS = ['core_mes', 'oee_monitoring', 'quality_assurance', 'cost_management'];
@@ -62,7 +63,10 @@ export function ClassicGlobalAdminPanel() {
           <TenantsTab tenants={tenants} loading={loading} onReload={reload} onError={setError} />
         )}
         {tab === 'create' && (
-          <CreateTenantTab onCreated={() => { setTab('tenants'); void reload(); }} onError={setError} />
+          // 3.1: el wizard de 3 pasos sustituye al formulario todo-en-uno en
+          // los DOS temas (misma decisión que el tablero de incidencias: un
+          // componente compartido, misma pantalla en clásico y moderno).
+          <TenantWizard onCreated={() => { setTab('tenants'); void reload(); }} onError={setError} />
         )}
       </main>
     </div>
@@ -250,147 +254,6 @@ function TenantsTab({ tenants, loading, onReload, onError }: { tenants: GlobalTe
 
         {tenants.length === 0 && (
           <div className="text-center py-12 text-gray-400">No hay clientes registrados</div>
-        )}
-      </div>
-    </div>
-  );
-}
-
-// ──── Create Tenant Tab ────
-function CreateTenantTab({ onCreated, onError }: { onCreated: () => void; onError: (e: string | null) => void }) {
-  const [form, setForm] = useState({
-    id: 2,
-    name: '',
-    subdomain: '',
-    status: 'trial' as 'active' | 'suspended' | 'trial',
-    modules: ['core_mes'],
-    admin_username: 'admin',
-    admin_password: '',
-  });
-
-  async function handleCreate() {
-    try {
-      await createTenant(form);
-      onCreated();
-    } catch (e) {
-      onError(e instanceof Error ? e.message : String(e));
-    }
-  }
-
-  const inputStyle = 'w-full border border-gray-300 rounded px-2 py-1 text-sm focus:ring-2 focus:ring-purple-500 focus:border-purple-500 outline-none bg-white text-gray-900';
-  const selectStyle = 'border border-gray-300 rounded px-2 py-1 text-sm focus:ring-2 focus:ring-purple-500 focus:border-purple-500 outline-none bg-white';
-
-  return (
-    <div className="max-w-xl space-y-4">
-      <h2 className="text-lg font-semibold text-gray-800">Crear Nuevo Cliente</h2>
-
-      <div className="bg-white rounded-lg border border-gray-200 p-4 space-y-4">
-        <div className="grid grid-cols-2 gap-3">
-          <div>
-            <label className="block text-sm font-medium text-gray-500 mb-1">ID del Tenant</label>
-            <input
-              type="number"
-              value={form.id}
-              onChange={(e) => setForm({ ...form, id: Number(e.target.value) })}
-              className={inputStyle}
-            />
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-500 mb-1">Estado</label>
-            <select
-              value={form.status}
-              onChange={(e) => setForm({ ...form, status: e.target.value as 'active' | 'suspended' | 'trial' })}
-              className={selectStyle}
-            >
-              <option value="trial">Trial</option>
-              <option value="active">Active</option>
-              <option value="suspended">Suspended</option>
-            </select>
-          </div>
-        </div>
-        <div>
-          <label className="block text-sm font-medium text-gray-500 mb-1">Nombre de la empresa</label>
-          <input
-            placeholder="Ej: Acme Manufacturing"
-            value={form.name}
-            onChange={(e) => setForm({ ...form, name: e.target.value })}
-            className={inputStyle}
-          />
-        </div>
-        <div>
-          <label className="block text-sm font-medium text-gray-500 mb-1">Subdominio</label>
-          <div className="flex items-center gap-0">
-            <input
-              placeholder="megalux"
-              value={form.subdomain}
-              onChange={(e) => setForm({ ...form, subdomain: e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, '') })}
-              className={`${inputStyle} rounded-r-none`}
-            />
-            <span className="bg-gray-100 text-gray-500 px-3 py-1 text-sm border border-l-0 border-gray-300 rounded-r">.kavana.app</span>
-          </div>
-        </div>
-
-        <div className="border-t border-gray-200 pt-4">
-          <h3 className="text-sm font-medium text-gray-500 mb-3">Credenciales del Admin</h3>
-          <div className="grid grid-cols-2 gap-3">
-            <div>
-              <label className="block text-xs text-gray-400 mb-1">Usuario</label>
-              <input
-                value={form.admin_username}
-                onChange={(e) => setForm({ ...form, admin_username: e.target.value })}
-                className={inputStyle}
-              />
-            </div>
-            <div>
-              <label className="block text-xs text-gray-400 mb-1">Contraseña</label>
-              <input
-                type="password"
-                value={form.admin_password}
-                onChange={(e) => setForm({ ...form, admin_password: e.target.value })}
-                className={inputStyle}
-                placeholder="Mínimo 6 caracteres"
-              />
-            </div>
-          </div>
-        </div>
-
-        <div>
-          <label className="block text-sm font-medium text-gray-500 mb-2">Módulos iniciales</label>
-          <div className="flex flex-wrap gap-2">
-            {MODULE_KEYS.map((key) => {
-              const selected = form.modules.includes(key);
-              return (
-                <button
-                  key={key}
-                  onClick={() => {
-                    setForm({
-                      ...form,
-                      modules: selected ? form.modules.filter((m) => m !== key) : [...form.modules, key],
-                    });
-                  }}
-                  className={`px-3 py-1.5 rounded text-sm font-medium transition-colors ${
-                    selected
-                      ? 'bg-purple-600 text-white'
-                      : 'bg-gray-200 text-gray-500 hover:bg-gray-300'
-                  }`}
-                >
-                  {MODULE_LABELS[key]}
-                </button>
-              );
-            })}
-          </div>
-        </div>
-        <button
-          onClick={() => void handleCreate()}
-          disabled={!form.name.trim() || !form.subdomain.trim() || !form.admin_password.trim() || form.admin_password.length < 6}
-          className="w-full px-4 py-2 bg-purple-600 hover:bg-purple-700 disabled:opacity-50 disabled:cursor-not-allowed rounded text-sm font-medium text-white transition-colors"
-        >
-          Crear Cliente
-        </button>
-        {form.subdomain && (
-          <div className="text-center text-xs text-gray-400">
-            URL: <span className="text-purple-600">{form.subdomain}.kavana.app</span>
-          </div>
         )}
       </div>
     </div>
