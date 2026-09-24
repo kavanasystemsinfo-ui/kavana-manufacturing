@@ -44,7 +44,10 @@ export default defineConfig({
       },
     },
     {
-      command: 'npm run dev',
+      // `/usr/bin/npm`: el `npm` del PATH es el shim de rtk y en el VPS muere con
+      // «dev: not found». Ruta absoluta para que el E2E no dependa del PATH de
+      // quien lo lance; en CI (GitHub) /usr/bin/npm es el npm normal.
+      command: '/usr/bin/npm run dev',
       url: `http://localhost:${FRONTEND_PORT}`,
       reuseExistingServer: !process.env.CI,
       timeout: 120000,

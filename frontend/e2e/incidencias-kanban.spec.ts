@@ -38,6 +38,9 @@ async function arrastrarA(page: Page, texto: string, columna: string) {
 }
 
 test.describe('Tablero de incidencias', () => {
+  // Los dos tests comparten la misma incidencia del seed y el primero la arrastra:
+  // en paralelo el segundo la encuentra ya movida y falla por datos, no por código.
+  test.describe.configure({ mode: 'serial' });
   test.setTimeout(90000);
 
   test('una incidencia se mueve de columna arrastrando y el cambio se guarda', async ({ page }) => {
@@ -63,16 +66,24 @@ test.describe('Tablero de incidencias', () => {
     await expect(page.getByLabel('En progreso')).toContainText(INCIDENCIA, { timeout: 15000 });
   });
 
-  test('el supervisor ve el mismo tablero (es el mismo componente)', async ({ page }) => {
-    // El componente vive en `components/incidencias/` y lo usan los dos paneles.
-    // El tablero está en el panel moderno: el tema clásico del supervisor todavía
-    // usa su vista con botones (ver la nota al final del spec).
+  test('el supervisor arrastra también en el tema clásico (el que va por defecto)', async ({ page }) => {
+    // Decision de Jorge (2026-09-24): el tablero vive en los dos temas. El clásico
+    // es el que ve el supervisor de planta sin tocar nada, asi que este test se
+    // queda en el, sin cambiar de tema.
     await login(page, '047', 'kavana');
-    await page.getByRole('button', { name: 'Kavana', exact: true }).click();
     await page.getByRole('button', { name: /Incidencias/ }).first().click();
 
     await expect(page.getByLabel('Incidencias por estado')).toBeVisible({ timeout: 15000 });
-    await expect(page.getByText(INCIDENCIA)).toBeVisible();
+    // El test del admin (que corre primero en serie) la dejó en «En progreso»:
+    // se arrastra DESDE donde esté hasta Resueltas, que es lo que este test prueba.
+    const origen = (await page.getByLabel('En progreso').textContent())?.includes(INCIDENCIA)
+      ? 'En progreso'
+      : 'Abiertas';
+    await expect(page.getByLabel(origen)).toContainText(INCIDENCIA);
+
+    await arrastrarA(page, INCIDENCIA, 'Resueltas');
+
+    await expect(page.getByLabel('Resueltas')).toContainText(INCIDENCIA, { timeout: 15000 });
   });
 });
 
