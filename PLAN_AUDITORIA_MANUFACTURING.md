@@ -54,7 +54,7 @@ cerró después, con el módulo de incidencias desbloqueado (los endpoints devol
 | 3.1 | **Global Admin: Wizard onboarding tenant** (3 pasos) | Subagente | Tenant+módulos+admin <2 min | 4h |
 | 3.2 | **Migración `api/v1`** (middleware + frontend + landing) | Orquestador | 0 404 prod; `/api/v1/health` | 4h |
 | 3.3 | ✅ **Tests frontend ≥100** (stores, hooks, componentes críticos) | Subagente | 162 tests (objetivo 100 superado); CI verde | 6h |
-| 3.4 | **Contract tests OpenAPI** (spec desde código + validación) | Subagente | `test:contract` verde; `/api/docs` | 4h |
+| 3.4 | ✅ **Contract tests OpenAPI** (spec desde código + validación) | Orquestador | 95 tests contract; spec en `/docs` y `/docs.json` (ADR-011); `npm run test:contract` verde; 504 backend verdes | 4h |
 | 3.5 | ✅ **Design tokens** (`docs/design-tokens.md` + clases semánticas) | Orquestador | Documentados y el aviso de error sin duplicar; quedan 514 usos directos, migración por pasos | 2h |
 | 3.6 | ✅ **ADRs 007-010** + `METRICS.md` + `HISTORY.md` + `SECURITY.md` + `LICENSE` (MIT) + `.env.example` | Orquestador | Todos en repo; métricas al día | 3h |
 | 3.7 | ✅ **Render + Vercel auto + health check prod** | Orquestador | `/health` y frontend en 200, verificado 2026-09-24 | 2h |
