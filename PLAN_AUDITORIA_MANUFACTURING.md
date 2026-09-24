@@ -51,7 +51,7 @@ cerró después, con el módulo de incidencias desbloqueado (los endpoints devol
 
 | # | Tarea | Responsable | Criterio de aceptación | Est. |
 |---|-------|-------------|------------------------|------|
-| 3.1 | **Global Admin: Wizard onboarding tenant** (3 pasos) | Subagente | Tenant+módulos+admin <2 min | 4h |
+| 3.1 | ✅ **Global Admin: Wizard onboarding tenant** (3 pasos) | Orquestador | Máquina de estados pura testeadas (17 tests) + componente `TenantWizard.tsx` + GlobalAdminPanel en ambos temas + E2E `tenant-wizard.spec.ts` (10/10 suite E2E verde) | 4h |
 | 3.2 | **Migración `api/v1`** (middleware + frontend + landing) | Orquestador | 0 404 prod; `/api/v1/health` | 4h |
 | 3.3 | ✅ **Tests frontend ≥100** (stores, hooks, componentes críticos) | Subagente | 162 tests (objetivo 100 superado); CI verde | 6h |
 | 3.4 | ✅ **Contract tests OpenAPI** (spec desde código + validación) | Orquestador | 95 tests contract; spec en `/docs` y `/docs.json` (ADR-011); `npm run test:contract` verde; 504 backend verdes | 4h |

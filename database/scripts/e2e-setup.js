@@ -37,6 +37,12 @@ export const E2E = {
   incidenciaTitulo: 'Incidencia E2E',
   orderCode: 'E2E-ORD-1',
   orderQuantity: 100,
+  // Usuario de plataforma para el panel /global-admin: su uuid es FIJO para
+  // que el backend lo reconozca vía GLOBAL_ADMIN_USER_IDS (configurada por el
+  // playwright.config.ts con este mismo valor). No existe en producción.
+  platformAdminUsername: 'kavana_admin',
+  platformAdminPassword: 'kavana',
+  platformAdminUuid: '00000000-0000-4000-8000-0000000000aa',
 };
 
 /** Mismo formato que el backend (`scrypt:salt:hash`), para poder entrar con
@@ -192,6 +198,24 @@ async function seedE2eData(client) {
       noWsRows[0].id,
     ]);
   }
+
+  // Usuario de plataforma para el E2E del Global Admin (wizard de alta de
+  // tenant): uuid fijo, reconocido por GLOBAL_ADMIN_USER_IDS del backend del
+  // E2E. Se asegura también su rol de tenant_admin (la llave del guard) y su
+  // contraseña, porque una corrida con el seed antiguo lo dejaría con otro
+  // hash. La PK de users es compuesta (tenant_id, id), así que el ON CONFLICT
+  // la declara entera. Idempotente.
+  await client.query(
+    `INSERT INTO users (id, tenant_id, username, password_hash, role, first_name)
+     VALUES ($1::uuid, 1, $2::text, $3::text, 'tenant_admin', 'Plataforma')
+      ON CONFLICT (tenant_id, id) DO UPDATE SET role = 'tenant_admin', password_hash = EXCLUDED.password_hash`,
+    [E2E.platformAdminUuid, E2E.platformAdminUsername, scryptHash(E2E.platformAdminPassword)],
+  );
+
+  // El E2E del wizard crea su propio tenant (id 97) en cada corrida: se borra
+  // para que el alta no choque con el de la corrida anterior. El borrado es
+  // CASCADE sobre sus usuarios, igual que hace el DELETE del panel.
+  await client.query(`DELETE FROM tenants WHERE id = $1::int`, [97]);
 
   // Una incidencia para el tablero: se borra y se recrea en cada corrida para que
   // el arrastre empiece siempre desde «Abierto».
