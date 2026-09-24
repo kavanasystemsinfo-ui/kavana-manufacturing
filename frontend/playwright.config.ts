@@ -44,10 +44,11 @@ export default defineConfig({
       },
     },
     {
-      // `/usr/bin/npm`: el `npm` del PATH es el shim de rtk y en el VPS muere con
-      // «dev: not found». Ruta absoluta para que el E2E no dependa del PATH de
-      // quien lo lance; en CI (GitHub) /usr/bin/npm es el npm normal.
-      command: '/usr/bin/npm run dev',
+      // El `npm` del PATH puede ser el shim de rtk (en el VPS muere con «dev:
+      // not found») o el real (en el runner de GitHub, donde /usr/bin/npm NO
+      // está garantizado). Se resuelve con `command -v` al vuelo: la primera
+      // ruta que exista gana, y así la misma config corre en los dos sitios.
+      command: 'npm_bin=$(command -v /usr/bin/npm || true); [ -x "$npm_bin" ] || npm_bin=$(command -v npm); "$npm_bin" run dev',
       url: `http://localhost:${FRONTEND_PORT}`,
       reuseExistingServer: !process.env.CI,
       timeout: 120000,
