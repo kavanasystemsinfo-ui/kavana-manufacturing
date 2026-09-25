@@ -31,7 +31,7 @@ export function LoginPage({ onLogin }: LoginPageProps) {
     const slug = tenantSlug.trim() || localStorage.getItem('kavana_tenant_slug') || '';
 
     try {
-      const res = await fetch('/api/auth/login-by-tenant', {
+      const res = await fetch('/api/v1/auth/login-by-tenant', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ subdomain: slug, username: username.trim(), password }),

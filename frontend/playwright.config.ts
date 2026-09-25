@@ -30,7 +30,7 @@ export default defineConfig({
       // backend tiene que estar escuchando antes de la primera petición.
       command: 'node dist/main.js',
       cwd: '../backend',
-      url: `http://localhost:${BACKEND_PORT}/health`,
+      url: `http://localhost:${BACKEND_PORT}/api/v1/health`,
       reuseExistingServer: !process.env.CI,
       timeout: 120000,
       env: {

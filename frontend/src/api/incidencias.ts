@@ -8,7 +8,7 @@
 // subida móvil, que es pública y usa FormData (fetch añade el boundary).
 import { callApiWithTimeout } from './client.js';
 
-const API_BASE = '/api';
+const API_BASE = '/api/v1';
 
 export interface UploadSession {
   session_id: string;

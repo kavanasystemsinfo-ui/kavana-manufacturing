@@ -9,9 +9,9 @@ export default defineConfig({
       '/production': 'http://localhost:3001',
       '/health': 'http://localhost:3001',
       '/tenant': 'http://localhost:3001',
-      '/api': {
+      '/api/v1': {
         target: 'http://localhost:3001',
-        rewrite: (path) => path.replace(/^\/api/, ''),
+        changeOrigin: true,
       },
     },
   },
