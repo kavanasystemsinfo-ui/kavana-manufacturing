@@ -32,7 +32,7 @@ export function TenantLogin({ subdomain, onLogin }: TenantLoginProps) {
 
   async function fetchTenant() {
     try {
-      const res = await fetch(`/api/auth/tenant/${subdomain}`);
+      const res = await fetch(`/api/v1/auth/tenant/${subdomain}`);
       const data = await res.json();
       if (data.found) {
         setTenantName(data.name);
@@ -52,7 +52,7 @@ export function TenantLogin({ subdomain, onLogin }: TenantLoginProps) {
     setSubmitting(true);
 
     try {
-      const res = await fetch('/api/auth/login-by-tenant', {
+      const res = await fetch('/api/v1/auth/login-by-tenant', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ subdomain, username, password }),

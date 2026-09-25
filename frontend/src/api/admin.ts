@@ -13,7 +13,7 @@
 
 import { callApiWithTimeout } from './client.js';
 
-const API_BASE = '';
+const API_BASE = '/api/v1';
 
 // Para simplificar, en modo desarrollo el backend de Kavana podría tener un dev-token.
 // Vamos a usar un JWT simulado que se verificará contra el backend. (Esto asume que

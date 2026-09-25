@@ -5,6 +5,7 @@ import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module.js';
 import { GlobalExceptionFilter } from './common/filters/global-exception.filter.js';
 import { ApiDeprecationWarningMiddleware } from './common/middleware/deprecation.middleware.js';
+import { ApiVersioningMiddleware } from './common/middleware/versioning.middleware.js';
 import type { ExceptionFilter, ArgumentsHost } from '@nestjs/common';
 import { HttpException } from '@nestjs/common';
 
@@ -13,14 +14,9 @@ async function bootstrap(): Promise<void> {
   const otel = await initOtelSDK();
 
   const app = await NestFactory.create(AppModule);
-  // OJO: el prefijo global `api/v1` NO se puede activar todavía. Todos los
-  // consumidores vivos usan rutas SIN versión: el frontend (rewrites de Vercel
-  // quitan el `/api` y llaman `/users`, `/production/…`) y la landing
-  // (`/ai-advisor/ask-tech`). Activarlo deja a los dos en 404 y la API solo
-  // responde en `/api/v1/*`. La migración a versión necesita su propio cambio:
-  // registrar el middleware de reescritura (`ApiVersioningMiddleware`), pasar
-  // los consumidores a `/api/v1` y verificar landing y frontend antes de
-  // encender el prefijo. Aquí vivía `app.setGlobalPrefix('api/v1')`.
+  // Migración 3.2: prefijo global api/v1 activado. El middleware de versionado
+  // reescribe /api/* → /api/v1/* para compatibilidad con clientes legacy.
+  app.setGlobalPrefix('api/v1');
   const frontendOrigen = process.env.FRONTEND_ORIGIN ?? 'http://localhost:5173';
   app.enableCors({
     origin: (origin: string | undefined, cb: (err: Error | null, allow?: boolean) => void) => {
@@ -36,6 +32,8 @@ async function bootstrap(): Promise<void> {
   // (new ApiDeprecationWarningMiddleware()) mata el arranque con
   // "TypeError: app.use() requires a middleware function" y Render mantiene la
   // versión anterior en vivo. Se registra el método ya ligado a la instancia.
+  const versionado = new ApiVersioningMiddleware();
+  app.use(versionado.use.bind(versionado));
   const avisoDeprecacion = new ApiDeprecationWarningMiddleware();
   app.use(avisoDeprecacion.use.bind(avisoDeprecacion));
 

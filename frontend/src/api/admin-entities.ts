@@ -1,6 +1,6 @@
 import { callApiWithTimeout } from './client.js';
 
-const API_BASE = '/api';
+const API_BASE = '/api/v1';
 
 // ──── Types ────
 export interface User {
