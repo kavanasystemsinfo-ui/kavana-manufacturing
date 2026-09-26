@@ -1,4 +1,4 @@
-# 📊 Métricas del Proyecto — Kavana Manufacturing
+# 📊 Métricas del Proyecto: Kavana Manufacturing
 
 *Datos reales del repositorio, generados el 2026-07-23.*
 
@@ -44,7 +44,7 @@
 | **Markdown (documentación)** | 108 | 14.331 | 29.0% |
 | **CSS** | 1 | 32 | 0.1% |
 
-> 📝 Markdown representa un 29% — consecuencia directa de documentar cada decisión con ADRs, documentos técnicos y comerciales. Es intencional, no ruido.
+> 📝 Markdown representa un 29%: consecuencia directa de documentar cada decisión con ADRs, documentos técnicos y comerciales. Es intencional, no ruido.
 
 ## Cobertura de Tests
 
@@ -96,7 +96,7 @@ la suite, no contando `it(` con un `grep`.
 
 - **Tamaño del backend:** ~10.682 líneas TypeScript
 - **Tamaño del frontend:** ~8.246 líneas TSX
-- **Ratio código/documentación:** ~2:1 (intencional — priorizamos documentación de decisiones)
+- **Ratio código/documentación:** ~2:1 (intencional: priorizamos documentación de decisiones)
 - **Dependencias backend:** ~40 paquetes (NestJS, pg, BullMQ, OpenTelemetry)
 - **Dependencias frontend:** ~30 paquetes (React, Zustand, Dexie, Vitest, Tailwind)
 

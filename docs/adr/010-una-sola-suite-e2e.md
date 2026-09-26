@@ -49,6 +49,6 @@ empieza a mockear la API para pasar.
 ## Archivos
 
 - `frontend/playwright.config.ts`
-- `frontend/e2e/` — suite única
-- `package.json` — script `test:e2e`
-- `.github/workflows/ci.yml` — job `e2e`
+- `frontend/e2e/`: suite única
+- `package.json`: script `test:e2e`
+- `.github/workflows/ci.yml`: job `e2e`

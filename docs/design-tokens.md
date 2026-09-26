@@ -1,4 +1,4 @@
-# Design tokens — Kavana Manufacturing
+# Design tokens: Kavana Manufacturing
 
 Los colores, medidas y sombras de la interfaz, en un solo sitio, y el estado real
 de su adopción. Los tokens viven en `frontend/tailwind.config.js` y las clases

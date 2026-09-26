@@ -1,19 +1,19 @@
-# 📜 Historia del Proyecto — Kavana Manufacturing
+# 📜 Historia del Proyecto: Kavana Manufacturing
 
 *Evolución, decisiones y aprendizajes desde la V2 hasta hoy.*
 
 ---
 
-## Fase 0: El origen (Julio 2025 — Mayo 2026)
+## Fase 0: El origen (Julio 2025: Mayo 2026)
 
-**Contexto:** Kavana existía como **V2** — un prototipo funcional con Node.js (Express) + MongoDB + frontend JavaScript vanilla + Pug templates. Funcionaba, pero no era escalable ni mantenible.
+**Contexto:** Kavana existía como **V2**: un prototipo funcional con Node.js (Express) + MongoDB + frontend JavaScript vanilla + Pug templates. Funcionaba, pero no era escalable ni mantenible.
 
 **Problemas detectados:**
-- Sin multi-tenancy real — datos de clientes mezclados
-- Sin tests automatizados — cualquier cambio rompía algo
-- Sin documentación arquitectónica — nadie sabía por qué se tomaron las decisiones
+- Sin multi-tenancy real: datos de clientes mezclados
+- Sin tests automatizados: cualquier cambio rompía algo
+- Sin documentación arquitectónica: nadie sabía por qué se tomaron las decisiones
 - Frontend monolítico sin separación de responsabilidades
-- MongoDB sin esquema — datos inconsistentes entre colecciones
+- MongoDB sin esquema: datos inconsistentes entre colecciones
 
 **Decisión clave:** Refactorizar desde cero en lugar de parchear. Migrar a PostgreSQL + NestJS + React.
 
@@ -43,7 +43,7 @@
 
 ## Fase 2: Core de Producción (Junio 2026)
 
-**Objetivo:** Implementar el flujo MES básico — órdenes, puestos, registro de producción.
+**Objetivo:** Implementar el flujo MES básico: órdenes, puestos, registro de producción.
 
 **Decisiones:**
 - Work blocks (bloques de tiempo) en lugar de máquina de estados en tiempo real (→ [Decisión Estratégica](DECISIONES_ESTRATEGICAS.md))
@@ -67,7 +67,7 @@
 **Objetivo:** Añadir los pilares de análisis y control: OEE, calidad, costes.
 
 **Decisiones:**
-- Cada módulo como plugin independiente — se activa por feature flag
+- Cada módulo como plugin independiente: se activa por feature flag
 - BullMQ + Redis para jobs asíncronos pesados (recálculo OEE, exportación informes)
 - OpenTelemetry + Prometheus + Grafana para observabilidad desde el inicio
 
@@ -100,7 +100,7 @@
 - ✅ Tema Kavana con diseño industrial (naranja/oscuro)
 - ✅ 17 tests frontend
 
-**Lección aprendida:** El tema dual fue una decisión de producto acertada — supervisores veteranos prefieren el clásico, operarios jóvenes el moderno.
+**Lección aprendida:** El tema dual fue una decisión de producto acertada: supervisores veteranos prefieren el clásico, operarios jóvenes el moderno.
 
 ---
 

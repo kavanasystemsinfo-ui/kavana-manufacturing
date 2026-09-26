@@ -95,9 +95,9 @@ Este directorio contiene las migraciones PostgreSQL que construyen el núcleo se
 [`seed.sql`](seed.sql:1) crea el tenant demo y las tres cuentas que anuncia la
 pantalla de login (`frontend/src/LoginPage.tsx`):
 
-- `admin` / `admin123` — tenant_admin
-- `047` / `kavana` — supervisor
-- `1094` / `kavana` — operario
+- `admin` / `admin123`: tenant_admin
+- `047` / `kavana`: supervisor
+- `1094` / `kavana`: operario
 
 ```bash
 psql "$DATABASE_URL" -f database/seed.sql
