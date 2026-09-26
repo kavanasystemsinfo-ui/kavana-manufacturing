@@ -52,5 +52,5 @@ calcular la huella, esta deuda desaparece.
 ## Archivos
 
 - `backend/src/core-mes-production/core-mes-production.service.ts`
-- `frontend/src/store/hmi-store.ts` — motor de sincronización
-- `frontend/e2e/full-flow.spec.ts` — el flujo que lo destapó
+- `frontend/src/store/hmi-store.ts`: motor de sincronización
+- `frontend/e2e/full-flow.spec.ts`: el flujo que lo destapó

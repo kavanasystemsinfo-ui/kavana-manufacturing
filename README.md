@@ -1,4 +1,4 @@
-# Kavana Manufacturing — MES SaaS para Manufactura Industrial
+# Kavana Manufacturing: MES SaaS para Manufactura Industrial
 
 [![Tests](https://img.shields.io/badge/tests-494%20passing-brightgreen)](https://github.com/kavanasystemsinfo-ui/kavana-manufacturing)
 [![Coverage](https://img.shields.io/badge/coverage-85%25-yellowgreen)](docs/METRICS.md)
@@ -21,7 +21,7 @@
 
 **Solución:** Un MES SaaS multi-tenant que:
 - Ejecuta órdenes de producción en **pantallas HMI táctiles** diseñadas para operarios con guantes
-- **Funciona sin internet** (offline-first) — el registro nunca se pierde, aunque caiga la red
+- **Funciona sin internet** (offline-first): el registro nunca se pierde, aunque caiga la red
 - Se **activa por features** (cada cliente paga solo lo que usa) sin deploy adicional
 - **Aísla datos** de cada cliente con Row Level Security en PostgreSQL
 
@@ -33,15 +33,15 @@
 |-------------------|-------------|
 | **Arquitectura del sistema** (RLS vs schema-per-tenant, offline-first, feature flags) | 👤 Arquitecto (Jorge) |
 | **Modelado del dominio** (work blocks, BOM, órdenes, multi-tenancy) | 👤 Arquitecto (Jorge) |
-| **Selección del stack** (NestJS, React, PostgreSQL, Dexie, BullMQ) | 👤 Arquitecto (Jorge) — cada elección justificada en ADRs |
+| **Selección del stack** (NestJS, React, PostgreSQL, Dexie, BullMQ) | 👤 Arquitecto (Jorge): cada elección justificada en ADRs |
 | **Estructura de módulos y responsabilidades** | 👤 Arquitecto (Jorge) |
 | **Código (implementación)** | 🤖 IA como par de programación, siguiendo las directrices del arquitecto |
-| **Tests** (qué cubrir y qué priorizar) | 👤 Arquitecto (Jorge) — redacción: IA |
-| **ADRs y documentación técnica** | 👤 Arquitecto (Jorge) — estructura y conclusiones |
+| **Tests** (qué cubrir y qué priorizar) | 👤 Arquitecto (Jorge): redacción: IA |
+| **ADRs y documentación técnica** | 👤 Arquitecto (Jorge): estructura y conclusiones |
 
 **En resumen:** las decisiones son humanas. La IA actuó como un par de programación que ejecuta, no como un arquitecto que diseña. El repositorio contiene el código; el criterio es de Jorge.
 
-**[🎯 Live Demo →](https://manufacturing.kavanasystems.com)** — Tenant: `demo`, Usuario: `admin`, Contraseña: `admin123`
+**[🎯 Live Demo →](https://manufacturing.kavanasystems.com)**: Tenant: `demo`, Usuario: `admin`, Contraseña: `admin123`
 
 ---
 
@@ -211,11 +211,11 @@ docker compose up -d
 ### 📈 Evolución del proyecto
 | Fase | Qué se construyó | Tests |
 |------|-----------------|-------|
-| 1. Auditoría V2 | Migración de MongoDB a PostgreSQL, RLS, multi-tenancy | — |
+| 1. Auditoría V2 | Migración de MongoDB a PostgreSQL, RLS, multi-tenancy |: |
 | 2. Backend Core | NestJS, auth, órdenes, OEE, calidad | 216 |
 | 3. Frontend HMI | React, offline-first, tema dual, panels | 17 |
 | 4. Módulos Avanzados | AI Advisor, Toolings, Incidencias, BOM, Colas | +50 |
-| 5. Deploy & Docs | Vercel + Render + Neon, documentación completa | — |
+| 5. Deploy & Docs | Vercel + Render + Neon, documentación completa |: |
 
 ---
 
@@ -271,14 +271,14 @@ Este proyecto demuestra capacidades técnicas aplicadas a un dominio industrial 
 | **Proceso de ingeniería** | Commits convencionales, PR template, CI/CD |
 
 ### 🎯 Aprendizajes clave
-1. **RLS > App logic** — Enforcement en BD es más seguro que en código
-2. **Offline-first desde día 1** — No se puede agregar después
-3. **JSONB para features** — Flexibilidad sin migraciones
-4. **TDD estricto** — Confianza para refactoring agresivo
-5. **UX contextual** — Investigar condiciones reales de uso (guantes, ruido, luz)
+1. **RLS > App logic**: Enforcement en BD es más seguro que en código
+2. **Offline-first desde día 1**: No se puede agregar después
+3. **JSONB para features**: Flexibilidad sin migraciones
+4. **TDD estricto**: Confianza para refactoring agresivo
+5. **UX contextual**: Investigar condiciones reales de uso (guantes, ruido, luz)
 
 ### ⚠️ Transparencia
-- El producto **no tiene clientes en producción** — es un proyecto de portfolio/demo
+- El producto **no tiene clientes en producción**: es un proyecto de portfolio/demo
 - Las **capturas de interfaz** son mockups de diseño, no fotos de planta real
 - La **trazabilidad documental** no está auditada ni certificada ISO
 
@@ -288,9 +288,9 @@ Este proyecto demuestra capacidades técnicas aplicadas a un dominio industrial 
 
 - **Autenticación:** JWT con HMAC, contexto de tenant en cada request (via `AsyncLocalStorage`)
 - **Autorización:** Roles `global_admin` · `tenant_admin` · `supervisor` · `operator`, enforced via NestJS Guards
-- **Aislamiento:** Row Level Security (RLS) en PostgreSQL — el tenant solo ve sus datos
+- **Aislamiento:** Row Level Security (RLS) en PostgreSQL: el tenant solo ve sus datos
 - **Offline:** Los datos locales (IndexedDB) están aislados por tenant en el frontend
-- **Variables de entorno:** [`backend/.env.example`](backend/.env.example) — sin secrets en el repo
+- **Variables de entorno:** [`backend/.env.example`](backend/.env.example): sin secrets en el repo
 - **CORS:** Configurado por entorno, origen verificado
 
 > **Ver también:** [`docs/technical/07_security-qa-audit.md`](docs/technical/07_security-qa-audit.md)

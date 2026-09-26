@@ -1,4 +1,4 @@
-# Auditoría de código y usabilidad — Kavana Manufacturing (2026-09-23)
+# Auditoría de código y usabilidad: Kavana Manufacturing (2026-09-23)
 
 Análisis hecho **ejecutando** la aplicación, no leyendo el código: base de datos
 desde cero, backend y frontend levantados, y un E2E de punta a punta que recorre

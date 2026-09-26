@@ -31,7 +31,7 @@ pública).
    enumeración por metadatos), unicidad de operationId, bodies zod
    equivalentes, y que las rutas públicas del guard constan sin `security`.
 3. **Servida** en `/docs` (HTML de cortesía) y `/docs.json` (documento
-   OpenAPI 3.0.3 puro) — con los rewrites de Vercel la URL pública es
+   OpenAPI 3.0.3 puro)  con los rewrites de Vercel la URL pública es
    `https://www.manufacturing.kavanasystems.com/api/docs`. Ruta pública por
    diseño (`PUBLIC_ROUTES` del guard): es de solo lectura y no expone datos
    de tenant.

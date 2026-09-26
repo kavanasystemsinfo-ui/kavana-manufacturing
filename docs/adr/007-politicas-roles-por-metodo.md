@@ -57,7 +57,7 @@ sin cambio aparente, mirar primero si su endpoint declara política.
 
 ## Archivos
 
-- `backend/src/auth/roles.guard.ts` — guard y `PUBLIC_ROUTES`
-- `backend/src/auth/roles-contract.spec.ts` — contrato de toda la API
+- `backend/src/auth/roles.guard.ts`: guard y `PUBLIC_ROUTES`
+- `backend/src/auth/roles-contract.spec.ts`: contrato de toda la API
 - `backend/src/incidencias/incidencias.controller.ts`
 - `backend/src/tenant-capabilities/tenant-capabilities.controller.ts`

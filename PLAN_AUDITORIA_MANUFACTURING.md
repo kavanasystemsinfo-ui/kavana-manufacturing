@@ -1,4 +1,4 @@
-# Plan de Mejora Manufacturing — Auditoría Formal (2026-09-21)
+# Plan de Mejora Manufacturing: Auditoría Formal (2026-09-21)
 
 **Branch**: `chore/audit-improvements`
 **Objetivo**: Software completo, simple, mínimo clicks por rol, listo para portfolio técnico
@@ -6,7 +6,7 @@
 
 ---
 
-## Horizonte 1 — CRÍTICO (Semana 1-2)
+## Horizonte 1: CRÍTICO (Semana 1-2)
 
 **Estado (2026-09-23): completado.** Las siete tareas están implementadas y
 verificadas; la 1.1 con el flujo completo corriendo contra backend, frontend y base
@@ -25,11 +25,11 @@ registro de producción (ver `docs/KNOWN_ISSUES.md`, ronda 4).
 
 ---
 
-## Horizonte 2 — IMPORTANTE (Semana 3-4)
+## Horizonte 2: IMPORTANTE (Semana 3-4)
 
 **Estado (2026-09-23): completado.** Las nueve tareas están hechas. Dos matices: la
-2.3 (semáforo de puestos en vivo) ya estaba implementada —el panel del supervisor
-refresca cada 10 s— y esta auditoría la daba por pendiente por error; y la 2.4 se
+2.3 (semáforo de puestos en vivo) ya estaba implementada el panel del supervisor
+refresca cada 10 s y esta auditoría la daba por pendiente por error; y la 2.4 se
 cerró después, con el módulo de incidencias desbloqueado (los endpoints devolvían
 403 a todos los roles por falta de política, ver `docs/AUDITORIA_USABILIDAD_2026-09-23.md`).
 
@@ -47,7 +47,7 @@ cerró después, con el módulo de incidencias desbloqueado (los endpoints devol
 
 ---
 
-## Horizonte 3 — PULIDO (Semana 5+)
+## Horizonte 3: PULIDO (Semana 5+)
 
 | # | Tarea | Responsable | Criterio de aceptación | Est. |
 |---|-------|-------------|------------------------|------|
