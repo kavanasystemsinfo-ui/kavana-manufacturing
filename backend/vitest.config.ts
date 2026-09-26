@@ -8,5 +8,14 @@ export default defineConfig({
     // compilada) y contaba el doble. Los tests viven solo en src/.
     include: ['src/**/*.{test,spec}.ts'],
     exclude: ['dist/**', 'node_modules/**'],
+    // Stryker (mutation testing) necesita forks en proceso único: su sandbox
+    // instrumenta el codigo y el pool de threads por defecto rompe la
+    // correlacion mutacion-test.
+    pool: 'forks',
+    poolOptions: {
+      forks: {
+        singleFork: true,
+      },
+    },
   },
 });
