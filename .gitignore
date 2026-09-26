@@ -40,3 +40,7 @@ backend/*.mjs
 # fuente de nada. Estaban versionados, así que cada corrida dejaba el árbol sucio.
 frontend/playwright-report/
 frontend/test-results/
+
+# Sandboxes de Stryker: se regeneran en cada ejecucion de mutation testing
+# (35 MB la ultima vez). Ignorarlos mantiene el arbol limpio tras stryker run.
+backend/.stryker-tmp/
