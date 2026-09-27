@@ -6,13 +6,9 @@ export default defineConfig({
   server: {
     port: 5173,
     proxy: {
-      '/production': 'http://localhost:3001',
-      '/health': 'http://localhost:3001',
-      '/tenant': 'http://localhost:3001',
-      '/api/v1': {
-        target: 'http://localhost:3001',
-        changeOrigin: true,
-      },
+      // Con el prefijo global api/v1 del backend, TODO el tráfico API va ya
+      // versionado: la ruta que llega al proxy es la que Express sirve.
+      '/api/v1': 'http://localhost:3001',
     },
   },
 });

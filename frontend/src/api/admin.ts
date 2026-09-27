@@ -34,13 +34,13 @@ export interface TenantCapabilities {
 }
 
 export async function fetchCapabilities(): Promise<TenantCapabilities> {
-  return callApiWithTimeout<TenantCapabilities>(`${API_BASE}/api/tenant/capabilities`, {
+  return callApiWithTimeout<TenantCapabilities>(`${API_BASE}/tenant/capabilities`, {
     headers: HEADERS,
   });
 }
 
 export async function toggleModuleCapability(moduleKey: string, enabled: boolean): Promise<void> {
-  await callApiWithTimeout<void>(`${API_BASE}/api/tenant/capabilities/modules/${moduleKey}`, {
+  await callApiWithTimeout<void>(`${API_BASE}/tenant/capabilities/modules/${moduleKey}`, {
     method: 'PATCH',
     headers: HEADERS,
     body: JSON.stringify({ enabled }),
@@ -50,7 +50,7 @@ export async function toggleModuleCapability(moduleKey: string, enabled: boolean
 export async function updateCustomFieldsSchema(schema: {
   fields: Array<{ key: string; type: 'string' | 'number' | 'boolean'; required: boolean }>;
 }): Promise<void> {
-  await callApiWithTimeout<void>(`${API_BASE}/api/tenant/capabilities/custom-fields`, {
+  await callApiWithTimeout<void>(`${API_BASE}/tenant/capabilities/custom-fields`, {
     method: 'PATCH',
     headers: HEADERS,
     body: JSON.stringify(schema),

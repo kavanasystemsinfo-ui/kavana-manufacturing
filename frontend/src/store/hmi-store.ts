@@ -235,7 +235,7 @@ export const useHmiStore = create<HmiState>()((set, get) => ({
     if (get().isOnline) {
       try {
         const data = await callApiWithTimeout<{ operatorId: string; operatorName: string | null; workstationId: string | null; workstationName: string | null }>(
-          '/production/operator/context'
+          '/api/v1/production/operator/context'
         );
         if (data?.operatorId) {
           set({
@@ -262,7 +262,7 @@ export const useHmiStore = create<HmiState>()((set, get) => ({
     if (!get().isOnline) return;
     set({ isLoadingOrders: true });
     try {
-      const orders = await callApiWithTimeout<AvailableOrder[]>('/api/orders/available');
+      const orders = await callApiWithTimeout<AvailableOrder[]>('/api/v1/orders/available');
       set({ availableOrders: orders ?? [] });
     } catch (error) {
       console.warn('Failed to load available orders:', error);
@@ -284,7 +284,7 @@ export const useHmiStore = create<HmiState>()((set, get) => ({
   loadOrder: async (orderId: string) => {
     if (!get().isOnline) return;
     try {
-      const order = await callApiWithTimeout<any>(`/production/orders/${orderId}`);
+      const order = await callApiWithTimeout<any>(`/api/v1/production/orders/${orderId}`);
       if (order && order.status) {
         set({ 
           currentStatus: order.status as ProductionStatus,
@@ -299,7 +299,7 @@ export const useHmiStore = create<HmiState>()((set, get) => ({
   updateCustomFields: async (orderId: string, customFields: Record<string, any>) => {
     if (!get().isOnline) return;
     try {
-      const updatedOrder = await callApiWithTimeout<any>(`/production/orders/${orderId}/custom-fields`, {
+      const updatedOrder = await callApiWithTimeout<any>(`/api/v1/production/orders/${orderId}/custom-fields`, {
         method: 'PATCH',
         body: JSON.stringify({ custom_fields: customFields }),
       });
@@ -376,7 +376,7 @@ export async function triggerSyncEngine() {
       }
 
       try {
-        await callApiWithTimeout('/production/time-logs/sync', {
+        await callApiWithTimeout('/api/v1/production/time-logs/sync', {
           method: 'POST',
           body: JSON.stringify(oldestBlock),
         });
