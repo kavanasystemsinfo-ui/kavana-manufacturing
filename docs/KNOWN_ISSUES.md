@@ -145,7 +145,38 @@ SQL injection (todo parametrizado), upload móvil (tenant desde sesión single-u
 
 ---
 
-## Ronda 4: El E2E de flujo completo destapa dos P0 en el core (2026-09-23)
+## Ronda 5: La migración api/v1 quedó a medias y el CI lo destapó (2026-09-27)
+
+El E2E en rojo (7 de 9 specs, seis runs seguidas desde el 25-09) tenía tres
+causas superpuestas que el síntoma (login que nunca navega) no distinguía:
+
+**P0-C · `frontend/vite.config.js`, un compilado fantasma.** Un build viejo
+(21-09) trackeado desde el initial commit ganaba la resolución de Vite sobre
+el `.ts` real, y su rewrite `/api → ''` restaba el prefijo a peticiones que ya
+llevaban `api/v1`: el backend recibía `/v1/auth/...` y respondía 404. Vite
+resuelve `.js` antes que `.ts`; un directorio de build no se versiona.
+
+**P0-D · Doble prefijo.** `admin.ts` y `supervisor.ts` llamaban
+`${API_BASE}/api/...` → `/api/v1/api/users` (404 real): los paneles de admin
+y supervisor estaban rotos desde el 25-09.
+
+**P0-E · Rutas legacy.** `hmi-store.ts` (el sync de producción del operario:
+`/production/time-logs/sync`), `my-time-logs.ts`, `AiAdvisorChat.tsx` y el
+E2E del wizard seguían sin versionar. El registro de producción del operario
+llevaba roto en producción desde el 25-09.
+
+**Fix (commit 9d63d0f):** spec de contrato `rutas-api-v1.spec.ts` (7 tests,
+rojo controlado primero) + corrección de 24 rutas en 6 ficheros + borrado del
+fantasma. La spec queda como barrera de regresión: ningún call site sin
+versionar, ningún doble prefijo, ningún config compilado.
+
+**Regla que queda:** tras un cambio de prefijo hay que buscar dos cosas: los
+que añaden el prefijo de más y los que nunca lo llevaron. El 404 de una ruta
+con doble prefijo y el de una legacy son el mismo síntoma con causas opuestas.
+
+---
+
+
 
 El E2E de flujo completo (login del operario → registra un parte → el supervisor
 lo ve) encontró dos fallos que ninguna suite unitaria cubría, porque los dos viven
