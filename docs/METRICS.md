@@ -14,6 +14,7 @@
 | **Commits** | +120 (rama `main`) |
 | **Tiempo de desarrollo** | ~4 semanas desde refactorización V2 |
 | **Tests** | 186 frontend + 504 backend = **690 tests** (+ 10 end-to-end + 7 de contrato de rutas) |
+| **Mutation testing** | 17,6% sobre código cubierto (línea base 2026-09-27, ver [docs/mutation-testing.md](mutation-testing.md)) |
 
 ## Cobertura por módulo
 

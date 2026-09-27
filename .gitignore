@@ -44,3 +44,6 @@ frontend/test-results/
 # Sandboxes de Stryker: se regeneran en cada ejecucion de mutation testing
 # (35 MB la ultima vez). Ignorarlos mantiene el arbol limpio tras stryker run.
 backend/.stryker-tmp/
+
+# Informe de mutación (generado por stryker run, 1,5 MB regenerable)
+backend/reports/

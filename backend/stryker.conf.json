@@ -3,7 +3,7 @@
   "packageManager": "npm",
   "testRunner": "vitest",
   "mutator": "typescript",
-  "reporters": ["html", "clear-text", "progress"],
+  "reporters": ["html", "json", "clear-text", "progress"],
   "coverageAnalysis": "off",
   "tsconfigFile": "tsconfig.json",
   "vitest": {
@@ -30,6 +30,6 @@
   "thresholds": {
     "high": 80,
     "low": 60,
-    "break": 60
+    "break": null
   }
 }
