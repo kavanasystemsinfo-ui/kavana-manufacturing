@@ -195,6 +195,35 @@ cuando el destino funciona, sino cuando ninguna llamada conserva el esquema viej
 **Métricas al cierre de la fase:** 504 tests de backend, 186 de frontend, 10
 end-to-end, spec de contrato de 7 tests, lint y typecheck en 0 errores.
 
+## Fase 9: Primer spec de integración y medición honesta de la mutación (Septiembre 2026)
+
+Stryker apuntó a los servicios de dominio: `core-mes-production.service.ts`, el
+motor del registro de producción, tenía 140 mutantes supervivientes y **cero
+matados**, porque sus specs mockeaban el pool y comprobaban la forma de la
+llamada, no el resultado. La respuesta no fue más mocks: un spec de integración
+(`core-mes-production.db.spec.ts`, 35 tests) que ejecuta el SQL real contra
+PostgreSQL — deduplicación por huella, solapes, acumulación de producción,
+aislamiento por tenant, transiciones — y el job `test` del CI preparando la base
+antes de la suite.
+
+Al medir el efecto apareció algo más incómodo: **el propio runner de Stryker
+mentía**. Con Vitest 5 devolvía "0 tests por mutante" y marcaba todo como
+superviviente, tragándose un `VITEST_FILES_NOT_FOUND` interno. La cifra de la
+primera pasada (17,6 %) no era una medida. Medido mutante a mutante con un
+utilitario propio (`backend/scripts/comprobar-mutantes.mjs`): **130 de 170
+mutantes matados (76,5 %)** en ese fichero, y los 40 que siguen vivos son rama
+muerta, camino solo alcanzable con carrera o mutante equivalente, no huecos de
+tests. Detalle y advertencia en [mutation-testing.md](mutation-testing.md).
+
+Lección de método: una herramienta de calidad que falla en silencio es peor que
+no tenerla, porque produce una cifra con la que se decide. La medición se
+verifica contra el comportamiento (aplicar el mutante y ver el test caer), no
+contra la herramienta que lo cuenta.
+
+**Métricas al cierre de la fase:** 557 tests de backend (49 archivos), 186 de
+frontend, 10 end-to-end; 130/170 mutantes matados en el motor de producción;
+lint y typecheck en 0 errores.
+
 ## Resumen de Evolución
 
 ```

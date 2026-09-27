@@ -107,6 +107,21 @@ jobs:
           - name: Install root dependencies
             run: npm ci
 
+          - name: Prepare test database (migraciones + seed)
+            # La suite del backend tiene specs que ejecutan SQL de verdad
+            # (core-mes-production.db.spec.ts). Hasta ahora el servicio postgres
+            # del job arrancaba VACIO: sin cadena de migraciones no hay tablas y
+            # esos specs no pueden correr. El preparador es el mismo del E2E.
+            env:
+              PGHOST: localhost
+              PGPORT: '5432'
+              PGUSER: kavana
+              PGPASSWORD: kavana_pass
+              PGDATABASE: kavana_test
+            run: |
+              DATABASE_URL="postgresql://${PGUSER}:${PGPASSWORD}@${PGHOST}:${PGPORT}/${PGDATABASE}" \
+                node database/scripts/e2e-setup.js
+
           - name: Test backend
             env:
               DATABASE_URL: postgresql://kavana:kavana_pass@localhost:5432/kavana_test
