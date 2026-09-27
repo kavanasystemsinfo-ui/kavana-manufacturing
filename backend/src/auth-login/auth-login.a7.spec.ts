@@ -116,12 +116,13 @@ describe('AuthLoginService — migración legacy sha256 → scrypt (A7)', () => 
     const result = await service.login('legacy', 'old-secret');
     expect(result.token).toBeTruthy();
 
-    // el UPDATE de re-hash ocurrió con el formato nuevo
+    // el re-hash ocurrió, con el formato nuevo: la consulta va a la función
+    // SECURITY DEFINER (migración 042), que salta el aislamiento solo para esto.
     const updateCall = (postgresPool.query as ReturnType<typeof vi.fn>).mock.calls.find(
-      (c) => String(c[0]).includes('UPDATE users SET password_hash'),
+      (c) => String(c[0]).includes('auth_update_password_hash'),
     );
     expect(updateCall).toBeTruthy();
-    expect(updateCall![1][0]).toMatch(/^scrypt:/);
+    expect(updateCall![1][1]).toMatch(/^scrypt:/);
   });
 
   it('fallo contra hash legacy NO dispara re-hash', async () => {
@@ -131,7 +132,7 @@ describe('AuthLoginService — migración legacy sha256 → scrypt (A7)', () => 
     ]);
     await expect(service.login('legacy', 'nope')).rejects.toBeTruthy();
     const updates = (postgresPool.query as ReturnType<typeof vi.fn>).mock.calls.filter((c) =>
-      String(c[0]).includes('UPDATE users SET password_hash'),
+      String(c[0]).includes('auth_update_password_hash'),
     );
     expect(updates.length).toBe(0);
   });
@@ -140,7 +141,7 @@ describe('AuthLoginService — migración legacy sha256 → scrypt (A7)', () => 
     queryReturns(mockUserRow().rows);
     await service.login('admin', 'correct-horse');
     const updates = (postgresPool.query as ReturnType<typeof vi.fn>).mock.calls.filter((c) =>
-      String(c[0]).includes('UPDATE users SET password_hash'),
+      String(c[0]).includes('auth_update_password_hash'),
     );
     expect(updates.length).toBe(0);
   });

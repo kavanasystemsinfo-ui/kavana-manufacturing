@@ -24,15 +24,14 @@ interface LoginResult {
   workstation_name: string | null;
 }
 
-/** El puesto se resuelve con LEFT JOIN: un operario sin puesto debe poder entrar
- * (con INNER se quedaría fuera del login y no podría ni ver el aviso). */
-const LOGIN_SELECT = `
-  SELECT u.id, u.username, u.password_hash, u.role, u.tenant_id, t.name as tenant_name,
-         u.default_workstation_id, w.name as workstation_name
-  FROM users u
-  JOIN tenants t ON t.id = u.tenant_id
-  LEFT JOIN workstations w
-    ON w.id = u.default_workstation_id AND w.tenant_id = u.tenant_id`;
+/** El login ocurre antes de saber de qué planta es quien entra, así que no puede
+ * pasar por las políticas de aislamiento (que exigen contexto). Se resuelve con las
+ * funciones SECURITY DEFINER de la migración 042, que devuelven justo la fila que
+ * hace falta: `users` guarda los hashes de las contraseñas y no se abre nunca.
+ * El puesto se resuelve con LEFT JOIN dentro de la función: un operario sin puesto
+ * debe poder entrar (con INNER se quedaría fuera y no vería ni el aviso). */
+const CONSULTA_LOGIN = 'SELECT * FROM auth_login_lookup($1)';
+const CONSULTA_LOGIN_POR_PLANTA = 'SELECT * FROM auth_login_lookup($2, $1)';
 
 @Injectable()
 export class AuthLoginService {
@@ -80,12 +79,7 @@ export class AuthLoginService {
     if (this.isLocked(key)) {
       throw new HttpException('Cuenta temporalmente bloqueada por intentos fallidos. Espera unos minutos.', 429);
     }
-    const r = await postgresPool.query(
-      `${LOGIN_SELECT}
-       WHERE LOWER(u.username) = LOWER($1)
-       LIMIT 1`,
-      [username],
-    );
+    const r = await postgresPool.query(`${CONSULTA_LOGIN} LIMIT 1`, [username]);
 
     if (r.rowCount === 0) {
       this.recordFailure(key);
@@ -118,12 +112,7 @@ export class AuthLoginService {
   }
 
   async loginByTenant(subdomain: string, username: string, password: string): Promise<LoginResult> {
-    const r = await postgresPool.query(
-      `${LOGIN_SELECT}
-       WHERE t.subdomain = $1 AND LOWER(u.username) = LOWER($2)
-       LIMIT 1`,
-      [subdomain, username],
-    );
+    const r = await postgresPool.query(`${CONSULTA_LOGIN_POR_PLANTA} LIMIT 1`, [subdomain, username]);
 
     if (r.rowCount === 0) {
       throw new UnauthorizedException('Invalid credentials.');
@@ -149,10 +138,7 @@ export class AuthLoginService {
   }
 
   async getTenantBySubdomain(subdomain: string): Promise<{ id: string; name: string; status: string } | null> {
-    const r = await postgresPool.query(
-      `SELECT id, name, status FROM tenants WHERE subdomain = $1`,
-      [subdomain],
-    );
+    const r = await postgresPool.query(`SELECT * FROM auth_tenant_by_subdomain($1) LIMIT 1`, [subdomain]);
     if (r.rowCount === 0) return null;
     const row = r.rows[0];
     return { id: String(row.id), name: row.name, status: row.status };
@@ -168,7 +154,7 @@ export class AuthLoginService {
   private async rehashIfLegacy(userId: string, password: string, storedHash: string): Promise<void> {
     if (!storedHash || storedHash.startsWith('scrypt:')) return;
     const newHash = this.hashPassword(password);
-    await postgresPool.query(`UPDATE users SET password_hash = $1 WHERE id = $2`, [newHash, userId]);
+    await postgresPool.query(`SELECT auth_update_password_hash($1::uuid, $2)`, [userId, newHash]);
   }
 
   private verifyPassword(password: string, storedHash: string): boolean {

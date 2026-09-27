@@ -1,3 +1,6 @@
+import { readFileSync } from 'node:fs';
+import { dirname, resolve } from 'node:path';
+import { fileURLToPath } from 'node:url';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 
 // El login tiene que decir si el operario tiene puesto asignado: sin ese dato, el
@@ -67,7 +70,7 @@ describe('AuthLoginService — el puesto del operario en la respuesta del login 
     expect(res.workstation_name).toBeNull();
   });
 
-  it('resuelve el puesto con LEFT JOIN: un INNER dejaría fuera a quien no tiene puesto', async () => {
+  it('resuelve el puesto sin dejar fuera a quien no lo tiene', async () => {
     const service = new AuthLoginService();
     const hash = service.hashPassword('clave-secreta');
     queryMock.mockResolvedValueOnce({
@@ -88,9 +91,17 @@ describe('AuthLoginService — el puesto del operario en la respuesta del login 
 
     await service.loginByTenant('demo', '1094', 'clave-secreta');
 
+    // El JOIN ya no viaja en la consulta: vive en la función SECURITY DEFINER de la
+    // migración 042, porque el login ocurre antes de saber la planta (ADR-009). La
+    // garantía es la misma, así que se comprueba donde vive ahora: si alguien cambia
+    // el LEFT JOIN por un INNER, esta prueba lo caza.
     const sql = String(queryMock.mock.calls[0]?.[0] ?? '');
-    expect(sql).toMatch(/default_workstation_id/);
-    expect(sql).toMatch(/LEFT JOIN/i);
-    expect(sql).toMatch(/workstation_name/i);
+    expect(sql).toMatch(/auth_login_lookup/);
+    const migracion = readFileSync(
+      resolve(dirname(fileURLToPath(import.meta.url)), '../../../database/migrations/042_rls_rol_aplicacion.sql'),
+      'utf8',
+    );
+    expect(migracion).toMatch(/LEFT JOIN workstations/i);
+    expect(migracion).toMatch(/default_workstation_id/);
   });
 });
