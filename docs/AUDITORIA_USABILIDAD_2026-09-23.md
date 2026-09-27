@@ -104,24 +104,47 @@ Verificado contra la API real, con los tres roles (admin / supervisor / operario
 
 ## Lo que queda
 
-- **Decisión de producto pendiente (tablero de incidencias en el tema clásico).**
-  El tablero existe en el panel moderno del supervisor (y ahora también en el tab
-  de incidencias del admin, con el mismo componente). El tema **clásico**, que es
-  el que viene por defecto, sigue mostrando la lista con botones
-  (Iniciar/Resolver/Cerrar) sin arrastre. Llevarlo ahí es reutilizar el componente
-  compartido, pero cambia la pantalla que ven los usuarios hoy: se decide con
-  Jorge, no por iniciativa propia.
+> Actualizado el 2026-09-27. Varias cosas de esta lista se cerraron después de la
+> auditoría y se marcan aquí; el resto sigue abierto y con su estado real.
+
+**Cerrado desde esta auditoría**
+
+- **Tablero de incidencias en el tema clásico**: hecho. El panel clásico del
+  supervisor monta el componente compartido
+  (`frontend/src/ClassicSupervisorPanel.tsx:47` importa y usa
+  `IncidenciasKanban`), así que un componente sirve tres pantallas.
+- **Migración `api/v1` con sus dos consumidores**: hecha, con
+  `frontend/src/api/rutas-api-v1.spec.ts` (7 tests) como barrera de regresión.
+- **Contract tests OpenAPI**: existen y corren en la suite
+  (`backend/src/openapi/openapi-contract.spec.ts`).
+- **Mutation testing con Stryker**: en marcha. Primer fichero atacado, el motor de
+  producción: 130 de 170 mutantes matados (76,5 %). El runner tenía un fallo
+  silencioso con Vitest 5, así que la medición se hace con
+  `backend/scripts/comprobar-mutantes.mjs`. Ver `docs/mutation-testing.md`.
+- **Semáforo de puestos en vivo**: ya estaba implementado (refresco cada 10 s);
+  figuraba aquí como pendiente por error.
+
+**Abierto de verdad**
+
+- **Identidad del operario en los partes (P1, hallazgo nuevo)**: `syncWorkBlock`
+  acepta el `operator_id` del cuerpo sin comprobar que sea el usuario del token.
+  Antes de arreglarlo hay que decidir cómo se identifica el operario en una tablet
+  compartida de planta. Detalle en `docs/KNOWN_ISSUES.md` (ronda 6, R6-1).
+- **RLS en la tabla `tenants` (P1)**: la única sin política.
+- **Rate limits en memoria (P2)**: válidos con una instancia, no con varias.
+- **PWA/Service Worker (P2)**: recargar sin red mata el HMI.
+- **DLQ administrativa (P2, decisión de UX)**: quién revisa los eventos offline
+  rechazados y desde qué panel.
+- **Asistente de alta de tenant en tres pasos**: sigue pendiente.
 - **Pulido de portfolio**: design tokens, ADRs 007-010 y licencia.
-- **Ingeniería pendiente**: migración a `api/v1` con sus dos consumidores, contract
-  tests OpenAPI, mutation testing con Stryker y el asistente de alta de tenant en
-  tres pasos.
-- **Corrección a esta auditoría**: la tarea 2.3 del plan (semáforo de puestos en
-  vivo) YA estaba implementada, el panel del supervisor refresca cada 10 s. Aquí
-  figuraba como pendiente y era un error.
 
 ## Cómo se ha verificado
 
 - Base de datos desde cero (migraciones + seed) y los siete flujos E2E en verde.
 - API real con los tres roles, antes y después de cada cambio de permisos.
 - Backend 409/409, frontend 151/151, E2E 7/7, lint y typecheck sin errores, y los
-  seis jobs del CI en verde.
+  seis jobs del CI en verde (cifras de la fecha de esta auditoría).
+- **Actualización 2026-09-27**: backend **557/557** en 49 ficheros (incluye el spec
+  de integración del motor de producción), frontend 186/186, E2E 10/10, los seis
+  jobs del CI en verde, producción sirviendo en 200 y cero alertas Dependabot
+  abiertas.

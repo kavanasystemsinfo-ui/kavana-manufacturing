@@ -207,6 +207,51 @@ que la consulta corra.
 
 ---
 
+## Ronda 6: Calidad verificable y un agujero de trazabilidad (2026-09-27)
+
+### Lo que se cerró
+
+- **`api/v1` completo y con barrera**: la migración que quedó a medias (ronda 5)
+  está cerrada, con `frontend/src/api/rutas-api-v1.spec.ts` como red de
+  regresión.
+- **Primer spec de integración contra base real**: `core-mes-production.db.spec.ts`
+  (35 tests) ejecuta el SQL del motor de producción contra PostgreSQL. Antes, sus
+  specs mockeaban el pool y comprobaban la forma de la llamada, no el resultado.
+- **Medición de mutación honesta**: 130 de 170 mutantes matados (76,5 %) en
+  `core-mes-production.service.ts`, medidos aplicando el mutante al fuente y
+  mirando el exit code. El runner de Stryker con Vitest 5 devolvía "0 tests por
+  mutante" y marcaba todo como superviviente: **las cifras de la ronda anterior
+  (17,6 %) no eran una medida**. Detalle en `docs/mutation-testing.md`.
+- **CI**: el job `test` preparaba su base de datos a medias; ahora aplica
+  `database/scripts/e2e-setup.js` antes de la suite.
+
+### Abierto (nuevo, verificado en código)
+
+**R6-1 · El operario de un parte no está atado al usuario del token (P1).**
+`syncWorkBlock` usa el `operator_id` que llega en el cuerpo de la petición sin
+comprobar que corresponda al usuario autenticado
+(`backend/src/core-mes-production/core-mes-production.service.ts:149`, `:256`,
+`:294`). El tenant sí se toma del token, así que no hay fuga entre clientes, pero
+**dentro de un mismo tenant cualquiera con rol `operario` puede registrar partes
+a nombre de otro operario**, y eso es el dato del que viven los dashboards de
+productividad y las nóminas de tiempo.
+
+Estado: mitigado a medias. La ronda 2 cambió el contexto del token para las rutas
+de producción, pero la pertenencia `operator_id` ↔ usuario quedó pendiente y
+sigue pendiente hoy. Arreglarlo exige decidir antes cómo se identifica el operario
+en una tablet compartida de planta: si el HMI es un quiosco por puesto, el
+operario tendría que venir del puesto asignado (y no del navegador), y si es
+personal, tiene que ser el usuario del token.
+
+**R6-2 · RLS en `tenants` (P1).** Sigue siendo la única tabla sin política: la
+autorización del panel de plataforma se resuelve por identidad
+(`GLOBAL_ADMIN_USER_IDS`, fail-closed), no por RLS.
+
+### Comprobado hoy
+
+Producción viva (backend `/api/v1/health` y frontend en 200), CI con los seis jobs
+en verde, cero alertas Dependabot abiertas y 557 tests de backend pasando.
+
 ## Nota para entrevistas
 
 Si un entrevistador detecta alguno de estos problemas y te pregunta:
@@ -247,10 +292,10 @@ Si un entrevistador detecta alguno de estos problemas y te pregunta:
 | Suplantación sesión localStorage | P0 | ✅ Corregido | 5e15d2c (sesión desde JWT) |
 | JWT exp opcional / secret fallback | P1 | ✅ Corregido | 5e15d2c |
 | Login sin rate limit | P1 | ✅ Corregido | 5e15d2c (10/5min/IP) |
-| RLS FORCE + owner bypass (~10 tablas) | P1 | 📋 Abierto | Siguiente ronda (A1) |
-| Redis sin password | P1 | 📋 Abierto | Siguiente ronda (A2) |
-| TOCTOU overlap work blocks | P1 | 📋 Abierto | Siguiente ronda (A3) |
-| Replay offline con payload cambiado | P1 | 📋 Abierto | Siguiente ronda (A4) |
+| RLS FORCE + owner bypass (~10 tablas) | P1 | ✅ Corregido | 255730d (migration 037) |
+| Redis sin password | P1 | ✅ Corregido | 255730d (requirepass + puerto cerrado + fail-fast) |
+| TOCTOU overlap work blocks | P1 | ✅ Corregido | 255730d (migration 038, EXCLUDE gist) |
+| Replay offline con payload cambiado | P1 | ✅ Corregido | 255730d (migration 039, huella + UNIQUE) |
 | Rate limits en memoria | P2 | 📋 Documentado | Redis si se escala |
 | PWA/Service Worker | P2 | 📋 Documentado | Roadmap producto |
 | DLQ administrativa | P2 | 📋 Documentado | Decisión UX |
