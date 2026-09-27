@@ -272,10 +272,10 @@ autorización del panel de plataforma se resuelve por identidad
 Producción viva (backend `/api/v1/health` y frontend en 200), CI con los seis jobs
 en verde, cero alertas Dependabot abiertas y 557 tests de backend pasando.
 
-## Ronda 7: Producción tiene un esquema de otra generación (2026-09-27) — P0 ABIERTO
+## Ronda 7: Producción tenía un esquema de otra generación (2026-09-27) — RESUELTO
 
-**El registro de partes del operario lleva roto en producción desde el 7 de agosto.**
-Último parte escrito: `2026-08-07 22:50 UTC`; cero filas en los últimos 30 días.
+**El registro de partes del operario estuvo roto en producción desde el 7 de agosto
+hasta el 27 de septiembre.** Último parte antes del arreglo: `2026-08-07 22:50 UTC`.
 
 ### Cómo se descubrió
 
@@ -312,27 +312,58 @@ deriva: se añade en esta ronda (`database/scripts/comprobar-esquema.cjs` +
 `database/expected-schema.json`, y un paso en el CI para que el contrato se
 compruebe en cada push).
 
-### Por qué no se ha arreglado ya
+### Cómo se arregló (27 de septiembre)
 
-Reparar producción es una decisión de Jorge, no del agente. Opciones, con lo que
-cuesta cada una:
+Se eligió la opción 2 (base nueva desde la cadena + migración de datos), sobre una
+copia de la base de producción, nunca sobre la real:
 
-1. **Reparación aditiva en sitio**: añadir las 5 columnas que faltan, crear las 2
-   tablas y los índices. Rápido (~30 min) y sin pérdida de datos, pero deja la
-   base híbrida (los nombres viejos siguen ahí) y el constraint de solapes de la
-   migración 038 **no se puede crear tal cual**: la tabla tiene 2.446 pares de
-   bloques solapados de la generación anterior, así que habría que limpiarlos o
-   dejarlos sin constraint.
-2. **Base nueva desde la cadena + migración de datos** (recomendada): crear la base
-   con las 17 tablas correctas, migrar lo que encaja (`tenants`, `users`,
-   `workstations`, `orders`, y los 5.384 bloques con `registered_at = created_at` y
-   huella recalculada), dejar la vieja como archivo y apuntar Render a la nueva.
-   Más trabajo (una sesión), pero producción vuelve a ser reproducible desde la
-   cadena y desaparecen de una vez las tablas y columnas del linaje viejo.
-3. **Solo el detector por ahora** y posponer la reparación.
+1. **Copia**: rama de Neon `copia-p0-20260927` creada desde la rama `production`
+   (mismos datos, sin tocar producción).
+2. **Base nueva**: `kavana_mes` en esa copia, creada ejecutando la cadena completa
+   de migraciones (17 tablas, 190 columnas). El detector sale limpio y el
+   constraint anti-solape de la 038 existe por fin.
+3. **Migración de datos** con `database/scripts/migrar-desde-legacy.mjs`: lee del
+   origen y escribe en el destino por lotes. Se migraron 1 tenant, 12 usuarios,
+   5 utillajes, 17 materias primas, 15 puestos, 18 modelos, **1.214 pedidos**,
+   **1.204 partes**, 21 incidencias, 14 adjuntos, 1.205 métricas OEE, 826
+   controles de calidad, 2.908 apuntes de coste, 25 líneas de BOM y 13 registros
+   de auditoría. Cero referencias huérfanas.
+4. **Dos ajustes de forma, no de contenido**, que el esquema nuevo exige y el viejo
+   no cumplía:
+   - **Códigos de pedido repetidos**: la generación anterior creaba un pedido por
+     día reutilizando el mismo código (15 códigos, 1.214 filas). Se desambigua con
+     la fecha de creación (`Panel Bifocal 550W-20260509`), no se descarta ninguno.
+   - **Partes solapados**: 4.180 de los 5.384 bloques se solapan con otro del mismo
+     operario, y el constraint nuevo no los admite. No se migran: se quedan en la
+     rama archivada junto a las tablas de la generación anterior. Los 1.204 que sí
+     cumplen la regla están en producción.
+5. **Corte**: Render apunta ahora a `kavana_mes`. Verificado en producción
+   (27/09 18:49 UTC): login del operario 1094, 1.214 pedidos leídos desde la API y
+   **un parte registrado y guardado** — el flujo que llevaba roto desde agosto.
 
-En cualquiera de las tres, el primer paso es el mismo y es seguro: **una copia de
-la base de producción para trabajar sobre ella sin tocar la real**.
+### La metedura de pata (queda escrita porque es la lección de la ronda)
+
+Durante el corte se usó `PUT /v1/services/{id}/env-vars` de Render con solo las
+tres variables de la base. **Ese `PUT` reemplaza la lista entera**, así que se
+borraron 13 variables (JWT, LLM, orígenes permitidos...). El despliegue siguiente
+falló con `JWT_HMAC_SECRET is required` y dejó al descubierto que **esa variable no
+existía**: cualquier despliegue del `main` actual habría fallado igual. Se
+restauraron las 17 variables (con `JWT_SECRET` y `JWT_HMAC_SECRET` nuevos, así que
+las sesiones abiertas antes de esa hora dejan de valer y hay que volver a entrar) y
+el despliegue quedó en verde. Los secretos nuevos están en
+`~/.hermes/profiles/kavana/scripts/manufacturing-render-secrets.env`.
+
+Para la próxima: leer la lista completa y reenviarla entera con los cambios, o usar
+la interfaz de Render.
+
+### Lo que queda de esta ronda
+
+- La rama `production` de Neon se conserva como archivo (no se usa en producción,
+  solo consulta): guarda los 4.180 partes solapados. Se puede borrar cuando Jorge
+  decida que ya no hacen falta.
+- Las políticas RLS siguen sin filtrar en producción: el rol `neondb_owner` tiene
+  `BYPASSRLS`. Añadir RLS a `tenants` no serviría de nada hasta cambiar el rol de
+  conexión de la aplicación.
 
 ## Nota para entrevistas
 

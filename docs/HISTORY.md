@@ -246,6 +246,36 @@ silenciarse.
 frontend, 10 end-to-end; 130/170 mutantes matados en el motor de producción; lint y
 typecheck en 0 errores.
 
+## Fase 10: Producción se moderniza (Septiembre 2026)
+
+**Un hallazgo incómodo.** Buscando si tenía sentido añadir RLS a la tabla `tenants`
+se miró el estado real de la base de producción y apareció otra cosa: **el registro
+de partes del operario estaba roto desde el 7 de agosto**. La base de Neon era de la
+generación anterior (sin `observations`, sin `event_fingerprint`, sin
+`workstations.tooling_id`, sin las tablas del asistente) y llevaba siete semanas
+rechazando cada parte que un operario intentaba guardar. El CI estaba en verde
+porque crea sus bases desde la cadena de migraciones: nadie miraba la base real.
+
+**Lo que se hizo.** Primero la herramienta que faltaba: `comprobar-esquema.cjs`
+compara cualquier base contra el contrato que produce la cadena
+(`expected-schema.json`) y corre en cada push. Con ella medida la deriva, se hizo
+una copia de producción en una rama de Neon y se construyó la base buena desde la
+cadena, migrando los datos con un script que lee del origen y escribe por lotes.
+Los pedidos de la generación anterior repetían código (uno por día, 15 códigos para
+1.214 filas) y se desambiguaron con la fecha en lugar de descartarse; los 4.180
+partes solapados que el esquema nuevo no admite se quedaron archivados. El corte se
+verificó registrando un parte real en producción.
+
+**El susto.** Al cambiar las variables de entorno de Render se usó un `PUT` que
+reemplaza la lista entera: se borraron trece variables. El despliegue falló con
+`JWT_HMAC_SECRET is required`, un secreto que **nunca había estado configurado**, así
+que cualquier despliegue del `main` habría caído igual. Se restauró todo, se
+rotaron los secretos de firma y se escribió la lección en `KNOWN_ISSUES`.
+
+**Estado al cierre:** producción con 1.214 pedidos, 1.204 partes, 21 incidencias,
+1.205 métricas OEE, 826 controles de calidad y 2.908 apuntes de coste migrados,
+cero referencias huérfanas; el registro de partes verificado de punta a punta.
+
 ## Resumen de Evolución
 
 ```
