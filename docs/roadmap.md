@@ -37,6 +37,13 @@ fichero (130 de 170 mutantes matados, ver `docs/mutation-testing.md`).
 
 Lo que queda abierto, por orden de riesgo:
 
+0. **Producción tiene el esquema de otra generación (P0, 2026-09-27).** La base de
+   Neon no tiene `observations` ni `event_fingerprint` en `production_work_blocks`
+   (ni `workstations.tooling_id`, ni las tablas `ai_context_*`), así que **el
+   registro de partes del operario está roto en producción desde el 7 de agosto**:
+   el último parte escrito es de esa fecha. Detectado con
+   `database/scripts/comprobar-esquema.cjs`, añadido en esta fase. La reparación
+   espera decisión (ver `docs/KNOWN_ISSUES.md`, ronda 7).
 1. ~~**Kiosco: identidad del operario sin validar (P1).**~~ **Cerrado
    2026-09-27**: un `operario` solo firma sus propios partes, el operario tiene que
    existir y estar activo en la planta, y la URL ya no decide la identidad

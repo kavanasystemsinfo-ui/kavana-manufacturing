@@ -122,6 +122,20 @@ jobs:
               DATABASE_URL="postgresql://${PGUSER}:${PGPASSWORD}@${PGHOST}:${PGPORT}/${PGDATABASE}" \
                 node database/scripts/e2e-setup.js
 
+          - name: Comprobar el esquema contra la cadena de migraciones
+            # El contrato vive en database/expected-schema.json. Este paso existe
+            # por un fallo real: producción llevaba desde agosto con un esquema de
+            # otra generación mientras el CI seguía en verde, porque las bases del
+            # CI se crean desde la cadena. Aquí se verifica que la cadena produce
+            # el esquema que el código espera.
+            env:
+              PGHOST: localhost
+              PGPORT: '5432'
+              PGUSER: kavana
+              PGPASSWORD: kavana_pass
+              PGDATABASE: kavana_test
+            run: node database/scripts/comprobar-esquema.cjs
+
           - name: Test backend
             env:
               DATABASE_URL: postgresql://kavana:kavana_pass@localhost:5432/kavana_test

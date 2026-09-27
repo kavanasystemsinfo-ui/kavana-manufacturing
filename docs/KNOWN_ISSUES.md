@@ -272,6 +272,68 @@ autorización del panel de plataforma se resuelve por identidad
 Producción viva (backend `/api/v1/health` y frontend en 200), CI con los seis jobs
 en verde, cero alertas Dependabot abiertas y 557 tests de backend pasando.
 
+## Ronda 7: Producción tiene un esquema de otra generación (2026-09-27) — P0 ABIERTO
+
+**El registro de partes del operario lleva roto en producción desde el 7 de agosto.**
+Último parte escrito: `2026-08-07 22:50 UTC`; cero filas en los últimos 30 días.
+
+### Cómo se descubrió
+
+Buscando si tenía sentido añadir RLS a `tenants` (la única tabla sin política) se
+consultó el estado real de la base de producción. En vez de eso apareció otra cosa:
+la base de Neon (`neondb`) no tiene el esquema que espera el código.
+
+### La evidencia
+
+- La inserción que hace el servicio, ejecutada **dentro de una transacción que se
+  revierte** (no se escribió nada), falla:
+  `ERROR: column "observations" of relation "production_work_blocks" does not exist`.
+- `database/scripts/comprobar-esquema.cjs` contra producción: **7 diferencias que
+  rompen el código**.
+  - Tablas que faltan: `ai_context_documents`, `ai_context_chunks` (el asistente IA
+    no tiene dónde guardar su contexto).
+  - Columnas que faltan: `production_work_blocks.event_fingerprint`,
+    `.observations`, `.registered_at`, `.synced_at` y `workstations.tooling_id`.
+- De más (no rompen nada, pero delatan el linaje): `production_orders` y
+  `production_time_logs` (los nombres de la generación anterior, que la migración
+  022 elimina), `incidencias.severity` (que la 028 retiró) y una veintena de
+  columnas tipo Supabase Auth en `users` (`aud`, `encrypted_password`,
+  `raw_user_meta_data`…).
+- El rol de producción (`neondb_owner`) tiene `rolbypassrls = true`, así que **las
+  políticas RLS que el proyecto documenta no están filtrando nada en producción**;
+  el aislamiento entre clientes se sostiene hoy por el código (filtros por
+  `tenant_id` + transacción con contexto), no por la base.
+
+### Por qué nadie lo vio
+
+El CI y los tests crean sus bases **desde la cadena de migraciones**, así que
+estaban en verde mientras producción iba por otro camino. Faltaba un detector de
+deriva: se añade en esta ronda (`database/scripts/comprobar-esquema.cjs` +
+`database/expected-schema.json`, y un paso en el CI para que el contrato se
+compruebe en cada push).
+
+### Por qué no se ha arreglado ya
+
+Reparar producción es una decisión de Jorge, no del agente. Opciones, con lo que
+cuesta cada una:
+
+1. **Reparación aditiva en sitio**: añadir las 5 columnas que faltan, crear las 2
+   tablas y los índices. Rápido (~30 min) y sin pérdida de datos, pero deja la
+   base híbrida (los nombres viejos siguen ahí) y el constraint de solapes de la
+   migración 038 **no se puede crear tal cual**: la tabla tiene 2.446 pares de
+   bloques solapados de la generación anterior, así que habría que limpiarlos o
+   dejarlos sin constraint.
+2. **Base nueva desde la cadena + migración de datos** (recomendada): crear la base
+   con las 17 tablas correctas, migrar lo que encaja (`tenants`, `users`,
+   `workstations`, `orders`, y los 5.384 bloques con `registered_at = created_at` y
+   huella recalculada), dejar la vieja como archivo y apuntar Render a la nueva.
+   Más trabajo (una sesión), pero producción vuelve a ser reproducible desde la
+   cadena y desaparecen de una vez las tablas y columnas del linaje viejo.
+3. **Solo el detector por ahora** y posponer la reparación.
+
+En cualquiera de las tres, el primer paso es el mismo y es seguro: **una copia de
+la base de producción para trabajar sobre ella sin tocar la real**.
+
 ## Nota para entrevistas
 
 Si un entrevistador detecta alguno de estos problemas y te pregunta:
