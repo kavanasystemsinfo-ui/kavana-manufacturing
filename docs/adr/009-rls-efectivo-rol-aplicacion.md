@@ -90,13 +90,23 @@ Piezas concretas:
 
 ## Ejecución por fases
 
-1. Migración `042`: rol con `LOGIN`, política de `tenants` y funciones acotadas.
-2. Consultas sin contexto: corregir una a una con evidencia (archivo:línea) y test.
-3. Pruebas de aislamiento nuevas: la planta A no ve nada de la planta B, en lectura y
-   en escritura.
-4. Suite completa, E2E y contrato de esquema, todo con la credencial de aplicación.
-5. Despliegue: variables de Render (leyendo la lista completa antes de reenviarla) y
-   verificación en vivo con el vigilante.
+1. **Hecho (2026-09-27)** — Migración `042`: rol con atributos de seguridad (`NOBYPASSRLS`
+   reafirmado en cada aplicación), permisos, `tenants` bajo RLS y tres funciones
+   `SECURITY DEFINER` acotadas (`auth_login_lookup`, `auth_tenant_by_subdomain`,
+   `auth_update_password_hash`) para lo que ocurre antes de conocer la planta. El
+   servicio de login usa esas funciones. `auth-login` ya no toca `users` directamente.
+2. **Pendiente** — Consultas que se ejecutan sin contexto de planta. Medido, no
+   supuesto: con el rol de aplicación en la base local, el **listado de pedidos
+   devuelve 0 filas** y el **contexto del operario llega con nombre y puesto nulos**,
+   porque esas consultas no pasan por la transacción con contexto. Son las que hay
+   que corregir antes de cambiar la credencial en producción.
+3. **Pendiente** — Pruebas de aislamiento: escritas y en verde (7 casos: sin contexto
+   no se ve nada; con contexto solo lo propio; INSERT cruzado rechazado; UPDATE
+   cruzado no toca nada; el login resuelve solo la planta de su subdominio). Corren en
+   el CI en cada push.
+4. **Pendiente** — Suite completa y E2E con la credencial de aplicación.
+5. **Pendiente** — Despliegue: variables de Render (leyendo la lista completa antes de
+   reenviarla, lección del 2026-09-27) y verificación en vivo con el vigilante.
 
 **Señal de revisión**: la decisión queda validada cuando la suite completa pasa con la
 credencial de aplicación y una prueba demuestra que la planta A no ve la B.
