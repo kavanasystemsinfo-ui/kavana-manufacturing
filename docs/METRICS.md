@@ -13,7 +13,7 @@
 | **Lenguajes** | TypeScript, TSX, SQL, JSON, YAML, MD, Python, Bash |
 | **Commits** | +120 (rama `main`) |
 | **Tiempo de desarrollo** | ~4 semanas desde refactorización V2 |
-| **Tests** | 155 frontend + 409 backend = **564 tests** (+ 9 end-to-end) |
+| **Tests** | 186 frontend + 504 backend = **690 tests** (+ 10 end-to-end + 7 de contrato de rutas) |
 
 ## Cobertura por módulo
 
@@ -52,18 +52,18 @@ Cifras de la última ejecución verificada (2026-09-23). Se actualizan ejecutand
 la suite, no contando `it(` con un `grep`.
 
 ### Backend (Vitest)
-- **409 tests en 47 archivos** (`npm run test` en `backend/`, con `DATABASE_URL`).
+- **504 tests en 48 archivos** (`npm run test` en `backend/`, con `DATABASE_URL`).
 - Cubre auth, orders, OEE, quality, cost, workstations, manufacturing-models,
   users, tenant-capabilities, incidencias, materials, toolings, queue, y el
   contrato de roles de **toda** la API (`roles-contract.spec.ts`, el test que
   encontró los endpoints que devolvían 403 a todos los roles).
 
 ### Frontend (Vitest)
-- **155 tests en 22 archivos** (`npm run test` en `frontend/`): stores, hooks,
+- **186 tests en 25 archivos** (`npm run test` en `frontend/`): stores, hooks,
   utilidades puras y componentes con Testing Library.
 
 ### End-to-end (Playwright)
-- **9 tests** (`npm run test:e2e` en `frontend/`): el flujo completo (login del
+- **10 tests** (`npm run test:e2e` en `frontend/`): el flujo completo (login del
   operario → registra un parte → el supervisor lo ve), el alta de orden por el
   supervisor, el tablero de incidencias con arrastre real (en el panel del admin y
   en el del supervisor), el aviso al operario sin puesto asignado, el tema moderno,
