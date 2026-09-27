@@ -62,7 +62,10 @@ async function columnExists(client, table, column) {
   return rows.length > 0;
 }
 
-async function applyMigrations(client) {
+// Exportadas para el script de migración de datos desde una base de la
+// generación anterior (database/scripts/migrar-desde-legacy.mjs): la cadena de
+// migraciones se aplica igual, pero sin el seed ni los datos de prueba del E2E.
+export async function applyMigrations(client) {
   const { rows } = await client.query(`SELECT to_regclass('public.orders') AS t`);
   if (rows[0].t) {
     console.log('[e2e-setup] el esquema ya existe: no se reaplican las migraciones');
@@ -76,7 +79,7 @@ async function applyMigrations(client) {
   }
 }
 
-async function applyGrants(client) {
+export async function applyGrants(client) {
   const { rows } = await client.query(`SELECT 1 FROM pg_roles WHERE rolname = 'kavana_app'`);
   if (rows.length === 0) return;
   await client.query(
