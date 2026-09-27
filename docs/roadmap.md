@@ -37,6 +37,14 @@ fichero (130 de 170 mutantes matados, ver `docs/mutation-testing.md`).
 
 Lo que queda abierto, por orden de riesgo:
 
+0b. **Aislamiento efectivo en la base (en curso, 2026-09-27).** Las políticas RLS no
+   filtran en producción porque el rol de conexión tiene `BYPASSRLS`. Fase 1 hecha
+   (migración 042: rol de aplicación, `tenants` bajo RLS, login por funciones
+   acotadas, 7 pruebas de aislamiento en el CI). Fase 2 pendiente: 55 consultas de 10
+   archivos que hoy funcionan solo porque el rol se salta las políticas, listadas una
+   por una en `docs/adr/009-rls-efectivo-rol-aplicacion.md`. **No se cambia la
+   credencial de producción hasta cerrarlas.**
+
 0. ~~**Producción con el esquema de otra generación (P0).**~~ **Cerrado
    2026-09-27**: el registro de partes llevaba roto en producción desde el 7 de
    agosto. Se creó la base `kavana_mes` desde la cadena en una copia, se migraron
