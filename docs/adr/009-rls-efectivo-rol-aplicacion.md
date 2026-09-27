@@ -110,3 +110,23 @@ Piezas concretas:
 
 **Señal de revisión**: la decisión queda validada cuando la suite completa pasa con la
 credencial de aplicación y una prueba demuestra que la planta A no ve la B.
+
+## Fase 2 — Inventario de consultas sin contexto (medido 2026-09-27)
+
+Barrido del backend con verificación puntual de cada hallazgo. Son **55 puntos de
+consulta** en 10 archivos. Agrupados por lo que hay que hacer:
+
+| Grupo | Dónde | Qué hay que hacer |
+|---|---|---|
+| **Login** (hecho) | `auth-login.service.ts` :83, :121, :152, :171 | Resuelto con las funciones `SECURITY DEFINER` de la 042. Es un caso legítimo sin contexto: no se arregla con `tenantQuery`. |
+| **Cola de trabajos** | `queue/processors/oee-recalc.ts` :26-39, `report-export.ts` :26-44, `document-ingest.ts` :61-98 | Bug de alcance: fijan `set_config(..., true)` (local a la transacción) **sin abrir transacción**, así que el contexto muere con esa sentencia y el resto se ejecuta sin él. Hoy funciona porque el rol se salta las políticas; con RLS se quedarían mudos (0 filas, sin error). Envolver en transacción explícita. |
+| **Endpoints autenticados** | `core-mes-production.service.ts` :38, :50, :66, :201, :218; `orders.controller.ts` :30; `core-mes-production.controller.ts` :32 | Migrar a `tenantQuery`/`withTenantTransaction`. **Medido en vivo**: con el rol de aplicación el listado de órdenes devuelve 0 filas y el contexto del operario llega con nombre y puesto nulos. |
+| **Módulos OEE, calidad y coste** | `oee.service.ts` :53, :60, :94, :136, :167; `quality.service.ts` :30, :41, :53; `cost.service.ts` :28, :39, :51 | Mismo cambio, mecánico. Los INSERT además fallan por el `WITH CHECK`. |
+| **Catálogo de plantas** | `tenant-capabilities.service.ts` :27, :45, :108, :113, :132, :189, :194, :208, :278, :302; `global-admin.service.ts` :48, :67, :92-:95, :107, :113, :134, :146, :190, :215, :222; `ai-config.service.ts` :54, :74, :110; `tenant-capabilities.service.ts` :257, :262 (`tenant_config_audit`) | Lo más delicado: `getCapabilities` corre **en casi toda petición** vía guard, y el panel global y el alta de planta son cross-tenant por diseño. Decidir por caso: contexto de planta cuando el admin es de la planta, o función acotada cuando es el panel de plataforma. |
+| **Ya correcto** | `incidencia-uploads.service.ts` :76 (usa una función `SECURITY DEFINER`) | Nada. |
+| **Deuda aparte** | `incidencia-uploads.service.ts` :98 (`set_config(..., false)`, alcance de sesión sobre una conexión del pool: puede filtrar el contexto a la siguiente consulta de esa conexión); `report-export.ts` :40 lee `cost_records`, tabla que no existe (la app escribe `cost_entries`) | Arreglar de paso: son bugs propios, no del RLS. |
+
+**No se aplica la 042 en producción hasta cerrar la fase 2**: `getCapabilities` corre en
+casi toda petición y, con el catálogo de plantas cerrado y sin contexto, dejaría la
+aplicación sin capacidades.
+
