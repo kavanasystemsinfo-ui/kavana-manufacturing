@@ -1,6 +1,7 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { useHmiStore } from './hmi-store.js';
 import { localDb } from '../db/local-db.js';
+import { callApiWithTimeout } from '../api/client.js';
 
 // Mock dependencies
 vi.mock('../db/local-db.js', () => ({
@@ -95,5 +96,51 @@ describe('HmiStore (Zustand) - Work Blocks', () => {
     await registerWorkBlock('produccion', startTime, endTime, null, 500, 10);
 
     expect(localDb.offlineBlocks.add).not.toHaveBeenCalled();
+  });
+});
+
+// El parte se firma con la identidad de la sesión, nunca con la que venga en el
+// enlace: un quiosco compartido no puede atribuir producción a otra persona.
+describe('HmiStore - identidad del operario', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    useHmiStore.setState({
+      userId: 'op-sesion',
+      operatorId: null,
+      orderId: null,
+      workstationId: null,
+      isOnline: true,
+    });
+  });
+
+  afterEach(() => {
+    window.history.replaceState({}, '', '/');
+  });
+
+  it('ignora el operator_id de la URL y toma el operario de la sesión', async () => {
+    window.history.replaceState({}, '', '/?order_id=ord-url&workstation_id=ws-url&operator_id=op-ajeno');
+    vi.mocked(callApiWithTimeout).mockResolvedValue({
+      operatorId: 'op-sesion',
+      operatorName: 'Operario de sesión',
+      workstationId: null,
+      workstationName: null,
+    } as never);
+
+    await useHmiStore.getState().loadOperatorContext();
+
+    const state = useHmiStore.getState();
+    expect(state.operatorId).toBe('op-sesion');
+    // La URL sí sigue sirviendo para dejar preparados orden y puesto.
+    expect(state.orderId).toBe('ord-url');
+    expect(state.workstationId).toBe('ws-url');
+  });
+
+  it('sin API, cae al usuario de la sesión y no al de la URL', async () => {
+    window.history.replaceState({}, '', '/?operator_id=op-ajeno');
+    vi.mocked(callApiWithTimeout).mockRejectedValue(new Error('sin red') as never);
+
+    await useHmiStore.getState().loadOperatorContext();
+
+    expect(useHmiStore.getState().operatorId).toBe('op-sesion');
   });
 });

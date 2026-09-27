@@ -119,7 +119,10 @@ El rol/tenant que deciden qué panel se muestra se leían de localStorage sin va
 
 **P0-4 · Kiosk mode por URL sin autorización.**
 `?operator_id=` atribuía producción a otro operario sin validar server-side.
-**Estado**: mitigación parcial: el backend ahora exige rol para las rutas de producción y el contexto viene del JWT; validación server-side completa de pertenencia operator_id↔user pendiente (ver abiertos).
+**Estado**: ✅ Cerrado en la ronda 6 (R6-1): el backend ya no acepta un
+`operator_id` que no sea el usuario del token para el rol `operario`, valida que el
+operario exista y esté activo en la planta, y el frontend dejó de tomar la
+identidad de la URL (`loadOperatorContext`).
 
 **P1 corregidos también**: JWT exp obligatorio en tokens HMAC; fail-closed sin secret en producción (login y guard simétricos); rate limit login 10/5min/IP.
 
@@ -227,21 +230,38 @@ que la consulta corra.
 
 ### Abierto (nuevo, verificado en código)
 
-**R6-1 · El operario de un parte no está atado al usuario del token (P1).**
-`syncWorkBlock` usa el `operator_id` que llega en el cuerpo de la petición sin
-comprobar que corresponda al usuario autenticado
-(`backend/src/core-mes-production/core-mes-production.service.ts:149`, `:256`,
-`:294`). El tenant sí se toma del token, así que no hay fuga entre clientes, pero
-**dentro de un mismo tenant cualquiera con rol `operario` puede registrar partes
-a nombre de otro operario**, y eso es el dato del que viven los dashboards de
-productividad y las nóminas de tiempo.
+**R6-1 · El operario de un parte no está atado al usuario del token (P1). ✅ CORREGIDO.**
 
-Estado: mitigado a medias. La ronda 2 cambió el contexto del token para las rutas
-de producción, pero la pertenencia `operator_id` ↔ usuario quedó pendiente y
-sigue pendiente hoy. Arreglarlo exige decidir antes cómo se identifica el operario
-en una tablet compartida de planta: si el HMI es un quiosco por puesto, el
-operario tendría que venir del puesto asignado (y no del navegador), y si es
-personal, tiene que ser el usuario del token.
+`syncWorkBlock` usaba el `operator_id` que llegaba en el cuerpo de la petición sin
+comprobar que correspondiera al usuario autenticado: dentro de un mismo tenant,
+cualquiera con rol `operario` podía registrar partes a nombre de otro, y eso es el
+dato del que viven los dashboards de productividad y los tiempos.
+
+**Cómo se cerró** (`core-mes-production.service.ts`, `resolveOperatorId`):
+
+- Un `operario` solo firma a su nombre: si el `operator_id` del cuerpo no es el
+  usuario del token, la petición se rechaza con
+  `Un operario solo puede registrar partes a su propio nombre.`
+- Cualquier operario que se firme (lo ponga un operario, un supervisor o un
+  administrador) tiene que existir y estar **activo** en la planta, o se rechaza con
+  `El operario indicado no existe en esta planta.` Antes eso salía como error de
+  base de datos envuelto en `Sync operation failed`.
+- Un supervisor o administrador **sí** puede registrar por otro (así se corrigen
+  partes olvidados), pero nunca fuera de su tenant.
+
+La decisión de producto que faltaba era esta: el HMI no es un quiosco que firme
+por quien diga un enlace. En el frontend, los parámetros de URL siguen sirviendo
+para dejar preparados la orden y el puesto (`?order_id=` y `?workstation_id=`),
+pero `?operator_id=` ya no decide nada: la identidad sale de la sesión
+(`loadOperatorContext`, que llama a `/production/operator/context` y, sin API, cae
+al usuario logueado). Un enlace con `operator_id=` no puede atribuir producción a
+otra persona.
+
+**Verificado**: 6 tests nuevos en `core-mes-production.db.spec.ts` contra la base
+real (mismatch, operario de otra planta, inactivo, supervisor por otro, supervisor
+fuera de tenant), 2 en `hmi-store.spec.ts` (la URL no cambia la identidad), 563
+tests de backend y 188 de frontend en verde, y los 10 E2E en verde (incluido el
+flujo completo: el operario registra y el supervisor lo ve).
 
 **R6-2 · RLS en `tenants` (P1).** Sigue siendo la única tabla sin política: la
 autorización del panel de plataforma se resuelve por identidad

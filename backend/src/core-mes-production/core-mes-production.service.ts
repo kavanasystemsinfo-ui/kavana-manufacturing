@@ -118,13 +118,21 @@ WHERE tenant_id = $1::bigint AND id = $2::uuid
         throw new BadRequestException('The requested production order does not exist or you do not have permission.');
       }
 
+      // Quién firma el parte no lo decide el cuerpo de la petición: se resuelve
+      // contra el token y contra los usuarios activos de la planta antes de
+      // mirar nada más.
+      const effectiveDto: SyncWorkBlockDto = {
+        ...dto,
+        operator_id: await this.resolveOperatorId(client, dto.operator_id, tenantId),
+      };
+
       // Antes de mirar solapes: si este mismo hecho de producción ya está
       // registrado, la respuesta correcta es "ya sincronizado", no un error.
       // El motor de sync del HMI puede reenviar el bloque (dos ciclos solapados)
       // y sin esta comprobación el reenvío chocaba con el solape del bloque que
       // él mismo acababa de crear: el parte entraba bien, pero al operario le
       // aparecía un fallo en su bandeja y no había fallado nada.
-      const fingerprint = this.computeFingerprint(dto, tenantId);
+      const fingerprint = this.computeFingerprint(effectiveDto, tenantId);
       const alreadySynced = await client.query(
         `SELECT 1 FROM production_work_blocks
           WHERE tenant_id = $1::bigint AND event_fingerprint = $2
@@ -146,14 +154,14 @@ WHERE tenant_id = $1::bigint AND id = $2::uuid
          WHERE operator_id = $1::uuid AND tenant_id = $2::bigint AND id != $3::uuid
            AND (start_time, end_time) OVERLAPS ($4::timestamptz, $5::timestamptz)
          LIMIT 1`,
-        [dto.operator_id, String(tenantId), dto.id, dto.start_time, dto.end_time]
+        [effectiveDto.operator_id, String(tenantId), dto.id, dto.start_time, dto.end_time]
       );
 
       if (overlapCheck.rows.length > 0) {
         throw new BadRequestException('El bloque de tiempo se solapa con otro registro existente para este operario.');
       }
 
-      const isNewBlock = await this.insertWorkBlock(client, dto, tenantId);
+      const isNewBlock = await this.insertWorkBlock(client, effectiveDto, tenantId);
 
       let updateResult;
       if (isNewBlock) {
@@ -239,6 +247,35 @@ WHERE tenant_id = $1::bigint AND id = $2::uuid
       [String(context.tenantId), orderId],
     );
     return result.rows[0] ?? null;
+  }
+
+  /**
+   * Quién firma el parte. El `operator_id` llega del cliente, así que no se
+   * acepta tal cual: un operario solo firma a su nombre (el del token), y
+   * cualquier operario —lo ponga quien lo ponga— tiene que existir y estar
+   * activo en la planta. Un supervisor o un administrador sí pueden registrar
+   * por otro, que es como se corrigen los partes olvidados, pero nunca fuera de
+   * su propio tenant.
+   */
+  private async resolveOperatorId(client: PoolClient, requestedId: string, tenantId: string): Promise<string> {
+    const context = getTenantContext();
+
+    if (context.role === 'operario' && requestedId !== context.userId) {
+      throw new BadRequestException('Un operario solo puede registrar partes a su propio nombre.');
+    }
+
+    const result = await client.query(
+      `SELECT 1 FROM users
+        WHERE tenant_id = $1::bigint AND id = $2::uuid AND is_active
+        LIMIT 1`,
+      [tenantId, requestedId],
+    );
+
+    if (result.rows.length === 0) {
+      throw new BadRequestException('El operario indicado no existe en esta planta.');
+    }
+
+    return requestedId;
   }
 
   /**

@@ -30,6 +30,8 @@ const TENANT_C = 900003n;
 const ids = {
   operatorA1: randomUUID(),
   operatorA2: randomUUID(),
+  operatorInactive: randomUUID(),
+  supervisorA1: randomUUID(),
   operatorB1: randomUUID(),
   operatorC1: randomUUID(),
   workstationA1: randomUUID(),
@@ -150,16 +152,19 @@ describe.skipIf(!HAS_DATABASE)('CoreMesProductionService contra base de datos re
       [...TENANTS_SQL, JSON.stringify(CUSTOM_FIELDS_SCHEMA)],
     );
 
-    for (const [tenantId, user, role, username] of [
-      [TENANT_A, ids.operatorA1, 'operario', 'spec-operario-a1'],
-      [TENANT_A, ids.operatorA2, 'operario', 'spec-operario-a2'],
-      [TENANT_B, ids.operatorB1, 'operario', 'spec-operario-b1'],
-      [TENANT_C, ids.operatorC1, 'operario', 'spec-operario-c1'],
+    for (const [tenantId, user, role, username, isActive] of [
+      [TENANT_A, ids.operatorA1, 'operario', 'spec-operario-a1', true],
+      [TENANT_A, ids.operatorA2, 'operario', 'spec-operario-a2', true],
+      // Operario dado de baja: no debe poder registrar partes.
+      [TENANT_A, ids.operatorInactive, 'operario', 'spec-operario-inactivo', false],
+      [TENANT_A, ids.supervisorA1, 'supervisor', 'spec-supervisor-a1', true],
+      [TENANT_B, ids.operatorB1, 'operario', 'spec-operario-b1', true],
+      [TENANT_C, ids.operatorC1, 'operario', 'spec-operario-c1', true],
     ] as const) {
       await rows(
-        `INSERT INTO users (tenant_id, id, username, password_hash, role)
-         VALUES ($1::bigint, $2::uuid, $3, 'spec:hash', $4)`,
-        [String(tenantId), user, username, role],
+        `INSERT INTO users (tenant_id, id, username, password_hash, role, is_active)
+         VALUES ($1::bigint, $2::uuid, $3, 'spec:hash', $4, $5)`,
+        [String(tenantId), user, username, role, isActive],
       );
     }
 
@@ -315,10 +320,11 @@ describe.skipIf(!HAS_DATABASE)('CoreMesProductionService contra base de datos re
         end_time: at(10),
       });
 
-      await asTenant(TENANT_A, ids.operatorA1, 'operario', async () => {
-        await service().syncWorkBlock(first);
-        return service().syncWorkBlock(other);
-      });
+      // El segundo parte lo registra el supervisor: un operario solo puede
+      // firmar a su nombre, así que el caso "otro operario a la misma hora"
+      // llega por la vía que sí lo permite.
+      await asTenant(TENANT_A, ids.operatorA1, 'operario', () => service().syncWorkBlock(first));
+      await asTenant(TENANT_A, ids.supervisorA1, 'supervisor', () => service().syncWorkBlock(other));
 
       expect(await blockRows(orderA)).toHaveLength(2);
       expect(Number((await orderRow(orderA))?.produced_quantity)).toBe(15);
@@ -586,10 +592,10 @@ describe.skipIf(!HAS_DATABASE)('CoreMesProductionService contra base de datos re
       const late = workBlock({ order_id: orderA, start_time: at(12), end_time: at(13), produced_quantity: 5 });
       const early = workBlock({ order_id: orderA, operator_id: ids.operatorA2, start_time: at(6), end_time: at(7), produced_quantity: 7 });
 
-      await asTenant(TENANT_A, ids.operatorA1, 'operario', async () => {
-        await service().syncWorkBlock(late);
-        return service().syncWorkBlock(early);
-      });
+      await asTenant(TENANT_A, ids.operatorA1, 'operario', () => service().syncWorkBlock(late));
+      // El bloque del otro operario lo firma el supervisor: la regla nueva
+      // impide que un operario registre partes a nombre de otro.
+      await asTenant(TENANT_A, ids.supervisorA1, 'supervisor', () => service().syncWorkBlock(early));
 
       const logs = await asTenant(TENANT_A, ids.operatorA1, 'operario', () => service().listOrderLogs(orderA));
 
@@ -611,9 +617,9 @@ describe.skipIf(!HAS_DATABASE)('CoreMesProductionService contra base de datos re
 
       await asTenant(TENANT_A, ids.operatorA1, 'operario', async () => {
         await service().syncWorkBlock(mine);
-        await service().syncWorkBlock(mineLater);
-        return service().syncWorkBlock(other);
+        return service().syncWorkBlock(mineLater);
       });
+      await asTenant(TENANT_A, ids.supervisorA1, 'supervisor', () => service().syncWorkBlock(other));
 
       const logs = await asTenant(TENANT_A, ids.operatorA1, 'operario', () =>
         service().listMyTimeLogs({ from: at(8), to: at(11) }),
@@ -677,9 +683,9 @@ describe.skipIf(!HAS_DATABASE)('CoreMesProductionService contra base de datos re
     });
 
     it('syncWorkBlock envuelve como BadRequest el fallo que viene de la base de datos', async () => {
-      // Operario de OTRO tenant: la clave foránea (tenant_id, operator_id) lo
+      // Puesto de OTRO tenant: la clave foránea (tenant_id, workstation_id) lo
       // rechaza y el servicio convierte el error en un 400 con su contexto.
-      const dto = workBlock({ order_id: orderA, operator_id: ids.operatorB1 });
+      const dto = workBlock({ order_id: orderA, workstation_id: ids.workstationB1 });
 
       await expect(
         asTenant(TENANT_A, ids.operatorA1, 'operario', () => service().syncWorkBlock(dto)),
@@ -710,6 +716,71 @@ describe.skipIf(!HAS_DATABASE)('CoreMesProductionService contra base de datos re
           }),
         ),
       ).rejects.toThrow('Invalid custom fields');
+    });
+  });
+
+  // El parte es un dato con consecuencias (productividad, tiempo del operario):
+  // quién lo firma no puede decidirlo el cuerpo de la petición.
+  describe('identidad del operario del parte', () => {
+    it('un operario no puede registrar un parte a nombre de otro operario de su planta', async () => {
+      const dto = workBlock({ order_id: orderA, operator_id: ids.operatorA2 });
+
+      await expect(
+        asTenant(TENANT_A, ids.operatorA1, 'operario', () => service().syncWorkBlock(dto)),
+      ).rejects.toThrow('Un operario solo puede registrar partes a su propio nombre.');
+
+      expect(await blockRows(orderA)).toHaveLength(0);
+      expect(Number((await orderRow(orderA))?.produced_quantity)).toBe(0);
+    });
+
+    it('el supervisor sí puede registrar un parte para un operario de su planta', async () => {
+      const dto = workBlock({ order_id: orderA, operator_id: ids.operatorA2, produced_quantity: 18 });
+
+      await asTenant(TENANT_A, ids.supervisorA1, 'supervisor', () => service().syncWorkBlock(dto));
+
+      const stored = (await blockRows(orderA))[0];
+      expect(stored.operator_id).toBe(ids.operatorA2);
+      expect(Number(stored.produced_quantity)).toBe(18);
+    });
+
+    it('un operario tampoco puede firmar como alguien de otra planta', async () => {
+      const dto = workBlock({ order_id: orderA, operator_id: ids.operatorB1 });
+
+      await expect(
+        asTenant(TENANT_A, ids.operatorA1, 'operario', () => service().syncWorkBlock(dto)),
+      ).rejects.toThrow('Un operario solo puede registrar partes a su propio nombre.');
+
+      expect(await blockRows(orderA)).toHaveLength(0);
+    });
+
+    it('rechaza un operario inactivo aunque venga en un parte del supervisor', async () => {
+      const dto = workBlock({ order_id: orderA, operator_id: ids.operatorInactive });
+
+      await expect(
+        asTenant(TENANT_A, ids.supervisorA1, 'supervisor', () => service().syncWorkBlock(dto)),
+      ).rejects.toThrow('El operario indicado no existe en esta planta.');
+
+      expect(await blockRows(orderA)).toHaveLength(0);
+    });
+
+    it('rechaza un operario dado de baja aunque sea el mismo del token', async () => {
+      const dto = workBlock({ order_id: orderA, operator_id: ids.operatorInactive });
+
+      await expect(
+        asTenant(TENANT_A, ids.operatorInactive, 'operario', () => service().syncWorkBlock(dto)),
+      ).rejects.toThrow('El operario indicado no existe en esta planta.');
+
+      expect(await blockRows(orderA)).toHaveLength(0);
+    });
+
+    it('el supervisor tampoco puede firmar a nombre de un operario de otra planta', async () => {
+      const dto = workBlock({ order_id: orderA, operator_id: ids.operatorB1 });
+
+      await expect(
+        asTenant(TENANT_A, ids.supervisorA1, 'supervisor', () => service().syncWorkBlock(dto)),
+      ).rejects.toThrow('El operario indicado no existe en esta planta.');
+
+      expect(await blockRows(orderA)).toHaveLength(0);
     });
   });
 });
