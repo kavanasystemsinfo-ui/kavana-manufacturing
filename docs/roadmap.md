@@ -2,9 +2,9 @@
 
 ## Estado del documento
 
-- **Estado:** Roadmap maestro activo. Unificación completada. Guías de usuario en 8 paneles. Graphify integrado. 233 tests pass.
-- **Última actualización:** 2026-07-07.
-- **Fase actual:** Hardening — type casting SQL, diagnóstico tsx watch Windows, password hashes.
+- **Estado:** Roadmap maestro activo. Unificación completada. Guías de usuario en 8 paneles. Graphify integrado.
+- **Última actualización:** 2026-09-27.
+- **Cifras vigentes:** **743 tests** (557 backend + 186 frontend) más 10 end-to-end y 7 de contrato de rutas. Las cifras que aparecen dentro de las fases completadas son las que había en su momento, no las de hoy.
 
 ## Propósito
 
@@ -25,14 +25,38 @@ Kavana Manufacturing se construirá desde la seguridad hacia la experiencia:
 
 ## Fase actual
 
-La fase actual es **Supervisor Panel Rewrite + ClassicAdminPanel V2 Users** (completada).
+Calidad verificable. El producto está desplegado y en verde (los seis jobs del CI,
+producción sirviendo en `www.manufacturing.kavanasystems.com`): la fase abierta es
+**demostrar que los tests protegen de verdad**, no añadir superficie. Cerrado en
+esta fase: migración `api/v1`, barrera de regresión de rutas, primer spec de
+integración contra base de datos real del motor de producción
+(`core-mes-production.db.spec.ts`) y la medición de mutación honesta de ese
+fichero (130 de 170 mutantes matados, ver `docs/mutation-testing.md`).
 
 ## Próximo hito inmediato
 
-Proyecto listo para producción. Próximos pasos opcionales:
-- Deploy a staging/producción
-- Demo funcional con datos reales
-- Iteración basada en feedback de clientes
+Lo que queda abierto, por orden de riesgo:
+
+1. **Kiosco: identidad del operario sin validar (P1).** `syncWorkBlock` usa el
+   `operator_id` que llega del cliente sin comprobar que sea el usuario del token
+   (`backend/src/core-mes-production/core-mes-production.service.ts:149`, `:256`,
+   `:294`). Dentro del mismo tenant, un operario puede registrar partes a nombre de
+   otro. Requiere decidir antes cómo se identifica el operario en una tablet
+   compartida (ver `docs/KNOWN_ISSUES.md`, ronda 6).
+2. **RLS en la tabla `tenants` (P1).** Es la única tabla del esquema sin política.
+3. **Rate limits en memoria (P2).** Los de fotos (20/10 min) y asistente IA
+   (25/día) se reinician con cada instancia: válidos con una réplica, no con dos.
+4. **Segunda ronda de mutación (P2).** Quedan `auth-login.service.ts` (135
+   supervivientes), `photo-validator.ts` (115) y `users.service.ts` (92). El runner
+   de Stryker con Vitest 5 no es fiable: se mide con
+   `backend/scripts/comprobar-mutantes.mjs`.
+5. **PWA/Service Worker (P2, producto).** Recargar sin red mata el HMI.
+6. **DLQ administrativa (P2, UX).** Los eventos offline rechazados no tienen
+   pantalla de revisión.
+7. **Pulido de portfolio**: design tokens, ADRs 007-010 y licencia.
+
+
+## Completado en fases anteriores (detalle con las cifras de su momento)
 
 1. **Completado: Fase 5.1 - Esquema de gobernanza de tenant**
    - `tenants` consolidada con `feature_matrix JSONB`.
@@ -74,6 +98,9 @@ Proyecto listo para producción. Próximos pasos opcionales:
    - ✅ Vitest en Verde Absoluto (40 tests funcionales superados).
 
 ## Fases completadas
+
+> Las cifras entre paréntesis son las que había al cerrar cada fase. El total hoy
+> es 743 tests (557 backend + 186 frontend) + 10 end-to-end + 7 de contrato de rutas.
 
 - Fase 0 - Ordenación del proyecto y trazabilidad documental.
 - Fase 1 - Cimientos SaaS y aislamiento multi-tenant.
