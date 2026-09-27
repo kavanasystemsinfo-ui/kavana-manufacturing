@@ -358,9 +358,12 @@ la interfaz de Render.
 
 ### Lo que queda de esta ronda
 
-- La rama `production` de Neon se conserva como archivo (no se usa en producción,
-  solo consulta): guarda los 4.180 partes solapados. Se puede borrar cuando Jorge
-  decida que ya no hacen falta.
+- La rama vieja de Neon sigue existiendo como **archivo frío**, sin endpoint: no
+  tiene URL, así que no se puede confundir con producción. Sus datos se volcaron
+  antes a `/root/kavana-manufacturing-archivo/neondb-2026-09-27.sql.gz` (restaurado
+  y verificado: 5.384 partes, 1.214 pedidos, 12 usuarios, 1.205 métricas OEE). Si
+  algún día hacen falta, se restauran en cualquier PostgreSQL sin depender de Neon.
+  En el proyecto quedó una sola dirección y una sola rama por defecto: `production`.
 - Las políticas RLS siguen sin filtrar en producción: el rol `neondb_owner` tiene
   `BYPASSRLS`. Añadir RLS a `tenants` no serviría de nada hasta cambiar el rol de
   conexión de la aplicación.
