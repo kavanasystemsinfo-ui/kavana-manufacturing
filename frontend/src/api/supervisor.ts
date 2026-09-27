@@ -66,11 +66,11 @@ export interface ActivityBlock {
 
 // Users
 export async function fetchUsers(): Promise<User[]> {
-  return callApiWithTimeout<User[]>(`${API_BASE}/api/users`);
+  return callApiWithTimeout<User[]>(`${API_BASE}/users`);
 }
 
 export async function createUser(data: { username: string; password: string; role: string }): Promise<User> {
-  return callApiWithTimeout<User>(`${API_BASE}/api/users`, {
+  return callApiWithTimeout<User>(`${API_BASE}/users`, {
     method: 'POST',
     body: JSON.stringify(data),
   });
@@ -78,11 +78,11 @@ export async function createUser(data: { username: string; password: string; rol
 
 // Workstations
 export async function fetchWorkstations(): Promise<Workstation[]> {
-  return callApiWithTimeout<Workstation[]>(`${API_BASE}/api/workstations`);
+  return callApiWithTimeout<Workstation[]>(`${API_BASE}/workstations`);
 }
 
 export async function createWorkstation(data: { name: string; status?: string }): Promise<Workstation> {
-  return callApiWithTimeout<Workstation>(`${API_BASE}/api/workstations`, {
+  return callApiWithTimeout<Workstation>(`${API_BASE}/workstations`, {
     method: 'POST',
     body: JSON.stringify(data),
   });
@@ -90,11 +90,11 @@ export async function createWorkstation(data: { name: string; status?: string })
 
 // Manufacturing Models
 export async function fetchManufacturingModels(): Promise<ManufacturingModel[]> {
-  return callApiWithTimeout<ManufacturingModel[]>(`${API_BASE}/api/manufacturing-models`);
+  return callApiWithTimeout<ManufacturingModel[]>(`${API_BASE}/manufacturing-models`);
 }
 
 export async function createManufacturingModel(data: { name: string; unit_of_measure?: 'piezas/h' | 'm/h' | 'kg/h' | 'L/h' }): Promise<ManufacturingModel> {
-  return callApiWithTimeout<ManufacturingModel>(`${API_BASE}/api/manufacturing-models`, {
+  return callApiWithTimeout<ManufacturingModel>(`${API_BASE}/manufacturing-models`, {
     method: 'POST',
     body: JSON.stringify(data),
   });
@@ -102,35 +102,35 @@ export async function createManufacturingModel(data: { name: string; unit_of_mea
 
 // Orders
 export async function fetchOrders(): Promise<Order[]> {
-  return callApiWithTimeout<Order[]>(`${API_BASE}/api/orders`);
+  return callApiWithTimeout<Order[]>(`${API_BASE}/orders`);
 }
 
 export async function createOrder(data: { model_id: string; workstation_id: string; quantity: number; custom_fields?: Record<string, any> }): Promise<Order> {
-  return callApiWithTimeout<Order>(`${API_BASE}/api/orders`, {
+  return callApiWithTimeout<Order>(`${API_BASE}/orders`, {
     method: 'POST',
     body: JSON.stringify(data),
   });
 }
 
 export async function updateOrder(id: string, data: { status?: string; workstation_id?: string }): Promise<Order> {
-  return callApiWithTimeout<Order>(`${API_BASE}/api/orders/${id}`, {
+  return callApiWithTimeout<Order>(`${API_BASE}/orders/${id}`, {
     method: 'PUT',
     body: JSON.stringify(data),
   });
 }
 
 export async function deleteOrder(id: string): Promise<void> {
-  return callApiWithTimeout<void>(`${API_BASE}/api/orders/${id}`, {
+  return callApiWithTimeout<void>(`${API_BASE}/orders/${id}`, {
     method: 'DELETE',
   });
 }
 
 // Activity
 export async function fetchOrderActivity(orderId: string): Promise<ActivityBlock[]> {
-  return callApiWithTimeout<ActivityBlock[]>(`${API_BASE}/api/orders/${orderId}/activity`);
+  return callApiWithTimeout<ActivityBlock[]>(`${API_BASE}/orders/${orderId}/activity`);
 }
 
 // Workstation Status
 export async function fetchWorkstationsStatus(): Promise<Workstation[]> {
-  return callApiWithTimeout<Workstation[]>(`${API_BASE}/api/orders/workstations-status`);
+  return callApiWithTimeout<Workstation[]>(`${API_BASE}/orders/workstations-status`);
 }

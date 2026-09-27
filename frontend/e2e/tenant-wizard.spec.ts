@@ -72,7 +72,7 @@ test.describe('Wizard de alta de tenant (3.1)', () => {
 
     // El admin creado por el wizard entra de verdad con sus credenciales,
     // por el subdominio del tenant que acaba de nacer.
-    const login = await request.post('/api/auth/login-by-tenant', {
+    const login = await request.post('/api/v1/auth/login-by-tenant', {
       data: {
         subdomain: WIZARD.subdomain,
         username: WIZARD.adminUser,

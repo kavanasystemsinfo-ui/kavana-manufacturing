@@ -30,5 +30,5 @@ export function localDayRange(now: Date = new Date()): { from: string; to: strin
 
 export async function fetchMyTimeLogs(range: { from: string; to: string }): Promise<MyTimeLog[]> {
   const params = new URLSearchParams({ from: range.from, to: range.to });
-  return callApiWithTimeout<MyTimeLog[]>(`/production/time-logs/mine?${params.toString()}`);
+  return callApiWithTimeout<MyTimeLog[]>(`/api/v1/production/time-logs/mine?${params.toString()}`);
 }

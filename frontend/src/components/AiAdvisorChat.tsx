@@ -74,7 +74,7 @@ export function AiAdvisorChat({ mode = 'mes' }: AiAdvisorChatProps) {
       const controller = new AbortController();
       const timeout = setTimeout(() => controller.abort(), 30000);
       const token = localStorage.getItem('kavana_dev_token') || 'mock-token';
-      const endpoint = isTech ? '/api/ai-advisor/ask-tech' : '/api/ai-advisor/ask';
+      const endpoint = isTech ? '/api/v1/ai-advisor/ask-tech' : '/api/v1/ai-advisor/ask';
       const res = await fetch(endpoint, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + token },
