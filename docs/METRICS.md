@@ -13,8 +13,8 @@
 | **Lenguajes** | TypeScript, TSX, SQL, JSON, YAML, MD, Python, Bash |
 | **Commits** | +120 (rama `main`) |
 | **Tiempo de desarrollo** | ~4 semanas desde refactorización V2 |
-| **Tests** | 186 frontend + 504 backend = **690 tests** (+ 10 end-to-end + 7 de contrato de rutas) |
-| **Mutation testing** | 17,6% sobre código cubierto (línea base 2026-09-27, ver [docs/mutation-testing.md](mutation-testing.md)) |
+| **Tests** | 186 frontend + 557 backend = **743 tests** (+ 10 end-to-end + 7 de contrato de rutas) |
+| **Mutation testing** | `core-mes-production.service.ts`: 130 de 170 mutantes matados (76,5 %) tras el spec de integración del 2026-09-27. Las cifras de la primera pasada (17,6 %) salieron de un runner con un fallo silencioso: ver [docs/mutation-testing.md](mutation-testing.md) |
 
 ## Cobertura por módulo
 
@@ -53,11 +53,16 @@ Cifras de la última ejecución verificada (2026-09-23). Se actualizan ejecutand
 la suite, no contando `it(` con un `grep`.
 
 ### Backend (Vitest)
-- **504 tests en 48 archivos** (`npm run test` en `backend/`, con `DATABASE_URL`).
+- **557 tests en 49 archivos** (`npm run test` en `backend/`, con `DATABASE_URL`
+  apuntando a una base migrada; el CI la prepara antes de la suite).
 - Cubre auth, orders, OEE, quality, cost, workstations, manufacturing-models,
   users, tenant-capabilities, incidencias, materials, toolings, queue, y el
   contrato de roles de **toda** la API (`roles-contract.spec.ts`, el test que
   encontró los endpoints que devolvían 403 a todos los roles).
+- `core-mes-production.db.spec.ts` (35 tests) es el primer spec de integración:
+  ejecuta el SQL real contra PostgreSQL (deduplicación por huella, solapes,
+  aislamiento por tenant, acumulación de producción) en vez de mockear el pool,
+  que es lo que dejaba la lógica de dominio sin cubrir de verdad.
 
 ### Frontend (Vitest)
 - **186 tests en 25 archivos** (`npm run test` en `frontend/`): stores, hooks,
@@ -104,4 +109,4 @@ la suite, no contando `it(` con un `grep`.
 ---
 
 *Métricas de composición generadas el 2026-07-23. Las cifras de tests se
-verificaron por última vez el 2026-09-23 ejecutando las suites.*
+verificaron por última vez el 2026-09-27 ejecutando las suites (557 backend).*

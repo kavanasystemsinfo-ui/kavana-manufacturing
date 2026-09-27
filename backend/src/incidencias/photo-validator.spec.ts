@@ -76,3 +76,94 @@ describe('validatePhoto', () => {
     expect(validatePhoto(undefined).ok).toBe(false);
   });
 });
+
+// Estos casos NO son repeticiones de los de arriba: son los que Stryker
+// destapó. Los tests anteriores definen los límites con la MISMA constante que
+// el código (MAX_PHOTO_BYTES) y solo comprueban el mime del PNG, así que mutar
+// el valor de la constante, los mimes de JPEG/WebP/GIF o los textos del motivo
+// pasaba desapercibido. Aquí los valores van escritos a mano.
+const MAX_PHOTO_BYTES_EXPECTED = 10485760; // 10 * 1024 * 1024, en crudo
+
+function pngHeader(): Buffer {
+  return Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]);
+}
+
+function fillerWithHeader(header: Buffer, totalLength: number): Buffer {
+  const rest = Math.max(0, totalLength - header.length);
+  return Buffer.concat([header, Buffer.alloc(rest, 1)]);
+}
+
+describe('photo-validator — contrato exacto (valores literales)', () => {
+  it('el tamaño máximo son 10 MB exactos', () => {
+    expect(MAX_PHOTO_BYTES).toBe(MAX_PHOTO_BYTES_EXPECTED);
+  });
+
+  for (const [format, header] of [
+    ['png', pngHeader()],
+    ['jpeg', Buffer.from([0xff, 0xd8, 0xff, 0xe0])],
+    ['webp', Buffer.concat([Buffer.from('RIFF'), Buffer.alloc(4), Buffer.from('WEBP')])],
+    ['gif', Buffer.from('GIF87a')],
+  ] as Array<[string, Buffer]>) {
+    it(`devuelve el mime exacto de ${format}`, () => {
+      const result = validatePhoto(fillerWithHeader(header, 64));
+      expect(result).toEqual({ ok: true, mime: `image/${format}`, size: 64 });
+    });
+  }
+
+  it('devuelve el motivo exacto cuando no hay archivo', () => {
+    expect(validatePhoto(Buffer.alloc(0))).toEqual({ ok: false, reason: 'No se ha subido ningún archivo' });
+  });
+
+  it('devuelve el motivo exacto cuando no es una imagen', () => {
+    expect(validatePhoto(Buffer.from('texto plano'))).toEqual({
+      ok: false,
+      reason: 'Solo se permiten imágenes (PNG, JPEG, WebP o GIF)',
+    });
+  });
+
+  it('devuelve el motivo exacto al pasarse de tamaño', () => {
+    expect(validatePhoto(fillerWithHeader(pngHeader(), MAX_PHOTO_BYTES_EXPECTED + 1))).toEqual({
+      ok: false,
+      reason: 'La imagen supera el tamaño máximo de 10MB',
+    });
+  });
+
+  it('acepta justo el límite y rechaza un byte más', () => {
+    const atLimit = validatePhoto(fillerWithHeader(pngHeader(), MAX_PHOTO_BYTES_EXPECTED));
+    expect(atLimit).toEqual({ ok: true, mime: 'image/png', size: MAX_PHOTO_BYTES_EXPECTED });
+
+    expect(validatePhoto(fillerWithHeader(pngHeader(), MAX_PHOTO_BYTES_EXPECTED + 1)).ok).toBe(false);
+  });
+});
+
+describe('photo-validator — casos límite de detección', () => {
+  it('un PNG al que le falta el último byte de la firma no es PNG', () => {
+    expect(detectImageType(Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0b]))).toBeNull();
+  });
+
+  it('los buffers de menos de 6 bytes no se inspeccionan', () => {
+    expect(detectImageType(Buffer.from([0xff, 0xd8, 0xff, 0xe0, 0x00]))).toBeNull();
+  });
+
+  for (const [name, buffer] of [
+    ['JPEG sin el tercer byte de firma', Buffer.from([0xff, 0xd8, 0x00, 0x00, 0x00, 0x00])],
+    ['RIFF con WEBP en otra posición', Buffer.concat([Buffer.from('WEBP'), Buffer.from('RIFF'), Buffer.alloc(8)])],
+    ['RIFF truncado antes del marcador WEBP', Buffer.concat([Buffer.from('RIFF'), Buffer.alloc(4), Buffer.from('WEBQ')])],
+    ['GIF con versión inexistente', Buffer.from('GIF88a')],
+    ['texto que empieza por GIF pero no es GIF', Buffer.from('GIF89b')],
+  ] as Array<[string, Buffer]>) {
+    it(`${name} no se detecta como imagen`, () => {
+      expect(detectImageType(buffer)).toBeNull();
+    });
+  }
+
+  it('un WebP de 11 bytes no llega al mínimo de 12', () => {
+    const short = Buffer.concat([Buffer.from('RIFF'), Buffer.alloc(4), Buffer.from('WEB')]);
+    expect(short).toHaveLength(11);
+    expect(detectImageType(short)).toBeNull();
+  });
+
+  it('un GIF de 6 bytes exactos sí se detecta', () => {
+    expect(detectImageType(Buffer.from('GIF89a'))).toBe('gif');
+  });
+});
