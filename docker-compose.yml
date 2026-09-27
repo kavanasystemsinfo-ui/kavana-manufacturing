@@ -74,7 +74,7 @@ services:
       - '${BACKEND_PORT:-3001}:3001'
     environment:
       PORT: '3001'
-      DATABASE_URL: postgresql://kavana:***@db:5432/kavana_v3
+      DATABASE_URL: postgresql://kavana:kavana_v3_password@db:5432/kavana_v3
       REDIS_HOST: redis
       REDIS_PORT: '6379'
       REDIS_PASSWORD: ${REDIS_PASSWORD:?REDIS_PASSWORD required}
@@ -99,7 +99,7 @@ services:
     container_name: kavana-v3-worker
     command: ['node', 'dist/worker.js']
     environment:
-      DATABASE_URL: postgresql://kavana:***@db:5432/kavana_v3
+      DATABASE_URL: postgresql://kavana:kavana_v3_password@db:5432/kavana_v3
       REDIS_HOST: redis
       REDIS_PORT: '6379'
       REDIS_PASSWORD: ${REDIS_PASSWORD:?REDIS_PASSWORD required}
