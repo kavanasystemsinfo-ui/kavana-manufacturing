@@ -178,6 +178,23 @@ suite E2E, los permisos por método, y `npm install` funcionando
 **Métricas al cierre de la fase:** 409 tests de backend, 155 de frontend y 9
 end-to-end, con los seis jobs del CI en verde.
 
+## Fase 8: Migración api/v1 completada y apuntalamiento de calidad (Septiembre 2026)
+
+La migración al prefijo `api/v1` (middleware el 24, prefijo global el 25) dejó
+tres familias de rotura que el E2E destapó (seis runs rojas seguidas): un
+`vite.config.js` compilado que ganaba la resolución de Vite y rompía el proxy,
+doble prefijo en los paneles de admin y supervisor, y rutas legacy en el sync
+del operario (roto en producción desde el 25-09). Todo arreglado con una spec
+de contrato de rutas como barrera de regresión
+([commit 9d63d0f](https://github.com/kavanasystemsinfo-ui/kavana-manufacturing/commit/9d63d0f)),
+la alerta Dependabot de qs cerrada con override + audit fix (cd76d40), y el
+setup de Stryker ya en repo. La regla de la saga entera queda en
+[KNOWN_ISSUES.md](KNOWN_ISSUES.md), Ronda 5: un cambio de prefijo no termina
+cuando el destino funciona, sino cuando ninguna llamada conserva el esquema viejo.
+
+**Métricas al cierre de la fase:** 504 tests de backend, 186 de frontend, 10
+end-to-end, spec de contrato de 7 tests, lint y typecheck en 0 errores.
+
 ## Resumen de Evolución
 
 ```
@@ -208,4 +225,4 @@ Jul W4    │  F6: Deploy, live demo, documentación profesional
 
 *Cada fase documentada con su justificación. Cada decisión descartada, también.*
 
-*Última actualización: 2026-09-23*
+*Última actualización: 2026-09-27*
