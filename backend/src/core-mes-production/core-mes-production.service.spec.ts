@@ -36,6 +36,11 @@ describe('CoreMesProductionService - syncWorkBlock', () => {
         if (queryStr.includes('FOR UPDATE')) {
           return Promise.resolve({ rows: [{ id: 'order-1', status: 'in_progress', workstation_id: 'ws-1' }] });
         }
+        // El servicio comprueba que el operario existe y está activo antes de
+        // escribir el parte: el mock tiene que responder a esa consulta.
+        if (queryStr.includes('FROM users')) {
+          return Promise.resolve({ rows: [{ '?column?': 1 }] });
+        }
         return Promise.resolve({ rows: [] });
       })
     };
@@ -69,6 +74,9 @@ describe('CoreMesProductionService - syncWorkBlock', () => {
         }
         if (queryStr.includes('OVERLAPS')) {
           return Promise.resolve({ rows: [] });
+        }
+        if (queryStr.includes('FROM users')) {
+          return Promise.resolve({ rows: [{ '?column?': 1 }] });
         }
         if (queryStr.includes('INSERT INTO production_work_blocks')) {
           return Promise.resolve({ rowCount: 1, rows: [{ id: 'event-2' }] });

@@ -218,16 +218,20 @@ export const useHmiStore = create<HmiState>()((set, get) => ({
   },
 
   loadOperatorContext: async () => {
-    // Try to load context from URL params first (kiosk mode)
+    // La URL puede dejar preparados la orden y el puesto (un quiosco de planta
+    // que abre el HMI ya situado en su sitio), pero NO decide quién firma: la
+    // identidad del operario sale siempre de la sesión. Aceptar `?operator_id=`
+    // era poder atribuir producción a otra persona con un enlace.
     if (typeof window !== 'undefined') {
       const params = new URLSearchParams(window.location.search);
       const urlOrderId = params.get('order_id');
       const urlWorkstationId = params.get('workstation_id');
-      const urlOperatorId = params.get('operator_id');
-      
-      if (urlOrderId && urlWorkstationId && urlOperatorId) {
-        set({ orderId: urlOrderId, workstationId: urlWorkstationId, operatorId: urlOperatorId });
-        return;
+
+      if (urlOrderId || urlWorkstationId) {
+        set({
+          orderId: urlOrderId ?? get().orderId,
+          workstationId: urlWorkstationId ?? get().workstationId,
+        });
       }
     }
     

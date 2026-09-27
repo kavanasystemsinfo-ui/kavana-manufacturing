@@ -23,7 +23,7 @@ describe('Offline Sync Integrity — syncWorkBlock', () => {
 
   beforeEach(() => {
     vi.resetAllMocks();
-    vi.spyOn(tenantContext, 'getTenantContext').mockReturnValue({ tenantId: 1n, userId: 'user-1', role: 'operario' });
+    vi.spyOn(tenantContext, 'getTenantContext').mockReturnValue({ tenantId: 1n, userId: '550e8400-e29b-41d4-a716-446655440003', role: 'operario' });
     capabilitiesService = { getCapabilities: vi.fn() } as unknown as TenantCapabilitiesService;
     service = new CoreMesProductionService(capabilitiesService);
   });
@@ -128,6 +128,11 @@ describe('Offline Sync Integrity — syncWorkBlock', () => {
           if (sql.includes('FOR UPDATE')) {
             return Promise.resolve({ rows: [{ id: 'order-1', status: 'pending', workstation_id: 'ws-1' }] });
           }
+          // El servicio comprueba que el operario existe y está activo antes de
+          // escribir el parte: el mock tiene que responder a esa consulta.
+          if (sql.includes('FROM users')) {
+            return Promise.resolve({ rows: [{ '?column?': 1 }] });
+          }
           if (sql.includes('OVERLAPS')) {
             return Promise.resolve({ rows: [] });
           }
@@ -197,6 +202,9 @@ describe('Offline Sync Integrity — syncWorkBlock', () => {
           }
           if (sql.includes('FOR UPDATE')) {
             return Promise.resolve({ rows: [{ id: 'order-1', status: 'in_progress', workstation_id: 'ws-1' }] });
+          }
+          if (sql.includes('FROM users')) {
+            return Promise.resolve({ rows: [{ '?column?': 1 }] });
           }
           return Promise.resolve({ rows: [] });
         }),

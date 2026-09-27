@@ -220,9 +220,31 @@ no tenerla, porque produce una cifra con la que se decide. La medición se
 verifica contra el comportamiento (aplicar el mutante y ver el test caer), no
 contra la herramienta que lo cuenta.
 
-**Métricas al cierre de la fase:** 557 tests de backend (49 archivos), 186 de
-frontend, 10 end-to-end; 130/170 mutantes matados en el motor de producción;
-lint y typecheck en 0 errores.
+### La identidad de un parte no la decide quien lo envía
+
+La medición destapó un agujero que llevaba desde agosto abierto: `syncWorkBlock`
+firmaba el parte con el `operator_id` que llegara en el cuerpo de la petición. El
+tenant sí venía del token (no había fuga entre clientes), pero dentro de una misma
+planta cualquiera con rol `operario` podía registrar producción a nombre de otro,
+y de ese dato viven los dashboards de productividad y los tiempos del personal.
+El HMI arrastraba además un modo quiosco por URL (`?operator_id=`) que atribuía
+producción con un simple enlace.
+
+Cerrado con una regla explícita en el servicio (`resolveOperatorId`): un operario
+solo firma a su nombre, cualquier operario firmado tiene que existir y estar activo
+en la planta, y un supervisor o administrador sí puede registrar por otro para
+corregir partes olvidados. En el frontend, la URL sigue sirviendo para dejar
+preparados la orden y el puesto, pero la identidad sale siempre de la sesión.
+
+Lo que hace este arreglo distinto de un parche: se escribió antes el test que lo
+demostraba en rojo (el parte a nombre de otro **entraba**), se verificó contra la
+base de datos real y con el E2E del flujo completo, y los specs con el pool
+mockeado que se rompieron al añadir la consulta se actualizaron en vez de
+silenciarse.
+
+**Métricas al cierre de la fase:** 563 tests de backend (49 archivos), 188 de
+frontend, 10 end-to-end; 130/170 mutantes matados en el motor de producción; lint y
+typecheck en 0 errores.
 
 ## Resumen de Evolución
 

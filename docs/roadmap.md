@@ -37,12 +37,11 @@ fichero (130 de 170 mutantes matados, ver `docs/mutation-testing.md`).
 
 Lo que queda abierto, por orden de riesgo:
 
-1. **Kiosco: identidad del operario sin validar (P1).** `syncWorkBlock` usa el
-   `operator_id` que llega del cliente sin comprobar que sea el usuario del token
-   (`backend/src/core-mes-production/core-mes-production.service.ts:149`, `:256`,
-   `:294`). Dentro del mismo tenant, un operario puede registrar partes a nombre de
-   otro. Requiere decidir antes cómo se identifica el operario en una tablet
-   compartida (ver `docs/KNOWN_ISSUES.md`, ronda 6).
+1. ~~**Kiosco: identidad del operario sin validar (P1).**~~ **Cerrado
+   2026-09-27**: un `operario` solo firma sus propios partes, el operario tiene que
+   existir y estar activo en la planta, y la URL ya no decide la identidad
+   (`resolveOperatorId` en el motor de producción, ver `docs/KNOWN_ISSUES.md`,
+   ronda 6). Un supervisor o administrador sí puede registrar por otro.
 2. **RLS en la tabla `tenants` (P1).** Es la única tabla del esquema sin política.
 3. **Rate limits en memoria (P2).** Los de fotos (20/10 min) y asistente IA
    (25/día) se reinician con cada instancia: válidos con una réplica, no con dos.

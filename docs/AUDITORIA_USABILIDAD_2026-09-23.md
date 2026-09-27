@@ -123,13 +123,13 @@ Verificado contra la API real, con los tres roles (admin / supervisor / operario
   `backend/scripts/comprobar-mutantes.mjs`. Ver `docs/mutation-testing.md`.
 - **Semáforo de puestos en vivo**: ya estaba implementado (refresco cada 10 s);
   figuraba aquí como pendiente por error.
+- **Identidad del operario en los partes**: cerrado el 2026-09-27. Un `operario`
+  solo firma sus propios partes, el operario tiene que existir y estar activo en la
+  planta, y la URL ya no decide quién firma. Detalle en `docs/KNOWN_ISSUES.md`
+  (ronda 6, R6-1).
 
 **Abierto de verdad**
 
-- **Identidad del operario en los partes (P1, hallazgo nuevo)**: `syncWorkBlock`
-  acepta el `operator_id` del cuerpo sin comprobar que sea el usuario del token.
-  Antes de arreglarlo hay que decidir cómo se identifica el operario en una tablet
-  compartida de planta. Detalle en `docs/KNOWN_ISSUES.md` (ronda 6, R6-1).
 - **RLS en la tabla `tenants` (P1)**: la única sin política.
 - **Rate limits en memoria (P2)**: válidos con una instancia, no con varias.
 - **PWA/Service Worker (P2)**: recargar sin red mata el HMI.
