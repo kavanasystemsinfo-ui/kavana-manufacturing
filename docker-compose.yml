@@ -74,6 +74,12 @@ services:
       - '${BACKEND_PORT:-3001}:3001'
     environment:
       PORT: '3001'
+      # Orígenes permitidos por CORS. Si falta, main.ts cae al valor por defecto
+      # (http://localhost:5173) y el navegador que entra por la demo (la IP del
+      # VPS) recibe un 500 "Origen no permitido por CORS" al hacer login: el
+      # frontend lo pinta como "Credenciales inválidas" porque el error no trae
+      # campo message. curl no manda Origin y por eso no lo reproduce.
+      FRONTEND_ORIGIN: ${FRONTEND_ORIGIN:-http://167.233.97.71:8080,http://localhost:8080,http://127.0.0.1:8080}
       DATABASE_URL: postgresql://kavana:kavana_v3_password@db:5432/kavana_v3
       REDIS_HOST: redis
       REDIS_PORT: '6379'
