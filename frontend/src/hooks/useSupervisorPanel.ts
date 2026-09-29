@@ -3,6 +3,8 @@ import { useSupervisorStore } from '../store/supervisor-store.js';
 import { listIncidencias, updateIncidencia, deleteIncidencia } from '../api/admin-entities.js';
 import type { Incidencia } from '../api/admin-entities.js';
 import { incidenciaMoveNotice } from '../utils/incidencia-notice.js';
+import { DEMO_DELETE_NOTICE, isDemoReadOnlyError } from '../utils/demo-readonly.js';
+import type { OrderFilters } from '../utils/order-filters.js';
 
 export type SupervisorTab = 'orders' | 'workstations' | 'incidencias';
 
@@ -15,6 +17,14 @@ export interface SupervisorPanelState {
   activity: ReturnType<typeof useSupervisorStore.getState>['activity'];
   isLoading: boolean;
   error: string | null;
+  /** Filtros de órdenes aplicados en servidor (compartidos por los dos temas). */
+  filters: OrderFilters;
+  setFilters: (patch: Partial<OrderFilters>) => void;
+  hasMore: boolean;
+  loadMoreOrders: () => Promise<void>;
+  /** Aviso neutro del almacén: movimiento hecho o movimiento que la demo no guarda. */
+  orderNotice: string | null;
+  clearOrderNotice: () => void;
   // Estado local
   showForm: boolean;
   setShowForm: (v: boolean) => void;
@@ -77,6 +87,14 @@ export function useSupervisorPanel(): SupervisorPanelState {
     const timer = setTimeout(() => setNotice(null), 4000);
     return () => clearTimeout(timer);
   }, [notice]);
+
+  // El aviso de órdenes también se borra solo: confirma un movimiento, no es un
+  // estado que el supervisor tenga que cerrar a mano.
+  useEffect(() => {
+    if (!store.notice) return;
+    const timer = setTimeout(() => store.clearNotice(), 8000);
+    return () => clearTimeout(timer);
+  }, [store.notice, store.clearNotice]);
 
   useEffect(() => {
     if (activeTab !== 'incidencias') return;
@@ -173,8 +191,16 @@ export function useSupervisorPanel(): SupervisorPanelState {
     try {
       await deleteIncidencia(id);
       await reloadIncidencias();
-    } catch {
-      setIncidenciasError('No se pudo eliminar la incidencia');
+    } catch (err) {
+      const message = err instanceof Error ? err.message : '';
+      // En la demo el borrado del histórico está blindado: no es un fallo, es
+      // una regla del producto, así que se cuenta en neutro (mismo trato que el
+      // borrado de órdenes).
+      if (isDemoReadOnlyError(message)) {
+        setNotice(DEMO_DELETE_NOTICE);
+      } else {
+        setIncidenciasError('No se pudo eliminar la incidencia');
+      }
     }
   };
 
@@ -186,6 +212,12 @@ export function useSupervisorPanel(): SupervisorPanelState {
     activity: store.activity,
     isLoading: store.isLoading,
     error: store.error,
+    filters: store.filters,
+    setFilters: store.setFilters,
+    hasMore: store.hasMore,
+    loadMoreOrders: store.loadMoreOrders,
+    orderNotice: store.notice,
+    clearOrderNotice: store.clearNotice,
     showForm, setShowForm,
     selectedModel, setSelectedModel,
     selectedWorkstation, setSelectedWorkstation,

@@ -18,6 +18,9 @@ const SUPERVISOR = { usuario: '047', password: 'kavana' };
 const MODELO = 'Modelo E2E';
 const PUESTO = 'Puesto E2E';
 const CANTIDAD = '25';
+// El código de orden es único por planta (índice sobre tenant_id + upper(code)),
+// así que no puede ser un literal fijo en una base que acumula corridas.
+const CODIGO = `E2E-${Date.now()}`;
 
 async function login(page: Page, usuario: string, password: string) {
   await page.goto('/');
@@ -49,14 +52,19 @@ test.describe('Supervisor: alta de orden desde la interfaz', () => {
     await desplegableModelo.selectOption({ label: `${MODELO} (piezas/h)` });
     await desplegablePuesto.selectOption({ label: PUESTO });
     await page.getByPlaceholder('Ej: 100').fill(CANTIDAD);
+    await page.getByPlaceholder('Ej: ORD-2026-001').fill(CODIGO);
 
     await page.getByRole('button', { name: 'Crear', exact: true }).click();
 
     // El formulario se cierra solo cuando el alta ha ido bien.
     await expect(page.getByRole('heading', { name: 'Nueva Orden de Producción' })).toBeHidden();
-    await expect(page.getByText(new RegExp(`${PUESTO} · Cant: ${CANTIDAD}`)).first()).toBeVisible({
-      timeout: 15000,
-    });
-    await expect(page.getByRole('heading', { name: MODELO }).first()).toBeVisible();
+
+    // La orden aparece en la tabla con su N.º de orden, el modelo, el puesto y la
+    // cantidad en la MISMA fila: es el dato que identifica la orden en el panel.
+    const fila = page.getByRole('row').filter({ hasText: CODIGO });
+    await expect(fila).toBeVisible({ timeout: 15000 });
+    await expect(fila).toContainText(MODELO);
+    await expect(fila).toContainText(PUESTO);
+    await expect(fila).toContainText(CANTIDAD);
   });
 });

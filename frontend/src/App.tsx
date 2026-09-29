@@ -144,7 +144,7 @@ export function AppRoutes() {
         }
         <button
           onClick={handleLogout}
-          className="fixed bottom-4 left-4 px-3 py-1.5 bg-gray-600 hover:bg-gray-500 text-white text-xs rounded-lg z-50"
+          className="fixed bottom-4 left-4 min-h-[44px] px-3 py-1.5 bg-gray-600 hover:bg-gray-500 text-white text-xs rounded-lg z-50"
         >
           Salir ({auth.tenantName})
         </button>
@@ -167,7 +167,7 @@ export function AppRoutes() {
         }
         <button
           onClick={handleLogout}
-          className="fixed bottom-4 left-4 px-3 py-1.5 bg-gray-600 hover:bg-gray-500 text-white text-xs rounded-lg z-50"
+          className="fixed bottom-4 left-4 min-h-[44px] px-3 py-1.5 bg-gray-600 hover:bg-gray-500 text-white text-xs rounded-lg z-50"
         >
           Salir ({auth.tenantName})
         </button>

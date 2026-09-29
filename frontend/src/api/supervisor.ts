@@ -1,4 +1,6 @@
 import { callApiWithTimeout } from './client.js';
+import { buildOrderQuery } from '../utils/order-filters.js';
+import type { OrderFilters } from '../utils/order-filters.js';
 
 const API_BASE = '/api/v1';
 
@@ -39,6 +41,8 @@ export interface ManufacturingModel {
 
 export interface Order {
   id: string;
+  /** N.º de orden visible (el que teclea el supervisor al crearla). */
+  code: string | null;
   model_id: string;
   workstation_id: string;
   quantity: number;
@@ -52,6 +56,13 @@ export interface Order {
   created_at: string;
   updated_at: string;
 }
+
+/**
+ * Los filtros y la query viven en `utils/order-filters.ts`; aquí solo se
+ * reexportan para que las pantallas sigan importando de la capa de API.
+ */
+export type { OrderFilters } from '../utils/order-filters.js';
+export { DEFAULT_ORDER_FILTERS, ORDENES_POR_PAGINA } from '../utils/order-filters.js';
 
 export interface ActivityBlock {
   id: string;
@@ -101,8 +112,9 @@ export async function createManufacturingModel(data: { name: string; unit_of_mea
 }
 
 // Orders
-export async function fetchOrders(): Promise<Order[]> {
-  return callApiWithTimeout<Order[]>(`${API_BASE}/orders`);
+export async function fetchOrders(filters?: Partial<OrderFilters> & { offset?: number }): Promise<Order[]> {
+  const query = buildOrderQuery(filters);
+  return callApiWithTimeout<Order[]>(`${API_BASE}/orders${query}`);
 }
 
 export async function createOrder(data: { model_id: string; workstation_id: string; quantity: number; custom_fields?: Record<string, any> }): Promise<Order> {

@@ -13,6 +13,17 @@ import {
   type Workstation,
   type ActivityBlock,
 } from '../api/supervisor.js';
+import {
+  DEFAULT_ORDER_FILTERS,
+  type OrderFilters,
+} from '../utils/order-filters.js';
+import {
+  DEMO_DELETE_NOTICE,
+  DEMO_MOVE_NOTICE,
+  ORDER_CREATED_NOTICE,
+  isDemoReadOnlyError,
+  orderMoveNotice,
+} from '../utils/demo-readonly.js';
 
 interface SupervisorState {
   orders: Order[];
@@ -23,8 +34,17 @@ interface SupervisorState {
   isLoading: boolean;
   error: string | null;
   isPolling: boolean;
+  /** Filtros aplicados en el servidor: son los mismos para los dos temas. */
+  filters: OrderFilters;
+  /** Quedan órdenes por traer con los filtros actuales. */
+  hasMore: boolean;
+  /** Aviso neutro (movimiento hecho, o movimiento que la demo no guarda). */
+  notice: string | null;
 
   loadOrders: () => Promise<void>;
+  loadMoreOrders: () => Promise<void>;
+  setFilters: (patch: Partial<OrderFilters>) => void;
+  clearNotice: () => void;
   loadModels: () => Promise<void>;
   loadWorkstations: () => Promise<void>;
   loadWorkstationStatus: () => Promise<void>;
@@ -47,15 +67,39 @@ export const useSupervisorStore = create<SupervisorState>((set, get) => ({
   isLoading: false,
   error: null,
   isPolling: false,
+  filters: { ...DEFAULT_ORDER_FILTERS },
+  hasMore: false,
+  notice: null,
 
   loadOrders: async () => {
     try {
-      const orders = await fetchOrders();
-      set({ orders });
+      const filters = get().filters;
+      const orders = await fetchOrders(filters);
+      set({ orders, hasMore: orders.length >= filters.limit });
     } catch (err) {
       set({ error: err instanceof Error ? err.message : 'Error loading orders' });
     }
   },
+
+  loadMoreOrders: async () => {
+    const { filters, orders } = get();
+    try {
+      const siguiente = await fetchOrders({ ...filters, offset: orders.length });
+      set({
+        orders: [...orders, ...siguiente],
+        hasMore: siguiente.length >= filters.limit,
+      });
+    } catch (err) {
+      set({ error: err instanceof Error ? err.message : 'Error loading orders' });
+    }
+  },
+
+  setFilters: (patch) => {
+    set({ filters: { ...get().filters, ...patch } });
+    void get().loadOrders();
+  },
+
+  clearNotice: () => set({ notice: null }),
 
   loadModels: async () => {
     try {
@@ -94,35 +138,56 @@ export const useSupervisorStore = create<SupervisorState>((set, get) => ({
   },
 
   addOrder: async (data) => {
-    set({ isLoading: true, error: null });
+    set({ isLoading: true, error: null, notice: null });
     try {
       await createOrder(data);
-      const orders = await fetchOrders();
-      set({ orders, isLoading: false });
+      const orders = await fetchOrders(get().filters);
+      set({ orders, isLoading: false, notice: ORDER_CREATED_NOTICE });
     } catch (err) {
       set({ error: err instanceof Error ? err.message : 'Error creating order', isLoading: false });
     }
   },
 
+  /**
+   * Cambio de estado. La tarjeta se recoloca al soltarla (movimiento optimista)
+   * en vez de esperar a la red: en una pantalla de planta el gesto tiene que
+   * responder al instante. Si el backend lo rechaza por el blindaje de la demo,
+   * no es un error del usuario: se avisa en neutro y se recarga el estado real.
+   */
   changeOrderStatus: async (orderId, status) => {
-    set({ isLoading: true, error: null });
+    const previas = get().orders;
+    const movida = previas.find((o) => o.id === orderId);
+    set({
+      error: null,
+      notice: null,
+      orders: previas.map((o) =>
+        o.id === orderId ? { ...o, status: status as Order['status'] } : o,
+      ),
+    });
     try {
       await updateOrder(orderId, { status });
-      const orders = await fetchOrders();
-      set({ orders, isLoading: false });
+      const orders = await fetchOrders(get().filters);
+      set({ orders, notice: orderMoveNotice(movida?.code, status) });
     } catch (err) {
-      set({ error: err instanceof Error ? err.message : 'Error updating order', isLoading: false });
+      const message = err instanceof Error ? err.message : 'Error updating order';
+      if (isDemoReadOnlyError(message)) {
+        // El gesto es válido; lo que no persiste es el cambio.
+        set({ orders: previas, notice: DEMO_MOVE_NOTICE });
+      } else {
+        set({ orders: previas, error: message });
+      }
     }
   },
 
   removeOrder: async (orderId) => {
-    set({ isLoading: true, error: null });
+    set({ error: null, notice: null });
     try {
       await deleteOrder(orderId);
-      const orders = await fetchOrders();
-      set({ orders, isLoading: false });
+      const orders = await fetchOrders(get().filters);
+      set({ orders });
     } catch (err) {
-      set({ error: err instanceof Error ? err.message : 'Error deleting order', isLoading: false });
+      const message = err instanceof Error ? err.message : 'Error deleting order';
+      set(isDemoReadOnlyError(message) ? { notice: DEMO_DELETE_NOTICE } : { error: message });
     }
   },
 

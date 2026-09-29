@@ -39,7 +39,12 @@ server {
     }
 
     location /api/ {
-        proxy_pass http://backend:3001;
+        # El hostname se resuelve en cada petición: nginx cachea la IP al cargar la
+        # config, y al recrear el backend Docker le da otra y la vieja acaba en la
+        # base de datos (502 «Connection refused» hasta reiniciar este contenedor).
+        resolver 127.0.0.11 valid=10s ipv6=off;
+        set $backend http://backend:3001;
+        proxy_pass $backend;
         proxy_http_version 1.1;
         proxy_set_header Upgrade $http_upgrade;
         proxy_set_header Connection 'upgrade';

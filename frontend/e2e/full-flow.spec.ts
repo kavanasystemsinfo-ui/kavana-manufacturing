@@ -81,10 +81,13 @@ test.describe('Flujo completo: operario produce y supervisor lo ve', () => {
     await expect(page.getByRole('heading', { name: 'Panel de Supervisión' })).toBeVisible();
 
     // En una base de pruebas puede haber más de una orden en el mismo puesto:
-    // lo que identifica a la de este flujo es su progreso y sus defectos.
-    await expect(page.getByText(new RegExp(`${PRODUCIDAS} / 100 \\(60%\\)`))).toBeVisible({ timeout: 15000 });
-    await expect(page.getByText(new RegExp(`Defectos: ${DEFECTOS}`))).toBeVisible();
-    await expect(page.getByText(/Puesto: Puesto E2E/).first()).toBeVisible();
-    await expect(page.getByText('En Progreso').first()).toBeVisible();
+    // la de este flujo se ancla por su N.º de orden, que es único, y se
+    // comprueban dentro de su fila el puesto, el progreso y los defectos.
+    const fila = page.getByRole('row').filter({ hasText: 'E2E-ORD-1' });
+    await expect(fila).toBeVisible({ timeout: 15000 });
+    await expect(fila).toContainText(PUESTO_E2E);
+    await expect(fila).toContainText(`${PRODUCIDAS} / 100 (60%)`);
+    await expect(fila).toContainText(`Defectos: ${DEFECTOS}`);
+    await expect(fila).toContainText('En Progreso');
   });
 });

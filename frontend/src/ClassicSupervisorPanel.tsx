@@ -1,28 +1,17 @@
+import { useState } from 'react';
 import { useSupervisorPanel } from './hooks/useSupervisorPanel.js';
 import { ThemeToggle } from './components/ThemeToggle.js';
 import { ActivityFeed } from './components/ActivityFeed.js';
 import { WorkstationBoard } from './components/WorkstationBoard.js';
+import { KanbanBoard } from './components/KanbanBoard.js';
 import { IncidenciasKanban } from './components/incidencias/IncidenciasKanban.js';
 import type { Incidencia } from './api/admin-entities.js';
 import { HelpModal } from './components/HelpModal.js';
 import { SUPERVISOR_HELP } from './help-content.js';
-import { formatNumber } from './utils/formatNumber.js';
-
-const statusColors: Record<string, string> = {
-  pending: 'bg-amber-100 text-amber-800 border-amber-300',
-  in_progress: 'bg-orange-100 text-orange-800 border-orange-300',
-  completed: 'bg-green-100 text-green-800 border-green-300',
-  cancelled: 'bg-slate-100 text-slate-600 border-slate-300',
-};
-
-const statusLabels: Record<string, string> = {
-  pending: 'Pendiente',
-  in_progress: 'En Progreso',
-  completed: 'Completada',
-  cancelled: 'Cancelada',
-};
-
-type Tab = 'orders' | 'workstations';
+import { Loading } from './components/ui/Loading.js';
+import { OrderFiltersBar, type OrdersView } from './components/supervisor/OrderFiltersBar.js';
+import { OrdersTable } from './components/supervisor/OrdersTable.js';
+import { BUTTON_SECONDARY, NOTICE_INFO, themed } from './utils/ui-tokens.js';
 
 /**
  * El tablero de incidencias con su carga y su error, como lo pintaba la lista que
@@ -47,6 +36,15 @@ function IncidenciasTablero({ incidencias, loading, error, onStatusChange, onDel
   return <IncidenciasKanban incidencias={incidencias} onStatusChange={onStatusChange} onDelete={onDelete} />;
 }
 
+/**
+ * Panel de supervisión, tema clásico.
+ *
+ * Comparte con el tema Kavana la barra de filtros, la tabla y el tablero: los dos
+ * temas cambian el color y el reparto de espacio, no lo que se puede hacer. Antes
+ * el clásico solo tenía botones por tarjeta y el moderno solo arrastre, así que
+ * cambiar de tema obligaba a reaprender la misma tarea y a buscar los datos en
+ * sitios distintos.
+ */
 export function ClassicSupervisorPanel() {
   const {
     orders, models, workstations, workstationStatus, activity,
@@ -55,27 +53,31 @@ export function ClassicSupervisorPanel() {
     orderNumber, setOrderNumber, measurement, setMeasurement, material,
     setMaterial, notes, setNotes, activeTab, setActiveTab, expandedOrder,
     setExpandedOrder, incidencias, incidenciasLoading, incidenciasError,
+    filters, setFilters, hasMore, loadMoreOrders, orderNotice, incidenciaNotice,
     handleSubmit, changeOrderStatus, removeOrder, changeIncidenciaStatus, removeIncidencia,
   } = useSupervisorPanel();
+
+  // El clásico abre en lista: es su forma de siempre, ahora con columnas.
+  const [view, setView] = useState<OrdersView>('lista');
 
   return (
     <div className="min-h-screen bg-slate-50 text-slate-900">
       <header className="bg-kavana-dark text-white shadow-md">
         <div className="px-4 py-3 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-between">
+          <div className="flex flex-wrap items-center justify-between gap-3">
             <div className="flex items-center gap-3">
               <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-white text-kavana-dark font-bold text-sm">KV</div>
               <div>
                 <p className="text-xs font-bold uppercase tracking-wider text-kavana-orange-light">Kavana Manufacturing HMI</p>
                 <h1 className="text-lg font-semibold text-white">Panel de Supervisión</h1>
-                <p className="text-xs text-gray-400">{new Date().toLocaleDateString('es-ES', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}</p>
+                <p className="text-xs text-gray-300">{new Date().toLocaleDateString('es-ES', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}</p>
               </div>
             </div>
-            <div className="flex items-center gap-2">
+            <div className="flex flex-wrap items-center gap-2">
               <HelpModal {...SUPERVISOR_HELP} theme="classic" />
               <button
                 onClick={() => setShowForm(!showForm)}
-                className="inline-flex items-center gap-2 rounded-md bg-kavana-orange px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-kavana-orange-light"
+                className="inline-flex min-h-[44px] items-center gap-2 rounded-md bg-kavana-orange px-4 py-2 text-sm font-medium text-white shadow-sm transition hover:bg-kavana-orange-light active:scale-95"
               >
                 {showForm ? 'Cancelar' : '+ Nueva Orden'}
               </button>
@@ -85,9 +87,25 @@ export function ClassicSupervisorPanel() {
         </div>
       </header>
 
-      <main className="mx-auto w-[90%] px-4 py-6 sm:px-6 lg:px-8">
+      <main className="mx-auto w-[94%] max-w-[1700px] px-4 py-6 sm:px-6 lg:px-8">
         {error && (
-          <div className="mb-4 rounded-md border border-red-200 bg-red-50 p-3 text-sm text-red-700">{error}</div>
+          <div className="mb-4 rounded-md border border-red-200 bg-red-50 p-3 text-sm text-red-700" role="alert">
+            {error}
+          </div>
+        )}
+
+        {orderNotice && (
+          <div role="status" aria-live="polite" className={`mb-4 ${themed(NOTICE_INFO, true)}`}>
+            {orderNotice}
+          </div>
+        )}
+
+        {/* El aviso de incidencias existía solo en el tema Kavana: mover o
+            intentar borrar una incidencia desde el clásico no contaba nada. */}
+        {incidenciaNotice && (
+          <div role="status" aria-live="polite" className={`mb-4 ${themed(NOTICE_INFO, true)}`}>
+            {incidenciaNotice}
+          </div>
         )}
 
         {showForm && (
@@ -99,27 +117,27 @@ export function ClassicSupervisorPanel() {
               <div className="grid grid-cols-1 gap-4 sm:grid-cols-4">
                 <div>
                   <label className="block text-sm font-medium text-slate-700">Modelo</label>
-                  <select value={selectedModel} onChange={(e) => setSelectedModel(e.target.value)} className="mt-1 block w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm shadow-sm focus:border-kavana-orange focus:outline-none focus:ring-1 focus:ring-kavana-orange" required>
+                  <select value={selectedModel} onChange={(e) => setSelectedModel(e.target.value)} className="mt-1 block min-h-[44px] w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm shadow-sm focus:border-kavana-orange focus:outline-none focus:ring-1 focus:ring-kavana-orange" required>
                     <option value="">Seleccionar...</option>
                     {models.map((m) => (<option key={m.id} value={m.id}>{m.name} ({m.unit_of_measure})</option>))}
                   </select>
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-slate-700">Puesto</label>
-                  <select value={selectedWorkstation} onChange={(e) => setSelectedWorkstation(e.target.value)} className="mt-1 block w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm shadow-sm focus:border-kavana-orange focus:outline-none focus:ring-1 focus:ring-kavana-orange" required>
+                  <select value={selectedWorkstation} onChange={(e) => setSelectedWorkstation(e.target.value)} className="mt-1 block min-h-[44px] w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm shadow-sm focus:border-kavana-orange focus:outline-none focus:ring-1 focus:ring-kavana-orange" required>
                     <option value="">Seleccionar...</option>
                     {workstations.filter(w => w.status === 'active').map((w) => (<option key={w.id} value={w.id}>{w.name}</option>))}
                   </select>
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-slate-700">Cantidad</label>
-                  <input type="number" value={quantity} onChange={(e) => setQuantity(e.target.value)} min="1" className="mt-1 block w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm shadow-sm focus:border-kavana-orange focus:outline-none focus:ring-1 focus:ring-kavana-orange" placeholder="Ej: 100" required />
+                  <input type="number" value={quantity} onChange={(e) => setQuantity(e.target.value)} min="1" className="mt-1 block min-h-[44px] w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm shadow-sm focus:border-kavana-orange focus:outline-none focus:ring-1 focus:ring-kavana-orange" placeholder="Ej: 100" required />
                 </div>
                 <div className="flex items-end gap-2">
-                  <button type="submit" disabled={isLoading} className="inline-flex items-center gap-2 rounded-md bg-green-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-green-700 disabled:opacity-50">
+                  <button type="submit" disabled={isLoading} className="inline-flex min-h-[44px] items-center gap-2 rounded-md bg-green-600 px-4 py-2 text-sm font-medium text-white shadow-sm transition hover:bg-green-700 active:scale-95 disabled:opacity-50">
                     {isLoading ? 'Creando...' : 'Crear'}
                   </button>
-                  <button type="button" onClick={() => setShowForm(false)} className="inline-flex items-center gap-2 rounded-md border border-slate-300 bg-white px-4 py-2 text-sm font-medium text-slate-700 shadow-sm hover:bg-slate-50">
+                  <button type="button" onClick={() => setShowForm(false)} className={themed(BUTTON_SECONDARY, true)}>
                     Cancelar
                   </button>
                 </div>
@@ -127,19 +145,19 @@ export function ClassicSupervisorPanel() {
               <div className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-4">
                 <div>
                   <label className="block text-sm font-medium text-slate-700">N. de Orden</label>
-                  <input type="text" value={orderNumber} onChange={(e) => setOrderNumber(e.target.value)} className="mt-1 block w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm shadow-sm focus:border-kavana-orange focus:outline-none focus:ring-1 focus:ring-kavana-orange" placeholder="Ej: ORD-2026-001" />
+                  <input type="text" value={orderNumber} onChange={(e) => setOrderNumber(e.target.value)} className="mt-1 block min-h-[44px] w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm shadow-sm focus:border-kavana-orange focus:outline-none focus:ring-1 focus:ring-kavana-orange" placeholder="Ej: ORD-2026-001" />
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-slate-700">Medida</label>
-                  <input type="text" value={measurement} onChange={(e) => setMeasurement(e.target.value)} className="mt-1 block w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm shadow-sm focus:border-kavana-orange focus:outline-none focus:ring-1 focus:ring-kavana-orange" placeholder="Ej: 20x20mm" />
+                  <input type="text" value={measurement} onChange={(e) => setMeasurement(e.target.value)} className="mt-1 block min-h-[44px] w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm shadow-sm focus:border-kavana-orange focus:outline-none focus:ring-1 focus:ring-kavana-orange" placeholder="Ej: 20x20mm" />
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-slate-700">Material</label>
-                  <input type="text" value={material} onChange={(e) => setMaterial(e.target.value)} className="mt-1 block w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm shadow-sm focus:border-kavana-orange focus:outline-none focus:ring-1 focus:ring-kavana-orange" placeholder="Ej: Aluminio 6063" />
+                  <input type="text" value={material} onChange={(e) => setMaterial(e.target.value)} className="mt-1 block min-h-[44px] w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm shadow-sm focus:border-kavana-orange focus:outline-none focus:ring-1 focus:ring-kavana-orange" placeholder="Ej: Aluminio 6063" />
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-slate-700">Notas</label>
-                  <input type="text" value={notes} onChange={(e) => setNotes(e.target.value)} className="mt-1 block w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm shadow-sm focus:border-kavana-orange focus:outline-none focus:ring-1 focus:ring-kavana-orange" placeholder="Notas..." />
+                  <input type="text" value={notes} onChange={(e) => setNotes(e.target.value)} className="mt-1 block min-h-[44px] w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm shadow-sm focus:border-kavana-orange focus:outline-none focus:ring-1 focus:ring-kavana-orange" placeholder="Notas..." />
                 </div>
               </div>
             </form>
@@ -147,90 +165,68 @@ export function ClassicSupervisorPanel() {
         )}
 
         {/* Tabs */}
-        <div className="mb-4 flex gap-1 rounded-lg border border-slate-200 bg-white p-1 shadow-sm">
-          <button onClick={() => setActiveTab('orders')} className={`flex-1 rounded-md px-4 py-2 text-sm font-medium transition ${activeTab === 'orders' ? 'bg-kavana-orange text-white' : 'text-slate-600 hover:bg-slate-100'}`}>
-            Órdenes ({orders.length})
+        <div className="mb-4 flex gap-1 overflow-x-auto rounded-lg border border-slate-200 bg-white p-1 shadow-sm">
+          <button onClick={() => setActiveTab('orders')} className={`min-h-[44px] flex-1 whitespace-nowrap rounded-md px-4 py-2 text-sm font-medium transition ${activeTab === 'orders' ? 'bg-kavana-orange text-white' : 'text-slate-600 hover:bg-slate-100'}`}>
+            Órdenes
           </button>
-          <button onClick={() => setActiveTab('workstations')} className={`flex-1 rounded-md px-4 py-2 text-sm font-medium transition ${activeTab === 'workstations' ? 'bg-kavana-orange text-white' : 'text-slate-600 hover:bg-slate-100'}`}>
+          <button onClick={() => setActiveTab('workstations')} className={`min-h-[44px] flex-1 whitespace-nowrap rounded-md px-4 py-2 text-sm font-medium transition ${activeTab === 'workstations' ? 'bg-kavana-orange text-white' : 'text-slate-600 hover:bg-slate-100'}`}>
             Puestos ({workstationStatus.length})
           </button>
-          <button onClick={() => setActiveTab('incidencias')} className={`flex-1 rounded-md px-4 py-2 text-sm font-medium transition ${activeTab === 'incidencias' ? 'bg-kavana-orange text-white' : 'text-slate-600 hover:bg-slate-100'}`}>
+          <button onClick={() => setActiveTab('incidencias')} className={`min-h-[44px] flex-1 whitespace-nowrap rounded-md px-4 py-2 text-sm font-medium transition ${activeTab === 'incidencias' ? 'bg-kavana-orange text-white' : 'text-slate-600 hover:bg-slate-100'}`}>
             🚨 Incidencias ({incidencias.length})
           </button>
         </div>
 
         {activeTab === 'orders' ? (
-          isLoading && orders.length === 0 ? (
-            <div className="rounded-lg border border-slate-200 bg-white p-8 text-center text-slate-500 shadow-sm">Cargando...</div>
-          ) : orders.length === 0 ? (
-            <div className="rounded-lg border border-slate-200 bg-white p-8 text-center text-slate-500 shadow-sm">No hay órdenes</div>
-          ) : (
-            <div className="space-y-3">
-              {orders.map((order) => {
-                const pct = order.quantity > 0 ? Math.min(100, Math.round((Number(order.produced_quantity) / order.quantity) * 100)) : 0;
-                const isExpanded = expandedOrder === order.id;
-                return (
-                  <div key={order.id} className="rounded-lg border border-slate-200 bg-white shadow-sm overflow-hidden">
-                    <div className="p-4">
-                      <div className="flex items-start justify-between gap-4">
-                        <div className="flex-1 min-w-0">
-                          <div className="flex items-center gap-2 flex-wrap">
-                            <h3 className="font-semibold text-slate-900">{order.model_name}</h3>
-                            <span className={`inline-flex items-center rounded-full border px-2 py-0.5 text-xs font-medium ${statusColors[order.status] ?? ''}`}>
-                              {statusLabels[order.status] ?? order.status}
-                            </span>
-                          </div>
-                          <p className="mt-1 text-sm text-slate-500">
-                            Puesto: {order.workstation_name} · Cant: {order.quantity}
-                            {order.custom_fields?.numero_orden ? ` · N.Orden: ${order.custom_fields.numero_orden}` : ''}
-                          </p>
+          <>
+            <OrderFiltersBar
+              isClassic
+              filters={filters}
+              onChange={setFilters}
+              workstations={workstations}
+              view={view}
+              onViewChange={setView}
+              total={orders.length}
+              hasMore={hasMore}
+              onLoadMore={() => void loadMoreOrders()}
+            />
 
-                          {/* Progress bar */}
-                          <div className="mt-2">
-                            <div className="flex items-center justify-between text-xs text-slate-500 mb-1">
-                              <span>Progreso</span>
-                              <span>{formatNumber(order.produced_quantity)} / {formatNumber(order.quantity)} ({pct}%)</span>
-                            </div>
-                            <div className="h-2 rounded-full bg-slate-100 overflow-hidden">
-                              <div
-                                className={`h-full rounded-full transition-all duration-500 ${
-                                  pct >= 100 ? 'bg-green-500' : pct > 0 ? 'bg-kavana-orange' : 'bg-slate-200'
-                                }`}
-                                style={{ width: `${pct}%` }}
-                              />
-                            </div>
-                            {Number(order.defect_quantity) > 0 && (
-                              <p className="mt-1 text-xs text-red-600">Defectos: {formatNumber(order.defect_quantity)}</p>
-                            )}
-                          </div>
-                        </div>
+            {isLoading && orders.length === 0 ? (
+              <Loading label="Cargando órdenes..." isClassic />
+            ) : orders.length === 0 ? (
+              <div className="rounded-lg border border-slate-200 bg-white p-8 text-center text-slate-500 shadow-sm">
+                No hay órdenes con estos filtros.
+              </div>
+            ) : view === 'tablero' ? (
+              <KanbanBoard
+                orders={orders}
+                changeOrderStatus={changeOrderStatus}
+                isClassic
+                onDelete={removeOrder}
+              />
+            ) : (
+              <OrdersTable
+                isClassic
+                orders={orders}
+                onStatusChange={changeOrderStatus}
+                onDelete={removeOrder}
+                onActivity={(id) => setExpandedOrder(expandedOrder === id ? null : id)}
+                expandedOrder={expandedOrder}
+              />
+            )}
 
-                        <div className="flex items-center gap-1 shrink-0">
-                          {order.status === 'pending' && (
-                            <button onClick={() => void changeOrderStatus(order.id, 'in_progress')} className="rounded-md bg-kavana-orange px-3 py-1.5 text-xs font-medium text-white hover:bg-kavana-orange-light">Iniciar</button>
-                          )}
-                          {order.status === 'in_progress' && (
-                            <button onClick={() => void changeOrderStatus(order.id, 'completed')} className="rounded-md bg-green-600 px-3 py-1.5 text-xs font-medium text-white hover:bg-green-700">Completar</button>
-                          )}
-                          <button onClick={() => setExpandedOrder(isExpanded ? null : order.id)} className="rounded-md border border-slate-300 bg-white px-3 py-1.5 text-xs font-medium text-slate-700 hover:bg-slate-50">
-                            {isExpanded ? 'Ocultar' : 'Actividad'}
-                          </button>
-                          <button onClick={() => void removeOrder(order.id)} className="rounded-md border border-red-200 bg-red-50 px-3 py-1.5 text-xs font-medium text-red-700 hover:bg-red-100">Eliminar</button>
-                        </div>
-                      </div>
-                    </div>
-
-                    {isExpanded && (
-                      <div className="border-t border-slate-200 bg-slate-50 p-4">
-                        <h4 className="text-xs font-bold uppercase tracking-wider text-slate-500 mb-3">Actividad de la orden</h4>
-                        <ActivityFeed activity={activity} />
-                      </div>
-                    )}
-                  </div>
-                );
-              })}
-            </div>
-          )
+            {expandedOrder && (
+              <section className="mt-4 rounded-lg border border-slate-200 bg-white p-4 shadow-sm">
+                <div className="mb-3 flex items-center justify-between gap-3">
+                  <h4 className="text-xs font-bold uppercase tracking-wider text-slate-500">Actividad de la orden</h4>
+                  <button type="button" onClick={() => setExpandedOrder(null)} className={themed(BUTTON_SECONDARY, true)}>
+                    Cerrar
+                  </button>
+                </div>
+                <ActivityFeed activity={activity} />
+              </section>
+            )}
+          </>
         ) : activeTab === 'workstations' ? (
           <WorkstationBoard workstations={workstationStatus} />
         ) : (

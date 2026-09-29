@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { useSupervisorPanel } from './hooks/useSupervisorPanel.js';
 import { ThemeToggle } from './components/ThemeToggle.js';
 import { ActivityFeed } from './components/ActivityFeed.js';
@@ -5,29 +6,24 @@ import { WorkstationBoard } from './components/WorkstationBoard.js';
 import { HelpModal } from './components/HelpModal.js';
 import { AiAdvisorFab } from './components/AiAdvisorFab.js';
 import { SUPERVISOR_HELP } from './help-content.js';
-import { formatNumber } from './utils/formatNumber.js';
 import { Loading } from './components/ui/Loading.js';
 import { EmptyState } from './components/ui/EmptyState.js';
 import { ErrorState } from './components/ui/ErrorState.js';
 import { IncidenciasKanban } from './components/incidencias/IncidenciasKanban.js';
 import { KanbanBoard } from './components/KanbanBoard.js';
-
-const statusColors: Record<string, string> = {
-  pending: 'bg-yellow-500/20 text-yellow-300 ring-yellow-500/40',
-  in_progress: 'bg-blue-500/20 text-blue-300 ring-blue-500/40',
-  completed: 'bg-green-500/20 text-green-300 ring-green-500/40',
-  cancelled: 'bg-slate-500/20 text-slate-300 ring-slate-500/40',
-};
-
-const statusLabels: Record<string, string> = {
-  pending: 'Pendiente',
-  in_progress: 'En Progreso',
-  completed: 'Completada',
-  cancelled: 'Cancelada',
-};
+import { OrderFiltersBar, type OrdersView } from './components/supervisor/OrderFiltersBar.js';
+import { OrdersTable } from './components/supervisor/OrdersTable.js';
+import { BUTTON_SECONDARY, NOTICE_INFO, themed } from './utils/ui-tokens.js';
 
 type Tab = 'orders' | 'workstations' | 'incidencias';
 
+/**
+ * Panel de supervisión, tema Kavana.
+ *
+ * Comparte con el tema clásico la barra de filtros, la tabla y el tablero: entre
+ * temas cambia el color y el reparto del espacio, nunca las acciones disponibles
+ * ni los datos que se pueden consultar.
+ */
 export function SupervisorPanel() {
   const {
     orders, models, workstations, workstationStatus, activity,
@@ -36,26 +32,28 @@ export function SupervisorPanel() {
     orderNumber, setOrderNumber, measurement, setMeasurement, material,
     setMaterial, notes, setNotes, activeTab, setActiveTab, expandedOrder,
     incidencias, incidenciasLoading, incidenciasError, incidenciaNotice,
+    filters, setFilters, hasMore, loadMoreOrders, orderNotice,
     handleSubmit, handleToggleExpand, changeOrderStatus, removeOrder,
-    changeIncidenciaStatus, removeIncidencia, loadOrders,
+    changeIncidenciaStatus, removeIncidencia,
   } = useSupervisorPanel();
 
-  const model = models.find((m: any) => m.id === selectedModel);
+  // El tablero es la vista natural de este tema.
+  const [view, setView] = useState<OrdersView>('tablero');
 
   return (
     <>
       <main className="min-h-screen bg-kavana-dark text-slate-100 p-4 md:p-8">
-      <section className="mx-auto w-[90%] rounded-[2rem] border-2 border-kavana-orange bg-kavana-panel/90 p-4 md:p-8">
+      <section className="mx-auto w-full max-w-[1700px] rounded-[2rem] border-2 border-kavana-orange bg-kavana-panel/90 p-4 md:p-8">
         <header className="mb-8 flex flex-col gap-5 border-b border-kavana-orange/30 pb-6 md:flex-row md:items-center md:justify-between">
           <div>
             <p className="text-sm font-bold uppercase tracking-[0.32em] text-kavana-orange-light">Kavana Manufacturing</p>
             <h1 className="mt-2 text-3xl font-black tracking-tight text-white md:text-5xl">Panel Supervisor</h1>
           </div>
-          <div className="flex items-center gap-3">
+          <div className="flex flex-wrap items-center gap-3">
             <HelpModal {...SUPERVISOR_HELP} />
             <button
               onClick={() => setShowForm(!showForm)}
-              className="min-h-[64px] min-w-[64px] rounded-2xl bg-kavana-orange px-8 py-4 text-lg font-bold text-white shadow-lg transition hover:bg-kavana-orange-light active:scale-95"
+              className="min-h-[44px] rounded-2xl bg-kavana-orange px-5 py-3 text-base font-bold text-white shadow-lg transition hover:bg-kavana-orange-light active:scale-95"
             >
               {showForm ? 'Cancelar' : '+ Nueva Orden'}
             </button>
@@ -64,6 +62,12 @@ export function SupervisorPanel() {
         </header>
 
         {error && <ErrorState message={error} />}
+
+        {orderNotice && (
+          <div role="status" aria-live="polite" className={`mb-4 ${themed(NOTICE_INFO)}`}>
+            {orderNotice}
+          </div>
+        )}
 
         {incidenciaNotice && (
           <div
@@ -83,7 +87,7 @@ export function SupervisorPanel() {
                 <select
                   value={selectedModel}
                   onChange={(e) => setSelectedModel(e.target.value)}
-                  className="w-full rounded-lg border-2 border-kavana-steel/30 bg-kavana-dark px-3 py-2.5 text-sm text-white focus:border-kavana-orange focus:outline-none"
+                  className="min-h-[44px] w-full rounded-lg border-2 border-kavana-steel/30 bg-kavana-dark px-3 py-2.5 text-sm text-white focus:border-kavana-orange focus:outline-none"
                 >
                   <option value="">Seleccionar modelo...</option>
                   {models.map((m: any) => (
@@ -96,12 +100,16 @@ export function SupervisorPanel() {
                 <select
                   value={selectedWorkstation}
                   onChange={(e) => setSelectedWorkstation(e.target.value)}
-                  className="w-full rounded-lg border-2 border-kavana-steel/30 bg-kavana-dark px-3 py-2.5 text-sm text-white focus:border-kavana-orange focus:outline-none"
+                  className="min-h-[44px] w-full rounded-lg border-2 border-kavana-steel/30 bg-kavana-dark px-3 py-2.5 text-sm text-white focus:border-kavana-orange focus:outline-none"
                 >
                   <option value="">Seleccionar puesto...</option>
-                  {workstations.map((w: any) => (
-                    <option key={w.id} value={w.id}>{w.name} ({w.code})</option>
-                  ))}
+                  {/* Solo puestos activos: el clásico ya filtraba y este no, así
+                      que la misma pantalla ofrecía dos catálogos distintos. */}
+                  {workstations
+                    .filter((w: any) => w.status === 'active')
+                    .map((w: any) => (
+                      <option key={w.id} value={w.id}>{w.name} ({w.code})</option>
+                    ))}
                 </select>
               </div>
               <div>
@@ -111,7 +119,7 @@ export function SupervisorPanel() {
                   value={quantity}
                   onChange={(e) => setQuantity(e.target.value)}
                   placeholder="0"
-                  className="w-full rounded-lg border-2 border-kavana-steel/30 bg-kavana-dark px-3 py-2.5 text-sm text-white focus:border-kavana-orange focus:outline-none"
+                  className="min-h-[44px] w-full rounded-lg border-2 border-kavana-steel/30 bg-kavana-dark px-3 py-2.5 text-sm text-white focus:border-kavana-orange focus:outline-none"
                 />
               </div>
               <div>
@@ -120,7 +128,7 @@ export function SupervisorPanel() {
                   value={orderNumber}
                   onChange={(e) => setOrderNumber(e.target.value)}
                   placeholder="OP-0000"
-                  className="w-full rounded-lg border-2 border-kavana-steel/30 bg-kavana-dark px-3 py-2.5 text-sm text-white focus:border-kavana-orange focus:outline-none"
+                  className="min-h-[44px] w-full rounded-lg border-2 border-kavana-steel/30 bg-kavana-dark px-3 py-2.5 text-sm text-white focus:border-kavana-orange focus:outline-none"
                 />
               </div>
               <div>
@@ -129,7 +137,7 @@ export function SupervisorPanel() {
                   value={measurement}
                   onChange={(e) => setMeasurement(e.target.value)}
                   placeholder="mm/cm"
-                  className="w-full rounded-lg border-2 border-kavana-steel/30 bg-kavana-dark px-3 py-2.5 text-sm text-white focus:border-kavana-orange focus:outline-none"
+                  className="min-h-[44px] w-full rounded-lg border-2 border-kavana-steel/30 bg-kavana-dark px-3 py-2.5 text-sm text-white focus:border-kavana-orange focus:outline-none"
                 />
               </div>
               <div>
@@ -138,7 +146,7 @@ export function SupervisorPanel() {
                   value={material}
                   onChange={(e) => setMaterial(e.target.value)}
                   placeholder="..."
-                  className="w-full rounded-lg border-2 border-kavana-steel/30 bg-kavana-dark px-3 py-2.5 text-sm text-white focus:border-kavana-orange focus:outline-none"
+                  className="min-h-[44px] w-full rounded-lg border-2 border-kavana-steel/30 bg-kavana-dark px-3 py-2.5 text-sm text-white focus:border-kavana-orange focus:outline-none"
                 />
               </div>
               <div>
@@ -147,21 +155,17 @@ export function SupervisorPanel() {
                   value={notes}
                   onChange={(e) => setNotes(e.target.value)}
                   placeholder="..."
-                  className="w-full rounded-lg border-2 border-kavana-steel/30 bg-kavana-dark px-3 py-2.5 text-sm text-white focus:border-kavana-orange focus:outline-none"
+                  className="min-h-[44px] w-full rounded-lg border-2 border-kavana-steel/30 bg-kavana-dark px-3 py-2.5 text-sm text-white focus:border-kavana-orange focus:outline-none"
                 />
               </div>
-              <div className="flex items-end gap-2">
+              <div className="flex flex-wrap items-end gap-2">
                 <button
                   type="submit"
-                  className="rounded-lg bg-kavana-orange px-6 py-2.5 text-sm font-bold text-white transition hover:bg-kavana-orange-light active:scale-95"
+                  className="inline-flex min-h-[44px] items-center rounded-lg bg-kavana-orange px-6 py-2.5 text-sm font-bold text-white transition hover:bg-kavana-orange-light active:scale-95"
                 >
                   Crear orden
                 </button>
-                <button
-                  type="button"
-                  onClick={() => setShowForm(false)}
-                  className="rounded-lg bg-kavana-steel/20 px-6 py-2.5 text-sm font-bold text-slate-300 transition hover:bg-kavana-steel/40"
-                >
+                <button type="button" onClick={() => setShowForm(false)} className={themed(BUTTON_SECONDARY)}>
                   Cancelar
                 </button>
               </div>
@@ -170,30 +174,71 @@ export function SupervisorPanel() {
         )}
 
         {/* Tabs */}
-        <div className="mb-6 flex gap-2">
+        <div className="mb-6 flex gap-2 overflow-x-auto pb-1">
           {(['orders', 'workstations', 'incidencias'] as Tab[]).map((tab) => (
             <button
               key={tab}
               onClick={() => setActiveTab(tab)}
-              className={`rounded-lg px-5 py-2.5 text-sm font-bold transition ${
+              className={`min-h-[44px] whitespace-nowrap rounded-lg px-5 py-2.5 text-sm font-bold transition ${
                 activeTab === tab
                   ? 'bg-kavana-orange text-white shadow'
-                  : 'bg-kavana-surface text-slate-400 hover:text-white'
+                  : 'bg-kavana-surface text-slate-300 hover:text-white'
               }`}
             >
-              {tab === 'orders' ? '📋 Órdenes' : tab === 'workstations' ? '🏭 Workstations' : '🚨 Incidencias'}
+              {tab === 'orders' ? '📋 Órdenes' : tab === 'workstations' ? '🏭 Puestos' : '🚨 Incidencias'}
             </button>
           ))}
         </div>
 
-        {isLoading && activeTab === 'orders' ? (
-          <Loading label="Cargando órdenes..." />
-        ) : activeTab === 'orders' ? (
-          <KanbanBoard
-            orders={orders}
-            changeOrderStatus={changeOrderStatus}
-            loadOrders={loadOrders}
-          />
+        {activeTab === 'orders' ? (
+          <>
+            <OrderFiltersBar
+              filters={filters}
+              onChange={setFilters}
+              workstations={workstations}
+              view={view}
+              onViewChange={setView}
+              total={orders.length}
+              hasMore={hasMore}
+              onLoadMore={() => void loadMoreOrders()}
+            />
+
+            {isLoading && orders.length === 0 ? (
+              <Loading label="Cargando órdenes..." />
+            ) : orders.length === 0 ? (
+              <EmptyState
+                icon="📋"
+                title="No hay órdenes con estos filtros"
+                description="Prueba a cambiar el estado o a limpiar la búsqueda."
+              />
+            ) : view === 'tablero' ? (
+              <KanbanBoard
+                orders={orders}
+                changeOrderStatus={changeOrderStatus}
+                onDelete={removeOrder}
+              />
+            ) : (
+              <OrdersTable
+                orders={orders}
+                onStatusChange={changeOrderStatus}
+                onDelete={removeOrder}
+                onActivity={handleToggleExpand}
+                expandedOrder={expandedOrder}
+              />
+            )}
+
+            {expandedOrder && (
+              <section className="mt-4 rounded-2xl border border-kavana-steel/25 bg-kavana-surface p-4">
+                <div className="mb-3 flex items-center justify-between gap-3">
+                  <h4 className="text-xs font-bold uppercase tracking-wider text-slate-400">Actividad de la orden</h4>
+                  <button type="button" onClick={() => handleToggleExpand(expandedOrder)} className={themed(BUTTON_SECONDARY)}>
+                    Cerrar
+                  </button>
+                </div>
+                <ActivityFeed activity={activity} />
+              </section>
+            )}
+          </>
         ) : activeTab === 'workstations' ? (
           <WorkstationBoard workstations={workstationStatus ?? []} />
         ) : incidenciasLoading ? (

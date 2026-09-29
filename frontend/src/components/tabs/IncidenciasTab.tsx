@@ -4,6 +4,8 @@ import type { Incidencia, IncidenciaStats } from '../../api/admin-entities.js';
 import { IncidenciaPhoto } from '../IncidenciaPhoto.js';
 import { IncidenciasKanban } from '../incidencias/IncidenciasKanban.js';
 import { colorEstadoIncidencia } from '../../utils/incidencias-kanban.js';
+import { DEMO_DELETE_NOTICE, isDemoReadOnlyError } from '../../utils/demo-readonly.js';
+import { NOTICE_INFO, themed } from '../../utils/ui-tokens.js';
 
 interface Props { isClassic?: boolean; }
 
@@ -12,6 +14,9 @@ export function IncidenciasTab({ isClassic }: Props) {
   const [stats, setStats] = useState<IncidenciaStats | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  // Aviso neutro (no es un fallo): el blindaje de la demo no deja borrar el
+  // histórico, y eso se cuenta, no se pinta en rojo.
+  const [notice, setNotice] = useState<string | null>(null);
   const [editing, setEditing] = useState<string | null>(null);
   const [showCreate, setShowCreate] = useState(false);
   const [filterStatus, setFilterStatus] = useState<string>('all');
@@ -73,7 +78,14 @@ export function IncidenciasTab({ isClassic }: Props) {
     try {
       await deleteIncidencia(id);
       void load();
-    } catch { setError('Error al eliminar incidencia'); }
+    } catch (err) {
+      const message = err instanceof Error ? err.message : '';
+      if (isDemoReadOnlyError(message)) {
+        setNotice(DEMO_DELETE_NOTICE);
+      } else {
+        setError('Error al eliminar incidencia');
+      }
+    }
   };
 
   const startEdit = (inc: Incidencia) => {
@@ -121,6 +133,13 @@ export function IncidenciasTab({ isClassic }: Props) {
         <div className="bg-red-900/30 border border-red-700 rounded-lg px-4 py-3 text-red-300 text-sm flex items-center justify-between">
           <span>{error}</span>
           <button onClick={() => setError(null)} className="text-red-400 hover:text-red-300">✕</button>
+        </div>
+      )}
+
+      {notice && (
+        <div role="status" aria-live="polite" className={`rounded-lg px-4 py-3 text-sm flex items-center justify-between ${themed(NOTICE_INFO, isClassic)}`}>
+          <span>{notice}</span>
+          <button onClick={() => setNotice(null)} className="opacity-70 hover:opacity-100">✕</button>
         </div>
       )}
 
