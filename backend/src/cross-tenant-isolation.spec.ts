@@ -167,7 +167,9 @@ describe('Cross-Tenant Isolation — All Services', () => {
         rows: [{ id: 'o1', model_id: 'm1', quantity: 10, status: 'pending' }],
       });
 
-      const orders = await service.listOrders();
+      // El contrato de la API exige filtros validados (los pone zod en el
+      // controller): sin ellos el servicio no tiene de dónde leer el tope.
+      const orders = await service.listOrders({ status: [], limit: 200, offset: 0 });
       expect(orders).toHaveLength(1);
 
       const sql = mockTenantQuery.mock.calls[0][1] as string;

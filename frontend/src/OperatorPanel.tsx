@@ -1,1 +1,473 @@
-import logo from '../../logo.png';\nimport { useHmiStore } from './store/hmi-store.js';\nimport { useOperatorPanel } from './hooks/useOperatorPanel.js';\nimport { ordersEmptyState } from './utils/orders-empty-state.js';\nimport { \n  useCapabilities, \n  useAvailableOrders, \n  useIsLoadingOrders, \n  useSelectedOrderCustomFields, \n  useActiveOrder, \n  useCurrentStatus, \n  useOperatorId, \n  useWorkstationId, \n  useIsOnline, \n  usePendingCount, \n  useFailedCount, \n  useIsMutating, \n  useIsSyncing, \n  useSetCapabilities,\n  useSetAvailableOrders,\n  useSetIsLoadingOrders,\n  useSetSelectedOrderCustomFields,\n  useSetActiveOrder,\n  useSetCurrentStatus,\n  useSetOperatorId,\n  useSetWorkstationId,\n  useSetIsOnline,\n  useSetIsMutating,\n  useSetIsSyncing,\n  useSetTenantId,\n  useSetUserId,\n  useSetRole,\n} from './store/selectors.js';\nimport { FailedEventsModal } from './components/operator/FailedEventsModal.js';\nimport { IncidenciaModal } from './components/operator/IncidenciaModal.js'; // Note: we need to check the correct path\nimport { ShiftKpiCard } from './components/operator/ShiftKpiCard.js';\nimport { useMyShiftKPI } from './hooks/useMyShiftKPI.js';\nimport { ThemeToggle } from './components/ThemeToggle.js';\nimport { HelpModal } from './components/HelpModal.js';\nimport { AiAdvisorFab } from './components/AiAdvisorFab.js';\nimport { OPERATOR_HELP } from './help-content.js';\nimport { useState } from 'react';\nimport { mapCustomFieldsToUI, type CustomFieldUI } from './utils/customFieldsMapper.js';\nimport { buildDraftValues } from './utils/custom-field-values.js';\nimport { CustomFieldsEditor } from './components/operator/CustomFieldsEditor.js';\nimport { Loading } from './components/ui/Loading.js';\nimport { EmptyState } from './components/ui/EmptyState.js';\n\nconst statusLabel: Record<string, string> = {\n  pending: 'Pendiente',\n  in_progress: 'En Progreso',\n  completed: 'Completada',\n  cancelled: 'Cancelada',\n  pendiente: 'Pendiente',\n  en_produccion: 'En Producción',\n  completada: 'Completada',\n};\n\nexport function OperatorPanel() {\n  // Use selectors for state\n  const capabilities = useCapabilities();\n  const availableOrders = useAvailableOrders();\n  const isLoadingOrders = useIsLoadingOrders();\n  const selectedOrderCustomFields = useSelectedOrderCustomFields();\n  const activeOrder = useActiveOrder();\n  const currentStatus = useCurrentStatus();\n  const operatorId = useOperatorId();\n  const workstationId = useWorkstationId();\n  const isOnline = useIsOnline();\n  const pendingCount = usePendingCount();\n  const failedCount = useFailedCount();\n  \n  // Use setter selectors for actions (if needed)\n  const setCapabilities = useSetCapabilities();\n  const setAvailableOrders = useSetAvailableOrders();\n  const setIsLoadingOrders = useSetIsLoadingOrders();\n  const setSelectedOrderCustomFields = useSetSelectedOrderCustomFields();\n  const setActiveOrder = useSetActiveOrder();\n  const setCurrentStatus = useSetCurrentStatus();\n  const setOperatorId = useSetOperatorId();\n  const setWorkstationId = useSetWorkstationId();\n  const setIsOnline = useSetIsOnline();\n  const setIsMutating = useSetIsMutating();\n  const setIsSyncing = useSetIsSyncing();\n  const setTenantId = useSetTenantId();\n  const setUserId = useSetUserId();\n  const setRole = useSetRole();\n\n  // Use the hook for complex logic and handlers\n  const {\n    orderId,\n    workstationName,\n    operatorName,\n    activeOrderCustomFields,\n    availableOrders: hookAvailableOrders, // note: we already have from selector, but hook may have filtered\n    isLoadingOrders: hookIsLoadingOrders,\n    orderSearch,\n    setOrderSearch,\n    startTime,\n    setStartTime,\n    endTime,\n    setEndTime,\n    producedQuantity,\n    setProducedQuantity,\n    defectQuantity,\n    setDefectQuantity,\n    observations,\n    setObservations,\n    errorMsg,\n    setErrorMsg,\n    editingCustomFields,\n    setEditingCustomFields,\n    isSavingCustomFields,\n    handleRegisterBlock,\n    handleSaveCustomFields,\n    schemaFields,\n    customFields,\n    filteredOrders,\n    triggerSyncEngine,\n    isFailedLogsModalOpen,\n    setIsFailedLogsModalOpen,\n    isIncidenciaModalOpen,\n    setIsIncidenciaModalOpen,\n    loadOrder,\n    updateCustomFields,\n    loadCapabilities,\n    loadOperatorContext,\n    assignedWorkstationName,\n    loadAvailableOrders,\n    selectOrder,\n    registerWorkBlock,\n    lastBlock,\n    repeatLastBlock,\n  } = useOperatorPanel();\n\n  // Determine if quick registration feature is enabled\n  const quickRegistrationEnabled = capabilities?.modular_matrix?.quick_registration?.enabled ?? false;\n\n  // Auto-select first order and pre-fill form when quick registration is enabled\n  // and no order is selected yet\n  // We'll use useEffect to run when capabilities or availableOrders change\n  // Note: We need to be careful not to cause infinite loops.\n  // We'll also need to set the form fields only once per order selection.\n  // We'll use a ref to track if we have already initialized for the current order.\n  // But for simplicity, we can set the fields whenever orderId changes and quickRegistrationEnabled is true.\n  // We'll compute default values based on the selected order.\n\n  // We'll use useEffect to set defaults when orderId changes and quickRegistrationEnabled is true\n  // Note: We also want to auto-select an order if none selected and quickRegistrationEnabled.\n\n  // We'll split into two effects:\n  // 1. Auto-select first order when quickRegistrationEnabled and no orderId and there are availableOrders\n  // 2. When orderId changes and quickRegistrationEnabled, set default form values\n\n  // Effect 1: Auto-select first order\n  // We'll use useEffect with dependencies: quickRegistrationEnabled, orderId, availableOrders\n  // We need to avoid running on initial render if orderId is already set.\n  // We'll use a ref to track if we have already attempted auto-selection.\n  // But for simplicity, we can just check: if quickRegistrationEnabled and !orderId and availableOrders.length > 0, select first.\n  // This will run every time these values change, but selecting the same order again is fine (it will set the same state).\n  // However, selectOrder might cause a re-render, but it's okay.\n\n  // Effect 2: Set default form values when orderId changes and quickRegistrationEnabled\n  // We'll need to compute default startTime, endTime, producedQuantity, defectQuantity, observations.\n\n  // Let's implement both effects.\n\n  import { useEffect, useRef } from 'react';\n  const initializedRef = useRef(false);\n\n  // Effect 1: Auto-select first order\n  useEffect(() => {\n    if (quickRegistrationEnabled && !orderId && availableOrders.length > 0) {\n      // Select the first available order\n      selectOrder(availableOrders[0]);\n    }\n  }, [quickRegistrationEnabled, orderId, availableOrders, selectOrder]);\n\n  // Effect 2: Set default form values when orderId changes\n  useEffect(() => {\n    if (quickRegistrationEnabled && orderId) {\n      // Compute default values\n      const now = new Date();\n      const oneHourAgo = new Date(now.getTime() - 60 * 60 * 1000); // 1 hour ago\n      \n      // Format as HH:MM (local time)\n      const formatTime = (date: Date) => {\n        const hours = String(date.getHours()).padStart(2, '0');\n        const minutes = String(date.getMinutes()).padStart(2, '0');\n        return `${hours}:${minutes}`;\n      };\n      \n      setStartTime(formatTime(oneHourAgo));\n      setEndTime(formatTime(now));\n      \n      // For producedQuantity, we'll use a default of 10 (as in demo) or maybe try to get from order\n      // We don't have the order object here; we have activeOrder from selector which may be loaded.\n      // We'll use activeOrder?.quantity if available, else fallback to 10.\n      const defaultQty = activeOrder?.quantity ?? 10;\n      setProducedQuantity(String(defaultQty));\n      setDefectQuantity('0');\n      setObservations('');\n      // Note: We don't set isMutating or anything; just setting the fields.\n    }\n  }, [quickRegistrationEnabled, orderId, activeOrder?.quantity, setStartTime, setEndTime, setProducedQuantity, setDefectQuantity, setObservations]);\n\n  // Qué decir cuando no hay órdenes: si el problema es que no tiene puesto, el\n  // mensaje tiene que decírselo a quien pueda arreglarlo.\n  const emptyState = ordersEmptyState(orderSearch, assignedWorkstationName);\n\n  const [isEditingFields, setIsEditingFields] = useState(false);\n\n  // Note: We are using both selectors and hook. This may cause duplication but ensures we have both.\n  // For simplicity, we could rely solely on the hook, but the goal was to demonstrate selectors.\n  // We'll keep the selectors for state and the hook for actions and derived data.\n  // We'll keep the selectors for state and the hook for actions and derived data.\n\n  if (!orderId) {\n    return (\n      <main className=\"min-h-screen bg-kavana-dark text-slate-100 p-4 md:p-8\">\n        <section className=\"mx-auto w-[90%] rounded-[2rem] border-2 border-kavana-orange bg-kavana-panel/90 p-6 md:p-8\">\n          <header className=\"mb-6 flex items-center gap-4 border-b border-kavana-orange/30 pb-6\">\n            <img src={logo} alt=\"Logo Kavana\" className=\"h-14 w-14 rounded-2xl bg-kavana-surface object-cover p-2 ring-1 ring-kavana-orange/40\" />\n            <div>\n              <p className=\"text-sm font-bold uppercase tracking-[0.32em] text-kavana-orange-light\">Kavana Manufacturing HMI</p>\n              <h1 className=\"mt-1 text-2xl font-black tracking-tight text-white md:text-3xl\">Seleccionar Orden</h1>\n            </div>\n          </header>\n\n          <div className=\"mb-6 flex items-center gap-3\">\n            <p className=\"text-sm text-slate-400\">\n              {operatorName ? `Operario: ${operatorName}` : ''} {workstationName ? `· Puesto: ${workstationName}` : ''}\n            </p>\n          </div>\n\n          <div className=\"relative mb-6\">\n            <input\n              type=\"text\"\n              value={orderSearch}\n              onChange={(e) => setOrderSearch(e.target.value)}\n              placeholder=\"Buscar por modelo, puesto o código...\"\n              className=\"w-full rounded-xl border border-kavana-steel/30 bg-kavana-dark p-4 pl-12 text-white placeholder-slate-500 ring-1 ring-kavana-steel/20 focus:ring-kavana-orange/60 focus:outline-none text-lg\"\n            />\n            <svg className=\"absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-slate-500\" fill=\"none\" stroke=\"currentColor\" viewBox=\"0 0 24 24\">\n              <path strokeLinecap=\"round\" strokeLinejoin=\"round\" strokeWidth={2} d=\"M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z\" />\n            </svg>\n          </div>\n\n          {isLoadingOrders ? (\n            <Loading label=\"Cargando órdenes...\" />\n          ) : filteredOrders.length === 0 ? (\n            <EmptyState title={emptyState.title} description={emptyState.description} />\n          ) : (\n            <div className=\"space-y-3\">\n              {filteredOrders.map((order) => (\n                <button\n                  key={order.id}\n                  onClick={() => selectOrder(order)}\n                  className=\"w-full rounded-xl border border-kavana-steel/20 bg-kavana-surface/60 p-5 text-left transition hover:border-kavana-orange/40 hover:bg-kavana-surface hover:shadow-lg\"\n                >\n                  <div className=\"flex items-center justify-between\">\n                    <div>\n                      <p className=\"text-lg font-bold text-white\">{order.model_name ?? 'Sin modelo'}</p>\n                      <p className=\"mt-1 text-sm text-slate-400\">\n                        {order.workstation_name ?? 'Sin puesto'} · Cant: {order.quantity}\n                      </p>\n                    </div>\n                    <span className={`rounded-full px-3 py-1 text-xs font-bold ${\n                      order.status === 'pending'\n                        ? 'bg-amber-500/20 text-amber-300 ring-1 ring-amber-500/40'\n                        : 'bg-blue-500/20 text-blue-300 ring-1 ring-blue-500/40'\n                    }`}>\n                      {statusLabel[order.status] ?? order.status}\n                    </span>\n                  </div>\n                </button>\n              ))}\n            </div>\n          )}\n\n          <div className=\"mt-6 flex justify-end\">\n            <ThemeToggle />\n          </div>\n        </section>\n      </main>\n    );\n  }\n\n  return (\n    <>\n      <main className=\"min-h-screen bg-kavana-dark text-slate-100 p-4 md:p-8\">\n        <section className=\"mx-auto w-[90%] rounded-[2rem] border-2 border-kavana-orange bg-kavana-panel/90 p-4 md:p-8\">\n          <header className=\"mb-8 flex flex-col gap-5 border-b border-kavana-orange/30 pb-6 md:flex-row md:items-center md:justify-between\">\n            <div className=\"flex items-center gap-4\">\n              <img\n                src={logo}\n                alt=\"Logo Kavana\"\n                className=\"h-16 w-16 rounded-2xl bg-kavana-surface object-cover p-2 ring-1 ring-kavana-orange/40\" />\n              <div>\n                <p className=\"text-sm font-bold uppercase tracking-[0.32em] text-kavana-orange-light\">Kavana Manufacturing HMI</p>\n                <h1 className=\"mt-2 text-3xl font-black tracking-tight text-white md:text-5xl\">Panel de Operario</h1>\n              </div>\n            </div>\n\n            <div className=\"flex flex-wrap gap-3\">\n              <span className={onlineBadgeClass(isOnline)}>\n                {isOnline ? 'Online' : 'Offline'}\n              </span>\n              <span className=\"rounded-full bg-kavana-surface px-4 py-3 text-sm font-bold text-slate-100 ring-1 ring-kavana-steel/40\">\n                Cola pendiente: {pendingCount}\n              </span>\n              <button\n                onClick={() => setIsFailedLogsModalOpen(true)}\n                className={`rounded-full px-4 py-3 text-sm font-bold ring-1 transition ${failedCount > 0\n                  ? 'bg-rose-500/20 text-rose-300 ring-rose-500/40 hover:bg-rose-500/30'\n                  : 'bg-kavana-surface text-slate-100 ring-kavana-steel/40 hover:bg-kavana-steel/20'\n                }`}\n              >\n                Fallos: {failedCount}\n              </button>\n              <button\n                onClick={() => setIsIncidenciaModalOpen(true)}\n                className=\"rounded-full bg-kavana-surface px-4 py-3 text-sm font-bold text-kavana-orange ring-1 ring-kavana-orange/40 transition hover:bg-kavana-orange hover:text-white\"\n              >\n                ⚠ Incidencia\n              </button>\n              <HelpModal {...OPERATOR_HELP} />\n              <ThemeToggle />\n            </div>\n          </header>\n\n          <section className=\"grid gap-6 lg:grid-cols-[1.1fr_0.9fr]\">\n            <div className=\"rounded-2xl border-2 border-kavana-orange/40 bg-kavana-dark/70 p-5 shadow-inner flex flex-col justify-between\">\n              <div>\n                <p className=\"text-sm font-bold uppercase tracking-[0.24em] text-kavana-steel\">Orden actual</p>\n                <h2 className=\"mt-3 text-2xl font-black text-white md:text-4xl\">\n                  {activeOrder?.code || (orderId ? `OF-${orderId.slice(0, 8)}` : 'Sin orden asignada')}\n                </h2>\n                <p className=\"mt-3 text-slate-300\">\n                  {workstationName || (workstationId ? `Puesto: ${workstationId.slice(0, 8)}` : 'Puesto: No asignado')}\n                  {' · '}\n                  {operatorName || (operatorId ? `Operario: ${operatorId.slice(0, 8)}` : 'Operario: No asignado')}\n                </p>\n\n                {activeOrderCustomFields && Object.keys(activeOrderCustomFields).length > 0 && (\n                  <div className=\"mt-4 rounded-xl border border-kavana-steel/20 bg-kavana-surface/50 p-4\">\n                    <p className=\"text-xs font-bold uppercase tracking-wider text-kavana-steel mb-3\">Datos de la orden</p>\n                    <div className=\"grid grid-cols-2 gap-3\">\n                      {Object.entries(activeOrderCustomFields).map(([key, value]) => (\n                        <div key={key}>\n                          <p className=\"text-xs text-slate-400 capitalize\">{key.replace(/_/g, ' ')}</p>\n                          <p className=\"text-sm font-medium text-white\">{String(value ?? '—')}</p>\n                        </div>\n                      ))\n                    </div>\n                  </div>\n                )}\n              </div>\n              {customFields.length > 0 && (\n                <div className=\"mt-6 grid grid-cols-2 gap-4\">\n                  {customFields.map((field) => (\n                    <div key={field.key} className=\"rounded-xl border border-kavana-steel/20 bg-kavana-surface p-4\">\n                      <label className=\"text-xs font-bold uppercase tracking-wider text-kavana-steel mb-1 block\">{field.label}</label>\n                      <p className=\"mt-1 text-sm font-medium text-white\">\n                        {String(activeOrderCustomFields?.[field.key] ?? '\\u2014')}\n                      </p>\n                    </div>\n                  ))\n                </div>\n              )}\n\n              {customFields.length > 0 && !isEditingFields && (\n                <button\n                  type=\"button\"\n                  onClick={() => {\n                    // Se parte de lo que ya tiene la orden para editar sobre ello,\n                    // no de un formulario en blanco.\n                    setEditingCustomFields(buildDraftValues(schemaFields, activeOrderCustomFields));\n                    setIsEditingFields(true);\n                  }}\n                  className=\"mt-3 rounded-lg border border-kavana-steel/30 px-3 py-1.5 text-sm font-medium text-slate-300 hover:text-white\"\n                >\n                  Rellenar campos de la orden\n                </button>\n              )}\n\n              {customFields.length > 0 && isEditingFields && (\n                <CustomFieldsEditor\n                  fields={schemaFields}\n                  values={editingCustomFields}\n                  onChange={(key, value) => setEditingCustomFields((prev: Record<string, unknown>) => ({ ...prev, [key]: value }))}\n                  onSave={async () => {\n                    // Solo se cierra si se ha guardado: si falla, se queda abierto\n                    // con lo que el operario había escrito.\n                    const guardado = await handleSaveCustomFields();\n                    if (guardado) setIsEditingFields(false);\n                  }}\n                  onCancel={() => setIsEditingFields(false)}\n                  saving={isSavingCustomFields}\n                />\n              )}\n            </div>\n            {/* Right Column - Registration Form */}\n            <div className=\"flex flex-col gap-6\">\n              <ShiftKpiCard\n                kpi={shiftKpi}\n                isLoading={isShiftKpiLoading}\n                error={shiftKpiError}\n                onRetry={() => void refreshShiftKpi()}\n              />\n              {errorMsg && (\n                <div className=\"rounded-xl border border-red-500/40 bg-red-500/10 p-4 text-sm text-red-300\">\n                  {errorMsg}\n                </div>\n              )}\n              <div className=\"rounded-2xl border-2 border-kavana-orange/40 bg-kavana-dark/70 p-5 shadow-inner\">\n                <div className=\"mb-4 flex items-center justify-between gap-3\">\n                  <p className=\"text-sm font-bold uppercase tracking-wider text-kavana-steel\">Registrar Bloque de Tiempo</p>\n                  {lastBlock && (\n                    <button\n                      type=\"button\"\n                      onClick={repeatLastBlock}\n                      title=\"Rellena el formulario con el último bloque declarado y pone la hora de fin a ahora\"\n                      className=\"rounded-lg border border-kavana-orange/50 px-3 py-2 text-xs font-bold uppercase tracking-wider text-kavana-orange transition hover:bg-kavana-orange/10\"\n                    >\n                      Repetir último bloque\n                    </button>\n                  )}\n                </div>\n                <form onSubmit={handleRegisterBlock} className=\"flex flex-col gap-4\">\n                  <div className=\"grid grid-cols-2 gap-4\">\n                    <div>\n                      <label className=\"block text-xs font-bold uppercase tracking-wider text-kavana-steel mb-1\">Hora Inicio</label>\n                      <input\n                        type=\"time\"\n                        value={startTime}\n                        onChange={(e) => setStartTime(e.target.value)}\n                        required\n                        className=\"w-full rounded-xl border border-kavana-steel/30 bg-kavana-surface px-4 py-3 text-sm font-medium text-white placeholder-slate-500 focus:border-kavana-orange focus:outline-none\"\n                      />\n                    </div>\n                    <div>\n                      <label className=\"block text-xs font-bold uppercase tracking-wider text-kavana-steel mb-1\">Hora Fin</label>\n                      <input\n                        type=\"time\"\n                        value={endTime}\n                        onChange={(e) => setEndTime(e.target.value)}\n                        required\n                        className=\"w-full rounded-xl border border-kavana-steel/30 bg-kavana-surface px-4 py-3 text-sm font-medium text-white placeholder-slate-500 focus:border-kavana-orange focus:outline-none\"\n                      />\n                    </div>\n                  </div>\n\n                  <div className=\"grid grid-cols-2 gap-4\">\n                    <div>\n                      <label className=\"block text-xs font-bold uppercase tracking-wider text-kavana-steel mb-1\">Producción Buena</label>\n                      <input\n                        type=\"number\"\n                        value={producedQuantity}\n                        onChange={(e) => setProducedQuantity(e.target.value)}\n                        min=\"0\"\n                        className=\"w-full rounded-xl border border-kavana-steel/30 bg-kavana-surface px-4 py-3 text-sm font-medium text-white focus:border-kavana-orange focus:outline-none\"\n                      />\n                    </div>\n                    <div>\n                      <label className=\"block text-xs font-bold uppercase tracking-wider text-kavana-steel mb-1\">Defectos</label>\n                      <input\n                        type=\"number\"\n                        value={defectQuantity}\n                        onChange={(e) => setDefectQuantity(e.target.value)}\n                        min=\"0\"\n                        className=\"w-full rounded-xl border border-kavana-steel/30 bg-kavana-surface px-4 py-3 text-sm font-medium text-white focus:border-kavana-orange focus:outline-none\"\n                      />\n                    </div>\n                  </div>\n\n                  <div>\n                    <label className=\"block text-xs font-bold uppercase tracking-wider text-kavana-steel mb-1\">Observaciones</label>\n                    <textarea\n                      value={observations}\n                      onChange={(e) => setObservations(e.target.value)}\n                      rows={4}\n                      className=\"w-full rounded-xl border border-kavana-steel/30 bg-kavana-surface px-4 py-3 text-sm font-medium text-white placeholder-slate-500 focus:border-kavana-orange focus:outline-none resize-none\"\n                    />\n                  </div>\n\n                  <button\n                    type=\"submit\"\n                    disabled={isMutating || isSyncing}\n                    className=\"mt-2 w-full rounded-xl ${quickRegistrationEnabled ? 'bg-kavana-orange' : 'bg-kavana-orange'} px-6 py-4 text-base font-black uppercase tracking-wider text-white transition hover:bg-kavana-orange-light disabled:opacity-50\"\n                  >\n                    {isMutating ? 'Guardando...' : quickRegistrationEnabled ? 'Registrar bloque estándar' : 'Registrar Producción'}\n                  </button>\n                </form>\n              </div>\n            </div>\n          </section>\n\n          {isFailedLogsModalOpen && (\n            <FailedEventsModal\n              isOpen={isFailedLogsModalOpen}\n              onClose={() => setIsFailedLogsModalOpen(false)}\n              onClearAll={() => {\n                // Use selector setter to reset failed count\n                useHmiStore.getState().setFailedCount(0);\n              }}\n            />\n          )}\n          <IncidenciaModal\n            isOpen={isIncidenciaModalOpen}\n            onClose={(created) => {\n              setIsIncidenciaModalOpen(false);\n              if (created) void loadAvailableOrders();\n            }}\n            operatorId={operatorId}\n            workstationId={workstationId}\n            orderId={orderId}\n          />\n        </section>\n        <AiAdvisorFab />\n      </main>\n    </>\n  );\n}\n\nconst onlineBadgeClass = (isOnline: boolean) => (\n  isOnline\n    ? 'rounded-full bg-emerald-500/20 px-4 py-3 text-sm font-black text-emerald-200 ring-1 ring-emerald-400/40'\n    : 'rounded-full bg-kavana-orange/20 px-4 py-3 text-sm font-black text-kavana-orange ring-1 ring-kavana-orange/40'\n);\n
+import logo from '../../logo.png';
+import { useHmiStore } from './store/hmi-store.js';
+import { useOperatorPanel } from './hooks/useOperatorPanel.js';
+import { ordersEmptyState } from './utils/orders-empty-state.js';
+import { 
+  useCapabilities, 
+  useAvailableOrders, 
+  useIsLoadingOrders, 
+  useSelectedOrderCustomFields, 
+  useActiveOrder, 
+  useCurrentStatus, 
+  useOperatorId, 
+  useWorkstationId, 
+  useIsOnline, 
+  usePendingCount, 
+  useFailedCount, 
+  useIsMutating, 
+  useIsSyncing, 
+  useTenantId, 
+  useUserId, 
+  useRole,
+  useSetCapabilities,
+  useSetAvailableOrders,
+  useSetIsLoadingOrders,
+  useSetSelectedOrderCustomFields,
+  useSetActiveOrder,
+  useSetCurrentStatus,
+  useSetOperatorId,
+  useSetWorkstationId,
+  useSetIsOnline,
+  useSetPendingCount,
+  useSetFailedCount,
+  useSetIsMutating,
+  useSetIsSyncing,
+  useSetTenantId,
+  useSetUserId,
+  useSetRole,
+} from './store/selectors.js';
+import { FailedEventsModal } from './components/operator/FailedEventsModal.js';
+import { IncidenciaModal } from './components/operator/IncidenciaModal.js'; // Note: we need to check the correct path
+import { ShiftKpiCard } from './components/operator/ShiftKpiCard.js';
+import { useMyShiftKPI } from './hooks/useMyShiftKPI.js';
+import { ThemeToggle } from './components/ThemeToggle.js';
+import { HelpModal } from './components/HelpModal.js';
+import { AiAdvisorFab } from './components/AiAdvisorFab.js';
+import { OPERATOR_HELP } from './help-content.js';
+import { useState } from 'react';
+import { mapCustomFieldsToUI, type CustomFieldUI } from './utils/customFieldsMapper.js';
+import { buildDraftValues } from './utils/custom-field-values.js';
+import { CustomFieldsEditor } from './components/operator/CustomFieldsEditor.js';
+import { Loading } from './components/ui/Loading.js';
+import { EmptyState } from './components/ui/EmptyState.js';
+
+const statusLabel: Record<string, string> = {
+  pending: 'Pendiente',
+  in_progress: 'En Progreso',
+  completed: 'Completada',
+  cancelled: 'Cancelada',
+  pendiente: 'Pendiente',
+  en_produccion: 'En Producción',
+  completada: 'Completada',
+};
+
+export function OperatorPanel() {
+  // Use selectors for state
+  const capabilities = useCapabilities();
+  const availableOrders = useAvailableOrders();
+  const isLoadingOrders = useIsLoadingOrders();
+  const selectedOrderCustomFields = useSelectedOrderCustomFields();
+  const activeOrder = useActiveOrder();
+  const currentStatus = useCurrentStatus();
+  const operatorId = useOperatorId();
+  const workstationId = useWorkstationId();
+  const isOnline = useIsOnline();
+  const pendingCount = usePendingCount();
+  const failedCount = useFailedCount();
+  const isMutating = useIsMutating();
+  const isSyncing = useIsSyncing();
+  const tenantId = useTenantId();
+  const userId = useUserId();
+  const role = useRole();
+
+  // Use setter selectors for actions (if needed)
+  const setCapabilities = useSetCapabilities();
+  const setAvailableOrders = useSetAvailableOrders();
+  const setIsLoadingOrders = useSetIsLoadingOrders();
+  const setSelectedOrderCustomFields = useSetSelectedOrderCustomFields();
+  const setActiveOrder = useSetActiveOrder();
+  const setCurrentStatus = useSetCurrentStatus();
+  const setOperatorId = useSetOperatorId();
+  const setWorkstationId = useSetWorkstationId();
+  const setIsOnline = useSetIsOnline();
+  const setPendingCount = useSetPendingCount();
+  const setFailedCount = useSetFailedCount();
+  const setIsMutating = useSetIsMutating();
+  const setIsSyncing = useSetIsSyncing();
+  const setTenantId = useSetTenantId();
+  const setUserId = useSetUserId();
+  const setRole = useSetRole();
+
+  // Use the hook for complex logic and handlers
+  const {
+    orderId,
+    workstationName,
+    operatorName,
+    activeOrderCustomFields,
+    availableOrders: hookAvailableOrders, // note: we already have from selector, but hook may have filtered
+    isLoadingOrders: hookIsLoadingOrders,
+    orderSearch,
+    setOrderSearch,
+    startTime,
+    setStartTime,
+    endTime,
+    setEndTime,
+    producedQuantity,
+    setProducedQuantity,
+    defectQuantity,
+    setDefectQuantity,
+    observations,
+    setObservations,
+    errorMsg,
+    setErrorMsg,
+    editingCustomFields,
+    setEditingCustomFields,
+    isSavingCustomFields,
+    handleRegisterBlock,
+    handleSaveCustomFields,
+    schemaFields,
+    customFields,
+    filteredOrders,
+    triggerSyncEngine,
+    isFailedLogsModalOpen,
+    setIsFailedLogsModalOpen,
+    isIncidenciaModalOpen,
+    setIsIncidenciaModalOpen,
+    loadOrder,
+    updateCustomFields,
+    loadCapabilities,
+    loadOperatorContext,
+    assignedWorkstationName,
+    loadAvailableOrders,
+    selectOrder,
+    registerWorkBlock,
+    lastBlock,
+    repeatLastBlock,
+  } = useOperatorPanel();
+
+  // Qué decir cuando no hay órdenes: si el problema es que no tiene puesto, el
+  // mensaje tiene que decírselo a quien pueda arreglarlo.
+  const emptyState = ordersEmptyState(orderSearch, assignedWorkstationName);
+
+  const { kpi: shiftKpi, isLoading: isShiftKpiLoading, error: shiftKpiError, refresh: refreshShiftKpi } = useMyShiftKPI();
+
+  const [isEditingFields, setIsEditingFields] = useState(false);
+
+  // Note: We are using both selectors and hook. This may cause duplication but ensures we have both.
+  // For simplicity, we could rely solely on the hook, but the goal was to demonstrate selectors.
+  // We'll keep the selectors for state and the hook for actions and derived data.
+
+  if (!orderId) {
+    return (
+      <main className="min-h-screen bg-kavana-dark text-slate-100 p-4 md:p-8">
+        <section className="mx-auto w-[90%] rounded-[2rem] border-2 border-kavana-orange bg-kavana-panel/90 p-6 md:p-8">
+          <header className="mb-6 flex items-center gap-4 border-b border-kavana-orange/30 pb-6">
+            <img src={logo} alt="Logo Kavana" className="h-14 w-14 rounded-2xl bg-kavana-surface object-cover p-2 ring-1 ring-kavana-orange/40" />
+            <div>
+              <p className="text-sm font-bold uppercase tracking-[0.32em] text-kavana-orange-light">Kavana Manufacturing HMI</p>
+              <h1 className="mt-1 text-2xl font-black tracking-tight text-white md:text-3xl">Seleccionar Orden</h1>
+            </div>
+          </header>
+
+          <div className="mb-6 flex items-center gap-3">
+            <p className="text-sm text-slate-400">
+              {operatorName ? `Operario: ${operatorName}` : ''} {workstationName ? `· Puesto: ${workstationName}` : ''}
+            </p>
+          </div>
+
+          <div className="relative mb-6">
+            <input
+              type="text"
+              value={orderSearch}
+              onChange={(e) => setOrderSearch(e.target.value)}
+              placeholder="Buscar por modelo, puesto o código..."
+              className="w-full rounded-xl border border-kavana-steel/30 bg-kavana-dark p-4 pl-12 text-white placeholder-slate-500 ring-1 ring-kavana-steel/20 focus:ring-kavana-orange/60 focus:outline-none text-lg"
+            />
+            <svg className="absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+            </svg>
+          </div>
+
+          {isLoadingOrders ? (
+            <Loading label="Cargando órdenes..." />
+          ) : filteredOrders.length === 0 ? (
+            <EmptyState title={emptyState.title} description={emptyState.description} />
+          ) : (
+            <div className="space-y-3">
+              {filteredOrders.map((order) => (
+                <button
+                  key={order.id}
+                  onClick={() => selectOrder(order)}
+                  className="w-full rounded-xl border border-kavana-steel/20 bg-kavana-surface/60 p-5 text-left transition hover:border-kavana-orange/40 hover:bg-kavana-surface hover:shadow-lg"
+                >
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-lg font-bold text-white">{order.model_name ?? 'Sin modelo'}</p>
+                      <p className="mt-1 text-sm text-slate-400">
+                        {order.workstation_name ?? 'Sin puesto'} · Cant: {order.quantity}
+                      </p>
+                    </div>
+                    <span className={`rounded-full px-3 py-1 text-xs font-bold ${
+                      order.status === 'pending'
+                        ? 'bg-amber-500/20 text-amber-300 ring-1 ring-amber-500/40'
+                        : 'bg-blue-500/20 text-blue-300 ring-1 ring-blue-500/40'
+                    }`}>
+                      {statusLabel[order.status] ?? order.status}
+                    </span>
+                  </div>
+                </button>
+              ))}
+            </div>
+          )}
+
+          <div className="mt-6 flex justify-end">
+            <ThemeToggle />
+          </div>
+        </section>
+      </main>
+    );
+  }
+
+  return (
+    <>
+      <main className="min-h-screen bg-kavana-dark text-slate-100 p-4 md:p-8">
+        <section className="mx-auto w-[90%] rounded-[2rem] border-2 border-kavana-orange bg-kavana-panel/90 p-4 md:p-8">
+          <header className="mb-8 flex flex-col gap-5 border-b border-kavana-orange/30 pb-6 md:flex-row md:items-center md:justify-between">
+            <div className="flex items-center gap-4">
+              <img
+                src={logo}
+                alt="Logo Kavana"
+                className="h-16 w-16 rounded-2xl bg-kavana-surface object-cover p-2 ring-1 ring-kavana-orange/40"
+              />
+              <div>
+                <p className="text-sm font-bold uppercase tracking-[0.32em] text-kavana-orange-light">Kavana Manufacturing HMI</p>
+                <h1 className="mt-2 text-3xl font-black tracking-tight text-white md:text-5xl">Panel de Operario</h1>
+              </div>
+            </div>
+
+            <div className="flex flex-wrap gap-3">
+              <span className={onlineBadgeClass(isOnline)}>
+                {isOnline ? 'Online' : 'Offline'}
+              </span>
+              <span className="rounded-full bg-kavana-surface px-4 py-3 text-sm font-bold text-slate-100 ring-1 ring-kavana-steel/40">
+                Cola pendiente: {pendingCount}
+              </span>
+              <button
+                onClick={() => setIsFailedLogsModalOpen(true)}
+                className={`rounded-full px-4 py-3 text-sm font-bold ring-1 transition ${failedCount > 0
+                  ? 'bg-rose-500/20 text-rose-300 ring-rose-500/40 hover:bg-rose-500/30'
+                  : 'bg-kavana-surface text-slate-100 ring-kavana-steel/40 hover:bg-kavana-steel/20'
+                }`}
+              >
+                Fallos: {failedCount}
+              </button>
+              <button
+                onClick={() => setIsIncidenciaModalOpen(true)}
+                className="rounded-full bg-kavana-surface px-4 py-3 text-sm font-bold text-kavana-orange ring-1 ring-kavana-orange/40 transition hover:bg-kavana-orange hover:text-white"
+              >
+                ⚠ Incidencia
+              </button>
+              <HelpModal {...OPERATOR_HELP} />
+              <ThemeToggle />
+            </div>
+          </header>
+
+          <section className="grid gap-6 lg:grid-cols-[1.1fr_0.9fr]">
+            <div className="rounded-2xl border-2 border-kavana-orange/40 bg-kavana-dark/70 p-5 shadow-inner flex flex-col justify-between">
+              <div>
+                <p className="text-sm font-bold uppercase tracking-[0.24em] text-kavana-steel">Orden actual</p>
+                <h2 className="mt-3 text-2xl font-black text-white md:text-4xl">
+                  {activeOrder?.code || (orderId ? `OF-${orderId.slice(0, 8)}` : 'Sin orden asignada')}
+                </h2>
+                <p className="mt-3 text-slate-300">
+                  {workstationName || (workstationId ? `Puesto: ${workstationId.slice(0, 8)}` : 'Puesto: No asignado')}
+                  {' · '}
+                  {operatorName || (operatorId ? `Operario: ${operatorId.slice(0, 8)}` : 'Operario: No asignado')}
+                </p>
+
+                {activeOrderCustomFields && Object.keys(activeOrderCustomFields).length > 0 && (
+                  <div className="mt-4 rounded-xl border border-kavana-steel/20 bg-kavana-surface/50 p-4">
+                    <p className="text-xs font-bold uppercase tracking-wider text-kavana-steel mb-3">Datos de la orden</p>
+                    <div className="grid grid-cols-2 gap-3">
+                      {Object.entries(activeOrderCustomFields).map(([key, value]) => (
+                        <div key={key}>
+                          <p className="text-xs text-slate-400 capitalize">{key.replace(/_/g, ' ')}</p>
+                          <p className="text-sm font-medium text-white">{String(value ?? '—')}</p>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+              {customFields.length > 0 && (
+                <div className="mt-6 grid grid-cols-2 gap-4">
+                  {customFields.map((field) => (
+                    <div key={field.key} className="rounded-xl border border-kavana-steel/20 bg-kavana-surface p-4">
+                      <label className="text-xs font-bold uppercase tracking-wider text-kavana-steel mb-1 block">{field.label}</label>
+                      <p className="mt-1 text-sm font-medium text-white">
+                        {String(activeOrderCustomFields?.[field.key] ?? '\\u2014')}
+                      </p>
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              {customFields.length > 0 && !isEditingFields && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    // Se parte de lo que ya tiene la orden para editar sobre ello,
+                    // no de un formulario en blanco.
+                    setEditingCustomFields(buildDraftValues(schemaFields, activeOrderCustomFields));
+                    setIsEditingFields(true);
+                  }}
+                  className="mt-3 rounded-lg border border-kavana-steel/30 px-3 py-1.5 text-sm font-medium text-slate-300 hover:text-white"
+                >
+                  Rellenar campos de la orden
+                </button>
+              )}
+
+              {customFields.length > 0 && isEditingFields && (
+                <CustomFieldsEditor
+                  fields={schemaFields}
+                  values={editingCustomFields}
+                  onChange={(key, value) => setEditingCustomFields((prev: Record<string, unknown>) => ({ ...prev, [key]: value }))}
+                  onSave={async () => {
+                    // Solo se cierra si se ha guardado: si falla, se queda abierto
+                    // con lo que el operario había escrito.
+                    const guardado = await handleSaveCustomFields();
+                    if (guardado) setIsEditingFields(false);
+                  }}
+                  onCancel={() => setIsEditingFields(false)}
+                  saving={isSavingCustomFields}
+                />
+              )}
+            </div>
+            {/* Right Column - Registration Form */}
+            <div className="flex flex-col gap-6">
+              <ShiftKpiCard
+                kpi={shiftKpi}
+                isLoading={isShiftKpiLoading}
+                error={shiftKpiError}
+                onRetry={() => void refreshShiftKpi()}
+              />
+              {errorMsg && (
+                <div className="rounded-xl border border-red-500/40 bg-red-500/10 p-4 text-sm text-red-300">
+                  {errorMsg}
+                </div>
+              )}
+              <div className="rounded-2xl border-2 border-kavana-orange/40 bg-kavana-dark/70 p-5 shadow-inner">
+                <div className="mb-4 flex items-center justify-between gap-3">
+                  <p className="text-sm font-bold uppercase tracking-[0.24em] text-kavana-steel">Registrar Bloque de Tiempo</p>
+                  {lastBlock && (
+                    <button
+                      type="button"
+                      onClick={repeatLastBlock}
+                      title="Rellena el formulario con el último bloque declarado y pone la hora de fin a ahora"
+                      className="rounded-lg border border-kavana-orange/50 px-3 py-2 text-xs font-bold uppercase tracking-wider text-kavana-orange transition hover:bg-kavana-orange/10"
+                    >
+                      Repetir último bloque
+                    </button>
+                  )}
+                </div>
+                <form onSubmit={handleRegisterBlock} className="flex flex-col gap-4">
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-xs font-bold uppercase tracking-wider text-kavana-steel mb-1">Hora Inicio</label>
+                      <input
+                        type="time"
+                        value={startTime}
+                        onChange={(e) => setStartTime(e.target.value)}
+                        required
+                        className="w-full rounded-xl border border-kavana-steel/30 bg-kavana-surface px-4 py-3 text-sm font-medium text-white placeholder-slate-500 focus:border-kavana-orange focus:outline-none"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-xs font-bold uppercase tracking-wider text-kavana-steel mb-1">Hora Fin</label>
+                      <input
+                        type="time"
+                        value={endTime}
+                        onChange={(e) => setEndTime(e.target.value)}
+                        required
+                        className="w-full rounded-xl border border-kavana-steel/30 bg-kavana-surface px-4 py-3 text-sm font-medium text-white placeholder-slate-500 focus:border-kavana-orange focus:outline-none"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-xs font-bold uppercase tracking-wider text-kavana-steel mb-1">Producción Buena</label>
+                      <input
+                        type="number"
+                        value={producedQuantity}
+                        onChange={(e) => setProducedQuantity(e.target.value)}
+                        min="0"
+                        className="w-full rounded-xl border border-kavana-steel/30 bg-kavana-surface px-4 py-3 text-sm font-medium text-white focus:border-kavana-orange focus:outline-none"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-xs font-bold uppercase tracking-wider text-kavana-steel mb-1">Defectos</label>
+                      <input
+                        type="number"
+                        value={defectQuantity}
+                        onChange={(e) => setDefectQuantity(e.target.value)}
+                        min="0"
+                        className="w-full rounded-xl border border-kavana-steel/30 bg-kavana-surface px-4 py-3 text-sm font-medium text-white focus:border-kavana-orange focus:outline-none"
+                      />
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-bold uppercase tracking-wider text-kavana-steel mb-1">Observaciones</label>
+                    <textarea
+                      value={observations}
+                      onChange={(e) => setObservations(e.target.value)}
+                      rows={4}
+                      className="w-full rounded-xl border border-kavana-steel/30 bg-kavana-surface px-4 py-3 text-sm font-medium text-white placeholder-slate-500 focus:border-kavana-orange focus:outline-none resize-none"
+                    />
+                  </div>
+
+                  <button
+                    type="submit"
+                    disabled={isMutating || isSyncing}
+                    className="mt-2 w-full rounded-xl bg-kavana-orange px-6 py-4 text-base font-black uppercase tracking-wider text-white transition hover:bg-kavana-orange-light disabled:opacity-50"
+                  >
+                    {isMutating ? 'Guardando...' : 'Registrar Producción'}
+                  </button>
+                </form>
+              </div>
+            </div>
+          </section>
+
+          {isFailedLogsModalOpen && (
+            <FailedEventsModal
+              isOpen={isFailedLogsModalOpen}
+              onClose={() => setIsFailedLogsModalOpen(false)}
+              onClearAll={() => {
+                // Use selector setter to reset failed count
+                useHmiStore.getState().setFailedCount(0);
+              }}
+            />
+          )}
+          <IncidenciaModal
+            isOpen={isIncidenciaModalOpen}
+            onClose={(created) => {
+              setIsIncidenciaModalOpen(false);
+              if (created) void loadAvailableOrders();
+            }}
+            operatorId={operatorId}
+            workstationId={workstationId}
+            orderId={orderId}
+          />
+        </section>
+      </main>
+      <AiAdvisorFab />
+    </>
+  );
+}
+
+const onlineBadgeClass = (isOnline: boolean) => (
+  isOnline
+    ? 'rounded-full bg-emerald-500/20 px-4 py-3 text-sm font-black text-emerald-200 ring-1 ring-emerald-400/40'
+    : 'rounded-full bg-kavana-orange/20 px-4 py-3 text-sm font-black text-kavana-orange ring-1 ring-kavana-orange/40'
+);

@@ -4,6 +4,7 @@ import { OrdersService } from './orders.service.js';
 import { NotFoundException } from '@nestjs/common';
 import * as tenantContext from '../auth/tenant-context.storage.js';
 import { tenantQuery } from '../db/tenant-query.js';
+import type { ListOrdersQuery } from './dto.js';
 
 vi.mock('../auth/tenant-context.storage.js', () => ({
   getTenantContext: vi.fn(),
@@ -72,16 +73,28 @@ describe('OrdersController', () => {
       ];
       vi.spyOn(service, 'listOrders').mockResolvedValue(orders);
 
-      const result = await controller.listOrders();
+      const result = await controller.listOrders({});
 
       expect(result).toEqual(orders);
-      expect(service.listOrders).toHaveBeenCalled();
+      expect(service.listOrders).toHaveBeenCalledWith(
+        expect.objectContaining({ status: [], limit: 200, offset: 0 }),
+      );
+    });
+
+    it('traduce los filtros de la query, ignorando estados inventados', async () => {
+      vi.spyOn(service, 'listOrders').mockResolvedValue([]);
+
+      await controller.listOrders({ status: 'pending,in_progress,inventado', q: 'ORD-1', limit: '50' });
+
+      expect(service.listOrders).toHaveBeenCalledWith(
+        expect.objectContaining({ status: ['pending', 'in_progress'], q: 'ORD-1', limit: 50 }),
+      );
     });
 
     it('returns empty list when no orders exist', async () => {
       vi.spyOn(service, 'listOrders').mockResolvedValue([]);
 
-      const result = await controller.listOrders();
+      const result = await controller.listOrders({});
 
       expect(result).toEqual([]);
     });
@@ -171,6 +184,8 @@ describe('OrdersService', () => {
   });
 
   describe('listOrders', () => {
+    const sinFiltros: ListOrdersQuery = { status: [], limit: 200, offset: 0 };
+
     it('returns orders for current tenant', async () => {
       const orders = [
         { id: 'order-1', model_id: 'model-1', workstation_id: 'ws-1', quantity: 100, status: 'pending', produced_quantity: '0', defect_quantity: '0', model_name: 'Modelo A', workstation_name: 'Puesto 1', custom_fields: {} },
@@ -178,13 +193,47 @@ describe('OrdersService', () => {
       ];
       mockTenantQuery.mockResolvedValue({ rows: orders } as any);
 
-      const result = await service.listOrders();
+      const result = await service.listOrders(sinFiltros);
 
       expect(result).toEqual(orders);
       expect(mockTenantQuery).toHaveBeenCalledWith(
         expect.anything(),
         expect.stringContaining('WHERE o.tenant_id'),
+        expect.any(Array),
       );
+    });
+
+    it('proyecta el código de la orden y no devuelve el histórico entero', async () => {
+      mockTenantQuery.mockResolvedValue({ rows: [] } as any);
+
+      await service.listOrders(sinFiltros);
+
+      const [, sql, values] = mockTenantQuery.mock.calls[0] as [unknown, string, unknown[]];
+      expect(sql).toContain('o.code');
+      expect(sql).toContain('LIMIT $1 OFFSET $2');
+      expect(values).toEqual([200, 0]);
+    });
+
+    it('filtra por estado cuando se lo piden', async () => {
+      mockTenantQuery.mockResolvedValue({ rows: [] } as any);
+
+      await service.listOrders({ status: ['pending', 'in_progress'], limit: 50, offset: 0 });
+
+      const [, sql, values] = mockTenantQuery.mock.calls[0] as [unknown, string, unknown[]];
+      expect(sql).toContain('o.status = ANY($1::text[])');
+      expect(sql).toContain('LIMIT $2 OFFSET $3');
+      expect(values).toEqual([['pending', 'in_progress'], 50, 0]);
+    });
+
+    it('busca por código, modelo o puesto', async () => {
+      mockTenantQuery.mockResolvedValue({ rows: [] } as any);
+
+      await service.listOrders({ status: [], q: 'ORD-2026', limit: 200, offset: 0 });
+
+      const [, sql, values] = mockTenantQuery.mock.calls[0] as [unknown, string, unknown[]];
+      expect(sql).toContain('o.code ILIKE $1');
+      expect(sql).toContain('mm.name ILIKE $1');
+      expect(values).toEqual(['%ORD-2026%', 200, 0]);
     });
   });
 

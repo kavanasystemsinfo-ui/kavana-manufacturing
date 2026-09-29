@@ -34,13 +34,13 @@ export function ThemeToggle({ variant = 'header' }: ThemeToggleProps) {
       <div className="flex items-center gap-1 rounded-md border border-gray-200 bg-gray-100 p-0.5">
         <button
           onClick={() => useThemeStore.getState().setTheme('classic')}
-          className="rounded px-2.5 py-1 text-xs font-medium transition bg-white text-blue-700 shadow-sm"
+          className="rounded px-2.5 py-1 min-h-[40px] sm:min-h-0 text-xs font-medium transition bg-white text-blue-700 shadow-sm"
         >
           Clásico
         </button>
         <button
           onClick={() => useThemeStore.getState().setTheme('modern')}
-          className="rounded px-2.5 py-1 text-xs font-medium transition text-gray-500 hover:text-gray-700 hover:bg-gray-200/50"
+          className="rounded px-2.5 py-1 min-h-[40px] sm:min-h-0 text-xs font-medium transition text-gray-500 hover:text-gray-700 hover:bg-gray-200/50"
         >
           Kavana
         </button>
@@ -53,13 +53,13 @@ export function ThemeToggle({ variant = 'header' }: ThemeToggleProps) {
     <div className="flex items-center gap-1 rounded-lg bg-kavana-dark p-1 ring-1 ring-kavana-orange/30">
       <button
         onClick={() => useThemeStore.getState().setTheme('classic')}
-        className="rounded-md px-2.5 py-1 text-xs font-medium transition text-slate-400 hover:text-white hover:bg-kavana-steel/30"
+        className="rounded-md px-2.5 py-1 min-h-[40px] sm:min-h-0 text-xs font-medium transition text-slate-400 hover:text-white hover:bg-kavana-steel/30"
       >
         Clásico
       </button>
       <button
         onClick={() => useThemeStore.getState().setTheme('modern')}
-        className="rounded-md px-2.5 py-1 text-xs font-medium transition bg-kavana-orange text-kavana-dark shadow-lg"
+        className="rounded-md px-2.5 py-1 min-h-[40px] sm:min-h-0 text-xs font-medium transition bg-kavana-orange text-kavana-dark shadow-lg"
       >
         Kavana
       </button>

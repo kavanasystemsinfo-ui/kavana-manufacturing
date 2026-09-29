@@ -3,10 +3,13 @@ import { randomUUID } from 'node:crypto';
 import { postgresPool } from '../db/postgres.provider.js';
 import { tenantQuery } from '../db/tenant-query.js';
 import { getTenantContext } from '../auth/tenant-context.storage.js';
-import type { CreateOrderDto, UpdateOrderDto } from './dto.js';
+import type { CreateOrderDto, UpdateOrderDto, ListOrdersQuery } from './dto.js';
 import { deriveWorkstationState } from '../workstations/workstation-state.js';
 
-const ORDER_FIELDS = `o.id, o.model_id, o.workstation_id, o.quantity, o.status, o.created_by,
+// `o.code` es el identificador visible de la orden (el N.º de Orden que teclea
+// el supervisor). Faltaba en la proyección, así que las tarjetas del tablero
+// salían con «—» en su sitio: la columna existe y está poblada.
+const ORDER_FIELDS = `o.id, o.code, o.model_id, o.workstation_id, o.quantity, o.status, o.created_by,
   o.custom_fields, o.produced_quantity, o.defect_quantity, o.created_at, o.updated_at,
   COALESCE(mm.name, 'Sin modelo') as model_name,
   COALESCE(w.name, 'Sin puesto') as workstation_name`;
@@ -44,13 +47,37 @@ export class OrdersService {
     }
   }
 
-  async listOrders() {
+  async listOrders(filters: ListOrdersQuery) {
+    const where: string[] = ['o.tenant_id = get_current_tenant()'];
+    const values: unknown[] = [];
+
+    if (filters.status.length > 0) {
+      values.push(filters.status);
+      where.push(`o.status = ANY($${values.length}::text[])`);
+    }
+    if (filters.workstation_id) {
+      values.push(filters.workstation_id);
+      where.push(`o.workstation_id = $${values.length}`);
+    }
+    if (filters.q) {
+      values.push(`%${filters.q}%`);
+      where.push(
+        `(o.code ILIKE $${values.length} OR mm.name ILIKE $${values.length} OR w.name ILIKE $${values.length})`,
+      );
+    }
+
+    values.push(filters.limit, filters.offset);
+    const limitParam = values.length - 1;
+    const offsetParam = values.length;
+
     const result = await tenantQuery(
       postgresPool,
       `SELECT ${ORDER_FIELDS}
        FROM ${ORDER_FROM}
-       WHERE o.tenant_id = get_current_tenant()
-       ORDER BY o.created_at DESC`,
+       WHERE ${where.join(' AND ')}
+       ORDER BY o.created_at DESC
+       LIMIT $${limitParam} OFFSET $${offsetParam}`,
+      values,
     );
     return result.rows;
   }
