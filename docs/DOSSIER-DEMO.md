@@ -72,7 +72,25 @@ sabe usar, pero con una interfaz que un operario de planta entiende sin manual.
    tres pasos. Cerrar con que la demo se limpia sola cada madrugada y que el
    visitante no puede romperla.
 
-## 4. Cómo verificarlo sin fiarse
+## 4. Guion de vídeo (3 minutos)
+
+Grabando pantalla, sin locución perfecta, se entiende mejor que cualquier texto.
+El orden es el del guion de arriba, pero recortado:
+
+1. **0:00 a 0:20.** El problema, en una frase: el parte en papel tarda 9 minutos
+   y el OEE se estima a ojo.
+2. **0:20 a 1:00.** Móvil, rol operario: órdenes del día, iniciar trabajo,
+   cantidad producida, motivo de parada. Grabar con el móvil en la mano.
+3. **1:00 a 1:45.** Escritorio, rol supervisor: tablero de órdenes, arrastrar
+   una tarjeta y recargar para que se vea que el cambio queda.
+4. **1:45 a 2:30.** OEE del día: abrir el número y el detalle de dónde sale.
+5. **2:30 a 3:00.** Plataforma: el wizard de alta creando planta y
+   administrador, y de cierre: la demo se limpia sola cada madrugada.
+
+Lo que no debe salir en el vídeo: la consola del navegador, la pantalla de login
+con credenciales escritas y cualquier promesa que no esté en este dossier.
+
+## 5. Cómo verificarlo sin fiarse
 
 ```bash
 # La API está viva
@@ -89,7 +107,7 @@ El flujo completo se reproduce en local con un comando (Docker) y la suite de
 navegador prueba el arrastre de tarjetas contra la aplicación real, no contra
 mocks. Las credenciales de la demo se facilitan a quien la va a probar.
 
-## 5. Evidencias medidas (29/09/2026)
+## 6. Evidencias medidas (29/09/2026)
 
 - Órdenes en la planta demo: **1.227** (510 en los últimos 90 días).
 - Partes de trabajo: **1.259** repartidos en **92 días** de histórico.
@@ -100,7 +118,7 @@ mocks. Las credenciales de la demo se facilitan a quien la va a probar.
 - Verificación del blindaje de la demo: **10/10** en verde.
 - Demo del día regenerada: **12 órdenes** y **54 partes** del día en curso.
 
-## 6. Límites, dichos a la cara
+## 7. Límites, dichos a la cara
 
 - **No es producción real**: no hay clientes de pago ni datos de una fábrica
   real. Los datos de la planta demo son simulados, con forma realista (turnos,
