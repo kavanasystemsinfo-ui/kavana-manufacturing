@@ -170,6 +170,35 @@ la demo y ese cambio queda guardado. Opciones (las tres son defendibles):
   del VPS (una variable de entorno decide), asumiendo que en la web pública el
   gesto estrella sigue sin persistir.
 
+### 2.10 Limpieza diaria de la demo pública (29/09)
+
+Jorge eligió subir el panel y programar la limpieza diaria de la demo. La limpieza
+existía a medias y no era solo «poner el cron»:
+
+- **El wrapper existía, el cron no.** `~/.hermes/profiles/kavana/scripts/simulate_manufacturing_daily.sh`
+  estaba escrito tal cual para cron pero no aparecía en ningún crontab. Programado
+  a las 06:00 UTC (log en `/var/log/manufacturing-demo-daily.log`).
+- **El script era un no-op silencioso.** Con `pg@8.23`, llamar a `query` sin
+  `connect` hace que el proceso salga con código 0 sin ejecutar nada: el cron
+  habría dado verde para siempre sin tocar la base. Añadido `await c.connect()`.
+- **El generador estaba obsoleto respecto al esquema**: insertaba `created_at` y
+  `updated_at` en `production_work_blocks`, columnas que ya no existen. Reescrito
+  con las columnas reales (`client_event_id`, `synced_at`, `registered_at`,
+  `is_offline_event`, `version`).
+- **La restricción de exclusión de la tabla** (`tenant_id, operator_id, rango
+  horario`) hacía inviable el reparto anterior: con 10 operarios y 15 puestos,
+  varios puestos comparten operario en el mismo turno y sus tramos se solapaban.
+  Ahora cada puesto recibe su propio subtramo dentro del turno, y la parada se
+  descuenta del tiempo de producción en vez de sumarse encima.
+- Verificado: en local 12 órdenes y 54 partes del día, 10 operarios distintos,
+  0 solapes; en producción lo mismo. Las órdenes de hoy cierran solas mañana y lo
+  que cree el visitante con la cuenta de operario caduca a las 24h.
+- Lo que la limpieza NO hace (dicho claro): no deshace un movimiento de estado que
+  el visitante haga sobre una orden vieja. Un `completed` movido a `in_progress`
+  se vuelve a cerrar el día siguiente; un `pending` movido a `completed` se queda
+  así. Si eso molesta, el siguiente paso es un reset de estados contra una copia
+  de referencia.
+
 ## 3. Lo que se ha hecho (con evidencia)
 
 ### Fase 0 — Desbloquear el repo (hecha)
