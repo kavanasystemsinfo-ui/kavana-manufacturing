@@ -199,6 +199,18 @@ existía a medias y no era solo «poner el cron»:
   así. Si eso molesta, el siguiente paso es un reset de estados contra una copia
   de referencia.
 
+### 2.11 Hallazgo abierto: el admin recién creado no entra a la primera (29/09)
+
+En la suite E2E, `tenant-wizard.spec.ts` es el único flaky que queda: el wizard
+crea el tenant con su admin y el `login-by-tenant` de ese admin recién nacido
+responde **401** en el primer intento y **201** al reintentar (medido en la pasada
+del 29/09; antes se había visto el mismo spec caer con 429, que era otra cosa).
+No es el rate limit, ya que el tope en E2E está en 500 y el código de estado es
+401. Huele a carrera: el alta responde antes de que el login pueda ver al usuario
+o el subdominio. Fuera del alcance del panel; pendiente de investigar como
+incidente propio (un cliente nuevo que no puede entrar a la primera en real es
+peor que un test flaky).
+
 ## 3. Lo que se ha hecho (con evidencia)
 
 ### Fase 0 — Desbloquear el repo (hecha)
@@ -273,13 +285,18 @@ existía a medias y no era solo «poner el cron»:
 1. ~~Repintar los contenedores de la demo~~ (hecho el 29/09 para el blindaje y el
    healthcheck) y volver a auditar el panel con capturas de los dos temas en
    escritorio y móvil: **pendiente la pasada de capturas**.
-2. Suite E2E completa en verde (29/09): **13/13, 0 fallos**, de los cuales 3
-   pasaron al reintentar (el login en ráfaga se come un 429 del límite por IP,
-   no es código: `full-flow` y los dos specs del panel). Antes de correrla hay que
-   recompilar el backend, porque el `webServer` arranca `dist/main.js` y un dist
-   viejo da verdes falsos (ver 2.8).
-3. Informe final a Jorge y su OK para el push (nada de esto está en GitHub
-   todavía).
+2. Suite E2E completa en verde (29/09): **13/13, 0 fallos**, con 3 flaky que
+   fallaban siempre en el login, no en lo que probaban. Causa medida: el límite
+   de login es 10 intentos / 5 min por IP y la suite entera entra en ráfaga desde
+   la misma IP (429 → el test espera la navegación y muere a los 90 s). Arreglado
+   por configuración: `MAX_ATTEMPTS` del limitador lee `LOGIN_MAX_ATTEMPTS`, que
+   `playwright.config.ts` sube en el `webServer`; en producción la variable no
+   existe y el tope sigue siendo 10. Antes de correr la suite hay que recompilar
+   el backend, porque el `webServer` arranca `dist/main.js` y un dist viejo da
+   verdes falsos (ver 2.8).
+3. Informe final a Jorge: entregado el 29/09 y el push ya está hecho
+   (`837245e` panel + `2d494f2` simulación diaria). La limpieza diaria de la demo
+   está programada a las 06:00 UTC y verificada.
 
 ### Verificación ya hecha
 

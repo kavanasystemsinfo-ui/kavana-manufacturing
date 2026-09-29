@@ -5,9 +5,12 @@ import { AuthLoginService } from './auth-login.service.js';
 // FIX 2026-08-21 (P1): rate limit de login (10 intentos / 5 min / IP).
 // Mismo patrón en memoria que el rate limit del ai-advisor: suficiente para
 // 1 réplica; migrar a Redis si se escala. Ventana deslizante por IP.
+// El tope es configurable SOLO para el E2E: 12 specs entran en ráfaga desde la
+// misma IP y el 429 hacía fallar tests que no prueban el límite. En producción
+// la variable no se define y el tope es 10.
 const loginAttempts = new Map<string, number[]>();
 const WINDOW_MS = 5 * 60 * 1000;
-const MAX_ATTEMPTS = 10;
+const MAX_ATTEMPTS = Number(process.env.LOGIN_MAX_ATTEMPTS ?? 10);
 
 function clientIp(req: Request): string {
   const fwd = (req.headers['x-forwarded-for'] as string)?.split(',')[0]?.trim();

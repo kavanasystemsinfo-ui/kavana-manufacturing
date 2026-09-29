@@ -45,6 +45,11 @@ export default defineConfig({
         // e2e-setup: sin esta lista el guard del Global Admin deniega a todos.
         GLOBAL_ADMIN_USER_IDS:
           process.env.GLOBAL_ADMIN_USER_IDS ?? '00000000-0000-4000-8000-0000000000aa',
+        // El límite de login (10/5min por IP en producción) se queda corto aquí:
+        // la suite entera entra en ráfaga desde la misma IP y el 429 hacía fallar
+        // tests que no prueban el límite (3 flaky de 13 en la pasada del 29/09,
+        // todos muriendo en el login). En producción el valor sigue siendo 10.
+        LOGIN_MAX_ATTEMPTS: process.env.LOGIN_MAX_ATTEMPTS ?? '500',
       },
     },
     {
