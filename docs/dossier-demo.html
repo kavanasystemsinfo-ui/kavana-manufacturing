@@ -1,0 +1,162 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>KAVANA Manufacturing — dossier de una planta digital</title>
+    <style>
+      :root {
+        --tinta: #0f172a;
+        --suave: #475569;
+        --linea: #e2e8f0;
+        --acento: #0e7490;
+        --fondo: #f8fafc;
+      }
+      * { box-sizing: border-box; }
+      body {
+        margin: 0;
+        font-family: 'Inter', 'Segoe UI', system-ui, sans-serif;
+        color: var(--tinta);
+        background: var(--fondo);
+        line-height: 1.5;
+      }
+      .hoja {
+        max-width: 860px;
+        margin: 0 auto;
+        padding: 48px 40px 56px;
+        background: #fff;
+        box-shadow: 0 0 0 1px var(--linea);
+      }
+      .etiqueta {
+        font-size: 12px;
+        letter-spacing: .14em;
+        text-transform: uppercase;
+        color: var(--acento);
+        font-weight: 600;
+      }
+      h1 { font-size: 34px; margin: 8px 0 6px; letter-spacing: -0.02em; }
+      .sub { color: var(--suave); margin: 0 0 28px; font-size: 17px; }
+      h2 {
+        font-size: 13px;
+        letter-spacing: .12em;
+        text-transform: uppercase;
+        color: var(--suave);
+        margin: 32px 0 12px;
+        padding-bottom: 6px;
+        border-bottom: 1px solid var(--linea);
+      }
+      p { margin: 0 0 12px; }
+      ul { margin: 0 0 12px; padding-left: 18px; }
+      li { margin-bottom: 6px; }
+      .cifras {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 12px;
+        margin: 8px 0 4px;
+      }
+      .cifra {
+        background: var(--fondo);
+        border: 1px solid var(--linea);
+        border-radius: 10px;
+        padding: 12px 14px;
+      }
+      .cifra b { display: block; font-size: 24px; letter-spacing: -0.02em; }
+      .cifra span { font-size: 12px; color: var(--suave); }
+      .dos {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 24px;
+      }
+      .enlace {
+        font-family: ui-monospace, 'SFMono-Regular', Menlo, monospace;
+        font-size: 13px;
+        background: var(--fondo);
+        border: 1px solid var(--linea);
+        border-radius: 8px;
+        padding: 10px 12px;
+        display: block;
+        margin-bottom: 8px;
+        color: var(--acento);
+        text-decoration: none;
+        overflow-wrap: anywhere;
+      }
+      .limites { color: var(--suave); font-size: 14px; }
+      footer { margin-top: 32px; padding-top: 14px; border-top: 1px solid var(--linea); font-size: 13px; color: var(--suave); }
+      @media print { body { background: #fff; } .hoja { box-shadow: none; padding: 0 0 24px; max-width: none; } }
+      @media (max-width: 640px) { .cifras { grid-template-columns: repeat(2, 1fr); } .dos { grid-template-columns: 1fr; } .hoja { padding: 28px 20px; } }
+    </style>
+  </head>
+  <body>
+    <main class="hoja">
+      <p class="etiqueta">KAVANA Systems</p>
+      <h1>Manufacturing, una fábrica que se gobierna sola</h1>
+      <p class="sub">
+        MES multi-tenant para planta de placas solares: órdenes, partes, paradas,
+        OEE e incidencias. Nace de 8 años trabajando en fábrica y de ver el parte
+        en papel tardar 9 minutos.
+      </p>
+
+      <h2>Qué enseña, en cifras de la planta demo</h2>
+      <div class="cifras">
+        <div class="cifra"><b>1.227</b><span>órdenes de fabricación</span></div>
+        <div class="cifra"><b>1.259</b><span>partes de trabajo</span></div>
+        <div class="cifra"><b>92</b><span>días de histórico</span></div>
+        <div class="cifra"><b>15</b><span>puestos con OEE</span></div>
+      </div>
+
+      <h2>Producto</h2>
+      <div class="dos">
+        <div>
+          <p><b>Tres roles cerrados.</b> El operario parte su trabajo desde el
+          móvil, el supervisor mueve el tablero y el administrador gobierna los
+          catálogos.</p>
+          <p><b>Tablero que de verdad mueve.</b> Arrastrar una tarjeta cambia el
+          estado de la orden y aguanta la recarga: persiste en base de datos.</p>
+        </div>
+        <div>
+          <p><b>OEE desde los partes.</b> Disponibilidad, rendimiento y calidad
+          salen de los eventos de planta, no de una estimación escrita a mano.</p>
+          <p><b>Alta de planta en tres pasos.</b> Crear cliente, módulos y su
+          administrador, y que ese administrador entre a su planta de verdad.</p>
+        </div>
+      </div>
+
+      <h2>Ingeniería</h2>
+      <div class="dos">
+        <div>
+          <p><b>Multi-tenant con aislamiento efectivo.</b> Políticas RLS y rol de
+          aplicación sin permisos directos sobre las tablas: dos plantas no se
+          ven ni por API ni por base de datos.</p>
+          <p><b>Pruebas como condición.</b> 582 backend, 207 frontend y 13 de
+          navegador contra la aplicación real.</p>
+        </div>
+        <div>
+          <p><b>CI con 6 trabajos</b> (lint, tipos, tests, E2E, tamaño de imagen,
+          build) y despliegue automático a Render y Vercel en cada push a main.</p>
+          <p><b>Demo que aguanta visitantes.</b> El borrado está bloqueado y la
+          fábrica demo se regenera cada madrugada: nunca enseña una pantalla
+          vacía.</p>
+        </div>
+      </div>
+
+      <h2>Pruébalo</h2>
+      <a class="enlace" href="https://www.manufacturing.kavanasystems.com/demo">https://www.manufacturing.kavanasystems.com/demo</a>
+      <a class="enlace" href="https://www.manufacturing.kavanasystems.com/api/v1/health">https://www.manufacturing.kavanasystems.com/api/v1/health</a>
+
+      <h2>Hasta dónde llega, sin adornos</h2>
+      <p class="limites">
+        No es producción real: no hay clientes de pago y los datos de la planta
+        demo son simulados, con forma realista pero generados. Un cliente de
+        verdad necesitaría invitaciones de usuario, copias de seguridad,
+        auditoría de accesos y soporte, y nada de eso está aquí fingido. Lo que
+        sí es real es el código, las pruebas, el aislamiento entre plantas y que
+        la demo pública resiste lo que le haga un visitante.
+      </p>
+
+      <footer>
+        Jorge Adán · KAVANA Systems · proyecto KAVANA Manufacturing · dossier de
+        demo actualizado el 29 de septiembre de 2026
+      </footer>
+    </main>
+  </body>
+</html>
