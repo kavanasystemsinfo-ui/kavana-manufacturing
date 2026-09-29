@@ -300,8 +300,18 @@ el reintento pasó. Qué se ha medido:
 
 1. ~~Repintar los contenedores de la demo~~ (hecho el 29/09 para el blindaje y el
    healthcheck) y volver a auditar el panel con capturas de los dos temas en
-   escritorio y móvil: **pendiente la pasada de capturas**.
-2. Suite E2E completa en verde (29/09): **13/13, 0 fallos**, con 3 flaky que
+   escritorio y móvil: **pendiente la pasada de capturas, y bloqueada por
+   credenciales**. Las capturas del interior del panel exigen entrar con un
+   usuario y esta sesión no puede recibir contraseñas (el gestor responde
+   `prompt_unavailable` en sesión sin interfaz, y teclearlas está fuera de lo
+   permitido). Desbloqueo: Jorge guarda el login de la demo con `hermes vault add`
+   (o Ajustes → Contraseñas) y una sesión con interfaz hace la pasada. Las
+   credenciales de la demo están impresas en la propia página de login.
+2. Dossier de demo escrito el 29/09: `docs/DOSSIER-DEMO.md` (guion de demo de 5
+   minutos, guion de vídeo de 3, comandos de verificación, evidencias y límites)
+   y `docs/dossier-demo.html` (la misma historia en una hoja imprimible). Commit
+   `9ffbb6f`, guion de vídeo en `22073ba`.
+3. Suite E2E completa en verde (29/09): **13/13, 0 fallos**, con 3 flaky que
    fallaban siempre en el login, no en lo que probaban. Causa medida: el límite
    de login es 10 intentos / 5 min por IP y la suite entera entra en ráfaga desde
    la misma IP (429 → el test espera la navegación y muere a los 90 s). Arreglado
@@ -310,7 +320,7 @@ el reintento pasó. Qué se ha medido:
    existe y el tope sigue siendo 10. Antes de correr la suite hay que recompilar
    el backend, porque el `webServer` arranca `dist/main.js` y un dist viejo da
    verdes falsos (ver 2.8).
-3. Informe final a Jorge: entregado el 29/09 y el push ya está hecho
+4. Informe final a Jorge: entregado el 29/09 y el push ya está hecho
    (`837245e` panel + `2d494f2` simulación diaria). La limpieza diaria de la demo
    está programada a las 06:00 UTC y verificada.
 
