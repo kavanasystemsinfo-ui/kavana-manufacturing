@@ -35,6 +35,21 @@ test.describe('Wizard de alta de tenant (3.1)', () => {
   test.setTimeout(90000);
 
   test('los 3 pasos crean tenant + módulos + admin y el admin nuevo entra', async ({ page, request }) => {
+    // El spec crea siempre el tenant 97. Si quedó de una pasada anterior del
+    // mismo run (reintento) el alta devolvería 409, el wizard no cerraría y la
+    // aserción estricta lo cantaría. Se limpia por API para que sea idempotente.
+    const auth = await request.post('/api/v1/auth/login-by-tenant', {
+      data: {
+        subdomain: 'demo',
+        username: WIZARD.platformUsername,
+        password: WIZARD.platformPassword,
+      },
+    });
+    const { token } = await auth.json();
+    await request.delete(`/api/v1/global-admin/tenants/${WIZARD.tenantId}`, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+
     await loginGlobalAdmin(page);
     await page.goto('/global-admin');
 
@@ -66,9 +81,16 @@ test.describe('Wizard de alta de tenant (3.1)', () => {
     await page.locator('#tw-pass').fill(WIZARD.adminPass);
     await crear.click();
 
-    // Al terminar vuelve a la pestaña de clientes y el tenant nuevo aparece.
-    await expect(page.getByRole('heading', { name: 'Global Admin — Clientes' })).toBeVisible();
-    await expect(page.getByText(WIZARD.tenantName).first()).toBeVisible({ timeout: 20000 });
+    // Al terminar vuelve a la pestaña de clientes y el tenant nuevo aparece EN LA
+    // TABLA. El wizard también pinta el nombre del tenant («Se creará el cliente
+    // Acme Wizard E2E…»), así que buscar el texto suelto pasaba aunque el alta
+    // hubiera fallado: el 29/09 el alta devolvió 409 y el spec lo dio por bueno,
+    // dejando el 401 del login sin explicación. De ahí las dos aserciones:
+    // el wizard cerrado y el nombre como CELDA de la tabla de clientes.
+    await expect(page.getByRole('heading', { name: 'Nuevo cliente' })).toHaveCount(0);
+    await expect(page.getByRole('cell', { name: WIZARD.tenantName, exact: true })).toBeVisible({
+      timeout: 20000,
+    });
 
     // El admin creado por el wizard entra de verdad con sus credenciales,
     // por el subdominio del tenant que acaba de nacer.

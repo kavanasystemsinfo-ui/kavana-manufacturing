@@ -199,17 +199,33 @@ existía a medias y no era solo «poner el cron»:
   así. Si eso molesta, el siguiente paso es un reset de estados contra una copia
   de referencia.
 
-### 2.11 Hallazgo abierto: el admin recién creado no entra a la primera (29/09)
+### 2.11 El 401 del alta, investigado (29/09)
 
-En la suite E2E, `tenant-wizard.spec.ts` es el único flaky que queda: el wizard
-crea el tenant con su admin y el `login-by-tenant` de ese admin recién nacido
-responde **401** en el primer intento y **201** al reintentar (medido en la pasada
-del 29/09; antes se había visto el mismo spec caer con 429, que era otra cosa).
-No es el rate limit, ya que el tope en E2E está en 500 y el código de estado es
-401. Huele a carrera: el alta responde antes de que el login pueda ver al usuario
-o el subdominio. Fuera del alcance del panel; pendiente de investigar como
-incidente propio (un cliente nuevo que no puede entrar a la primera en real es
-peor que un test flaky).
+En la suite E2E, `tenant-wizard.spec.ts` falló una vez: el wizard crea el tenant
+con su admin y el `login-by-tenant` de ese admin recién nacido devolvió **401**;
+el reintento pasó. Qué se ha medido:
+
+- **El alta y el login funcionan.** 12 altas por API con login inmediato después:
+  12/12 en 201. Dos pasadas de la suite completa con `--retries=0`: 13/13 y 13/13.
+- **El reintento pasaba por una aserción floja, no por el código.** El trace de la
+  pasada que falló (guardado por `trace: on-first-retry`) muestra que en el
+  reintento el alta devolvió **409** (el tenant 97 ya existía) y el spec lo dio por
+  bueno: comprobaba el nombre del tenant con `getByText`, y el propio wizard pinta
+  ese nombre («Se creará el cliente Acme Wizard E2E…»), así que la aserción se
+  cumplía con el wizard abierto y el alta rota. El login del reintento sí devolvió
+  201 con las credenciales creadas en el intento anterior.
+- **Arreglado**: la aserción ahora exige que el wizard esté cerrado y que el
+  nombre aparezca como **celda** de la tabla de clientes, y el spec borra el tenant
+  97 por API antes de empezar para ser idempotente en los reintentos. Verificado:
+  el spec dos veces seguidas en el mismo run → 2/2 en verde (antes, la segunda
+  pasada habría dado 409 y el test habría pasado igual sin crear nada).
+- **Lo que no se ha podido cerrar**: la causa del 401 puntual. No se reproduce
+  (25 intentos: 12 por API y el spec trece veces) y las hipótesis se han ido
+  descartando con evidencia: no es el límite por IP (eso es 429), no es el
+  contexto de tenant que queda pegado en el pool (el backend del E2E entra como
+  superusuario y salta RLS), no es el dato (el hash del admin creado verifica
+  contra «acme1234» y el tenant existe). Si vuelve a aparecer, ahora la suite lo
+  dirá con el alta ya verificada y con trace del intento que falle.
 
 ## 3. Lo que se ha hecho (con evidencia)
 
