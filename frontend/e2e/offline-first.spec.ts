@@ -56,6 +56,35 @@ async function producidoEnServidor(page: Page): Promise<number | null> {
   return Number(orden.produced_quantity ?? 0);
 }
 
+/**
+ * La copia local se escribe DESPUÉS de pintar la lista (`set` y luego el
+ * guardado en IndexedDB), así que ver la tarjeta no garantiza que el
+ * dispositivo ya la tenga guardada. Sin esta espera la recarga sin red es una
+ * carrera y en el CI falló de forma intermitente.
+ */
+async function copiaLocalGuardada(page: Page): Promise<void> {
+  await expect
+    .poll(
+      () =>
+        page.evaluate(async () => {
+          const peticion = indexedDB.open('KavanaHmiDatabase');
+          const base = await new Promise<IDBDatabase | null>((resolve) => {
+            peticion.onsuccess = () => resolve(peticion.result);
+            peticion.onerror = () => resolve(null);
+          });
+          if (!base || !Array.from(base.objectStoreNames).includes('snapshots')) return 0;
+          return new Promise<number>((resolve) => {
+            const transaccion = base.transaction('snapshots', 'readonly');
+            const cuenta = transaccion.objectStore('snapshots').count();
+            cuenta.onsuccess = () => resolve(cuenta.result);
+            cuenta.onerror = () => resolve(0);
+          });
+        }),
+      { timeout: 20000, intervals: [250] },
+    )
+    .toBeGreaterThan(0);
+}
+
 test.describe('Offline-first: el HMI en planta sin red', () => {
   test.setTimeout(120000);
 
@@ -84,6 +113,7 @@ test.describe('Offline-first: el HMI en planta sin red', () => {
   test('el operario ve sus órdenes sin red aunque acabe de recargar', async ({ page }) => {
     await login(page, OPERARIO.usuario, OPERARIO.password);
     await expect(tarjetaOrden(page)).toBeVisible({ timeout: 20000 });
+    await copiaLocalGuardada(page);
 
     await page.context().setOffline(true);
     await page.reload();
@@ -96,6 +126,9 @@ test.describe('Offline-first: el HMI en planta sin red', () => {
     await login(page, OPERARIO.usuario, OPERARIO.password);
 
     const antes = (await producidoEnServidor(page)) ?? 0;
+
+    await expect(tarjetaOrden(page)).toBeVisible({ timeout: 20000 });
+    await copiaLocalGuardada(page);
 
     await page.context().setOffline(true);
     await page.reload();
