@@ -1,0 +1,19 @@
+{
+  "name": "KAVANA MES · Inteligencia Industrial",
+  "short_name": "KAVANA MES",
+  "description": "MES offline-first para planta: partes de trabajo, OEE, calidad y costes.",
+  "lang": "es",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#030712",
+  "theme_color": "#0B1329",
+  "icons": [
+    {
+      "src": "/logo.png",
+      "sizes": "1000x1000",
+      "type": "image/png",
+      "purpose": "any"
+    }
+  ]
+}

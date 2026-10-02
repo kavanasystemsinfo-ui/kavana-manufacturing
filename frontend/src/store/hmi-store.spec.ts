@@ -21,6 +21,11 @@ vi.mock('../db/local-db.js', () => ({
     tenantConfig: {
       put: vi.fn(),
       get: vi.fn(),
+    },
+    snapshots: {
+      put: vi.fn(),
+      get: vi.fn(),
+      clear: vi.fn(),
     }
   }
 }));
@@ -142,5 +147,92 @@ describe('HmiStore - identidad del operario', () => {
     await useHmiStore.getState().loadOperatorContext();
 
     expect(useHmiStore.getState().operatorId).toBe('op-sesion');
+  });
+});
+
+// La red en planta va a ratos: el operario tiene que poder elegir orden aunque
+// acabe de recargar sin cobertura. La copia vive en IndexedDB y se purga al
+// cerrar sesión, no en la caché del navegador.
+describe('HmiStore - copia local de las órdenes', () => {
+  const ORDENES = [
+    {
+      id: 'ord-cache',
+      code: 'ORD-CACHE',
+      status: 'pending',
+      quantity: 100,
+      workstation_id: 'ws-1',
+      workstation_name: 'Puesto E2E',
+    },
+  ];
+
+  beforeEach(() => {
+    vi.clearAllMocks();
+    useHmiStore.setState({ isOnline: true, availableOrders: [], isLoadingOrders: false, tenantId: '1' });
+  });
+
+  it('con red, guarda la lista para cuando no haya red', async () => {
+    vi.mocked(callApiWithTimeout).mockResolvedValue(ORDENES as never);
+
+    await useHmiStore.getState().loadAvailableOrders();
+
+    expect(useHmiStore.getState().availableOrders).toHaveLength(1);
+    expect(localDb.snapshots.put).toHaveBeenCalledTimes(1);
+    const guardado = vi.mocked(localDb.snapshots.put).mock.calls[0][0] as {
+      id: string;
+      payload: unknown;
+    };
+    expect(guardado.id).toBe('ordenes-disponibles');
+    expect(guardado.payload).toEqual(ORDENES);
+  });
+
+  it('sin red, la lista sale de la copia del dispositivo', async () => {
+    vi.mocked(localDb.snapshots.get).mockResolvedValue({ id: 'ordenes-disponibles', payload: ORDENES } as never);
+    useHmiStore.setState({ isOnline: false });
+
+    await useHmiStore.getState().loadAvailableOrders();
+
+    expect(useHmiStore.getState().availableOrders).toEqual(ORDENES);
+    // Sin red no se llama al servidor: ni se intenta.
+    expect(callApiWithTimeout).not.toHaveBeenCalled();
+  });
+
+  it('si el servidor no responde, se sigue con la copia en vez de quedarse vacío', async () => {
+    vi.mocked(callApiWithTimeout).mockRejectedValue(new Error('503') as never);
+    vi.mocked(localDb.snapshots.get).mockResolvedValue({ id: 'ordenes-disponibles', payload: ORDENES } as never);
+
+    await useHmiStore.getState().loadAvailableOrders();
+
+    expect(useHmiStore.getState().availableOrders).toEqual(ORDENES);
+    expect(useHmiStore.getState().isLoadingOrders).toBe(false);
+  });
+
+  it('sin red y sin copia, la lista queda vacía sin errores', async () => {
+    vi.mocked(localDb.snapshots.get).mockResolvedValue(undefined as never);
+    useHmiStore.setState({ isOnline: false });
+
+    await useHmiStore.getState().loadAvailableOrders();
+
+    expect(useHmiStore.getState().availableOrders).toEqual([]);
+  });
+
+  it('la orden abierta también se guarda y se recupera sin red', async () => {
+    const orden = { id: 'ord-cache', status: 'in_progress', quantity: 100 };
+    vi.mocked(callApiWithTimeout).mockResolvedValue(orden as never);
+
+    await useHmiStore.getState().loadOrder('ord-cache');
+
+    expect(useHmiStore.getState().activeOrder).toEqual(orden);
+    const guardado = vi.mocked(localDb.snapshots.put).mock.calls[0][0] as { id: string };
+    expect(guardado.id).toBe('orden:ord-cache');
+
+    // Y sin red se recupera la misma orden.
+    vi.clearAllMocks();
+    vi.mocked(localDb.snapshots.get).mockResolvedValue({ id: 'orden:ord-cache', payload: orden } as never);
+    useHmiStore.setState({ isOnline: false, activeOrder: null, currentStatus: 'pending' });
+
+    await useHmiStore.getState().loadOrder('ord-cache');
+
+    expect(useHmiStore.getState().activeOrder).toEqual(orden);
+    expect(useHmiStore.getState().currentStatus).toBe('in_progress');
   });
 });
