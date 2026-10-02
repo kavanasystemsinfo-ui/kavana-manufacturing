@@ -99,3 +99,58 @@ describe('OEE: las fechas del periodo', () => {
     expect(resultado.success).toBe(true);
   });
 });
+
+describe('OEE: un cero sin partes no es un resultado', () => {
+  let service: OeeService;
+
+  beforeEach(() => {
+    vi.resetAllMocks();
+    vi.spyOn(tenantContext, 'getTenantContext').mockReturnValue({
+      tenantId: 1n,
+      userId: 'admin-1',
+      role: 'tenant_admin',
+    });
+    service = new OeeService();
+  });
+
+  const simularPuesto = (bloques: unknown[]) => {
+    const consulta = postgresPool.query as never as ReturnType<typeof vi.fn>;
+    consulta
+      .mockResolvedValueOnce({ rows: [{ id: 'ws-1', name: 'Línea 1' }] })
+      .mockResolvedValueOnce({ rows: [{ name: 'Línea 1' }] })
+      .mockResolvedValueOnce({ rows: bloques })
+      .mockResolvedValueOnce({ rows: [{ target_rate: 250 }] });
+  };
+
+  it('avisa de que el puesto no tiene partes, en vez de enseñar un cero', async () => {
+    simularPuesto([]);
+
+    const lista = await service.getOeeByWorkstation('2026-07-04', '2026-07-04T23:59:59Z');
+
+    expect(lista).toHaveLength(1);
+    expect(lista[0]?.sin_datos).toBe(true);
+  });
+
+  it('con partes registradas el cero sí sería un resultado y se calcula', async () => {
+    simularPuesto([
+      {
+        type: 'produccion',
+        start_time: '2026-07-04T08:00:00Z',
+        end_time: '2026-07-04T12:00:00Z',
+        produced_quantity: 800,
+        defect_quantity: 20,
+        downtime_reason: null,
+      },
+    ]);
+
+    const lista = await service.getOeeByWorkstation('2026-07-04', '2026-07-04T23:59:59Z');
+
+    expect(lista[0]?.sin_datos).toBe(false);
+    expect(lista[0]?.performance).toBe(80);
+  });
+
+  it('rechaza una consulta sin fechas con su motivo, no con ceros', async () => {
+    await expect(service.getOeeSummary('ws-1', '', '')).rejects.toThrow(/Periodo inválido/);
+    expect(sqlEjecutado()).not.toContain('production_work_blocks');
+  });
+});

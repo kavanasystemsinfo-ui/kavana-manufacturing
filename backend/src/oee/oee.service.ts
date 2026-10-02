@@ -40,6 +40,12 @@ export interface OeeByWorkstation {
   availability: number;
   performance: number;
   quality: number;
+  /**
+   * El puesto no tiene ningún parte registrado en el periodo. Un cero aquí no
+   * es un mal resultado: es que no hay nada que medir, y en pantalla debe
+   * leerse así en vez de como un OEE rojo.
+   */
+  sin_datos: boolean;
 }
 
 export interface DowntimeBreakdown {
@@ -163,6 +169,7 @@ export class OeeService {
         availability: summary.availability,
         performance: summary.performance,
         quality: summary.quality,
+        sin_datos: summary.total_production_time_ms === 0 && summary.total_downtime_ms === 0,
       });
     }
 
