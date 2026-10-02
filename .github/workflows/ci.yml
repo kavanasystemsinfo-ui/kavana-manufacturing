@@ -284,8 +284,16 @@ jobs:
       # efímera, y los webServer levantan backend y frontend.
       - name: Run end-to-end flow
         env:
-          DATABASE_URL: postgresql://kavana:***@localhost:5432/kavana_e2e
-        run: npx playwright test --reporter=line
+          # La cadena se arma en el propio paso: así no hay usuario y
+          # contrasena escritos en el fichero, que es donde se rompen.
+          PGHOST: localhost
+          PGPORT: '5432'
+          PGUSER: kavana
+          PGPASSWORD: kavana_e2e
+          PGDATABASE: kavana_e2e
+        run: |
+          export DATABASE_URL="postgresql://${PGUSER}:${PGPASSWORD}@${PGHOST}:${PGPORT}/${PGDATABASE}"
+          npx playwright test --reporter=line
         working-directory: ./frontend
 
       # La promesa del producto es que la planta sigue trabajando sin red. Se
@@ -294,8 +302,16 @@ jobs:
       # el cliente y donde el armazón cacheado tiene que aguantar una recarga.
       - name: Comprobar el funcionamiento sin red (aplicación construida)
         env:
-          DATABASE_URL: postgresql://kavana:***@localhost:5432/kavana_e2e
-        run: npm run test:e2e:offline
+          # La cadena se arma en el propio paso: así no hay usuario y
+          # contrasena escritos en el fichero, que es donde se rompen.
+          PGHOST: localhost
+          PGPORT: '5432'
+          PGUSER: kavana
+          PGPASSWORD: kavana_e2e
+          PGDATABASE: kavana_e2e
+        run: |
+          export DATABASE_URL="postgresql://${PGUSER}:${PGPASSWORD}@${PGHOST}:${PGPORT}/${PGDATABASE}"
+          npm run test:e2e:offline
         working-directory: ./frontend
 
       - name: Upload Playwright report on failure
