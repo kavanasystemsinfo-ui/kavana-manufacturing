@@ -5,6 +5,8 @@ import { useHmiStore } from './store/hmi-store.js';
 import { FailedEventsModal } from './components/operator/FailedEventsModal.js';
 import { ThemeToggle } from './components/ThemeToggle.js';
 import { HelpModal } from './components/HelpModal.js';
+import { IncidenciaModal } from './components/operator/IncidenciaModal.js';
+import { PauseModal } from './components/operator/PauseModal.js';
 import { OPERATOR_HELP } from './help-content.js';
 import { mapCustomFieldsToUI, type CustomFieldUI } from './utils/customFieldsMapper.js';
 import { ordersEmptyState } from './utils/orders-empty-state.js';
@@ -39,9 +41,43 @@ export function ClassicOperatorPanel() {
     handleRegisterBlock, handleSaveCustomFields,
     schemaFields, customFields, filteredOrders,
   } = useOperatorPanel();
+  const [isPauseModalOpen, setIsPauseModalOpen] = useState(false);
+  const [isIncidenciaModalOpen, setIsIncidenciaModalOpen] = useState(false);
 
   const emptyState = ordersEmptyState(orderSearch, assignedWorkstationName);
   const dateLabel = new Date().toLocaleDateString('es-ES', { weekday: 'long', day: '2-digit', month: 'short' });
+
+  const handleConfirmPause = async (reason: string) => {
+    const now = new Date().toISOString();
+    await useHmiStore.getState().registerWorkBlock(
+      'parada',
+      now,
+      now,
+      reason,
+      0,
+      0,
+      null
+    );
+    setIsPauseModalOpen(false);
+  };
+
+  const handleResume = async () => {
+    const now = new Date().toISOString();
+    const oneMinuteLater = new Date(Date.now() + 60 * 1000).toISOString();
+    await useHmiStore.getState().registerWorkBlock(
+      'produccion',
+      now,
+      oneMinuteLater,
+      null,
+      0,
+      0,
+      null
+    );
+  };
+
+  const handleOpenIncidenciaModal = () => setIsIncidenciaModalOpen(true);
+  const handleCloseIncidenciaModal = () => setIsIncidenciaModalOpen(false);
+
   if (!orderId) {
     return (
       <div className="min-h-screen bg-gray-50 text-gray-900">
@@ -88,7 +124,7 @@ export function ClassicOperatorPanel() {
                 <button
                   key={order.id}
                   onClick={() => selectOrder(order)}
-                  className="w-full rounded-lg border border-slate-200 bg-white p-4 text-left shadow-sm transition hover:border-kavana-orange hover:shadow-md"
+                  className="w-full rounded-lg border border-slate-200 bg-white p-5 text-left shadow-sm transition hover:border-kavana-orange hover:shadow-md"
                 >
                   <div className="flex items-center justify-between">
                     <div>
@@ -141,9 +177,27 @@ export function ClassicOperatorPanel() {
               <span className="text-xs text-gray-400">Cola: {pendingCount}</span>
               <button
                 onClick={() => setIsFailedLogsModalOpen(true)}
-                className="text-xs text-gray-400 hover:text-white"
+                className="px-4 py-2 text-sm font-medium text-gray-400 bg-kavana-surface/10 rounded hover:bg-kavana-surface/20"
               >
                 Fallos: {failedCount}
+              </button>
+              <button
+                onClick={() => setIsPauseModalOpen(true)}
+                className="px-4 py-2 text-sm font-medium text-rose-700 bg-rose-500/10 rounded hover:bg-rose-500/20"
+              >
+                Pausar
+              </button>
+              <button
+                onClick={handleOpenIncidenciaModal}
+                className="px-4 py-2 text-sm font-medium text-gray-400 bg-kavana-surface/10 rounded hover:bg-kavana-surface/20"
+              >
+                ⚠ Incidencia
+              </button>
+              <button
+                onClick={handleResume}
+                className="px-4 py-2 text-sm font-medium text-emerald-700 bg-emerald-500/10 rounded hover:bg-emerald-500/20"
+              >
+                Reanudar
               </button>
               <HelpModal {...OPERATOR_HELP} theme="classic" />
               <ThemeToggle />
@@ -254,7 +308,7 @@ export function ClassicOperatorPanel() {
               <button
                 type="submit"
                 disabled={isMutating || isSyncing}
-                className="inline-flex items-center gap-2 rounded-md bg-kavana-orange px-6 py-3 text-base font-medium text-white shadow-sm hover:bg-kavana-orange-light focus:outline-none focus:ring-2 focus:ring-kavana-orange focus:ring-offset-2 disabled:opacity-50"
+                className="inline-flex items-center gap-2 rounded-md bg-kavana-orange px-6 py-5 text-base font-medium text-white shadow-sm hover:bg-kavana-orange-light focus:outline-none focus:ring-2 focus:ring-kavana-orange focus:ring-offset-2 disabled:opacity-50"
               >
                 {isMutating ? 'Guardando...' : 'Registrar Producción'}
               </button>
@@ -271,6 +325,19 @@ export function ClassicOperatorPanel() {
           }}
         />
       )}
+      <PauseModal
+        isOpen={isPauseModalOpen}
+        onClose={() => setIsPauseModalOpen(false)}
+        onConfirm={handleConfirmPause}
+      />
+      <IncidenciaModal
+        isOpen={isIncidenciaModalOpen}
+        onClose={handleCloseIncidenciaModal}
+        operatorId={operatorId}
+        workstationId={workstationId}
+        orderId={orderId}
+        isClassic={true}
+      />
     </main>
 </div>
   );
