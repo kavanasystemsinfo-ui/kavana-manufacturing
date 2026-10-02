@@ -2,12 +2,12 @@ services:
   - type: web
     name: kavana-manufacturing-api
     runtime: node
-    repo: https://github.com/your-org/kavana-manufacturing
+    repo: https://github.com/kavanasystemsinfo-ui/kavana-manufacturing
     branch: main
     rootDir: backend
     buildCommand: npm ci && npm run build
     startCommand: npm run start
-    healthCheckPath: /health
+    healthCheckPath: /api/v1/health
     envVars:
       - key: NODE_ENV
         value: production
