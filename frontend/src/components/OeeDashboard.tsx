@@ -11,6 +11,8 @@ interface OeeByWorkstation {
   availability: number;
   performance: number;
   quality: number;
+  /** El puesto no tiene partes en el periodo: el cero no es un resultado. */
+  sin_datos?: boolean;
 }
 
 interface OeeSummary {
@@ -133,28 +135,40 @@ export function OeeDashboard() {
             onClick={() => setSelectedWs(ws.workstation_id)}
             className={`rounded-xl border p-4 text-left transition-all hover:scale-[1.02] ${
               selectedWs === ws.workstation_id
-                ? `ring-2 ${isClassic ? 'ring-blue-500' : 'ring-kavana-orange'} ${getOeeBg(ws.oee)}`
-                : `${getOeeBg(ws.oee)}`
-            }`}
+                ? `ring-2 ${isClassic ? 'ring-blue-500' : 'ring-kavana-orange'} `
+                : ''
+            }${ws.sin_datos ? (isClassic ? 'bg-slate-100 border-slate-200' : 'bg-kavana-surface/40 border-kavana-steel/20') : getOeeBg(ws.oee)}`}
           >
             <div className="flex items-center justify-between mb-3">
               <h3 className={`font-bold ${isClassic ? 'text-slate-800' : 'text-white'}`}>{ws.workstation_name}</h3>
-              <span className={`text-2xl font-black ${getOeeColor(ws.oee)}`}>{ws.oee}%</span>
+              {ws.sin_datos ? (
+                <span className={`text-xs font-bold ${isClassic ? 'text-slate-500' : 'text-slate-400'}`}>
+                  Sin partes en el periodo
+                </span>
+              ) : (
+                <span className={`text-2xl font-black ${getOeeColor(ws.oee)}`}>{ws.oee}%</span>
+              )}
             </div>
-            <div className="grid grid-cols-3 gap-2 text-xs">
-              <div>
-                <p className={isClassic ? 'text-slate-500' : 'text-slate-400'}>Disponibilidad</p>
-                <p className={`font-bold ${getOeeColor(ws.availability)}`}>{ws.availability}%</p>
+            {ws.sin_datos ? (
+              <p className={`text-xs ${isClassic ? 'text-slate-500' : 'text-slate-400'}`}>
+                No hay producción ni paradas registradas, así que un 0 % aquí no dice nada del puesto.
+              </p>
+            ) : (
+              <div className="grid grid-cols-3 gap-2 text-xs">
+                <div>
+                  <p className={isClassic ? 'text-slate-500' : 'text-slate-400'}>Disponibilidad</p>
+                  <p className={`font-bold ${getOeeColor(ws.availability)}`}>{ws.availability}%</p>
+                </div>
+                <div>
+                  <p className={isClassic ? 'text-slate-500' : 'text-slate-400'}>Rendimiento</p>
+                  <p className={`font-bold ${getOeeColor(ws.performance)}`}>{ws.performance}%</p>
+                </div>
+                <div>
+                  <p className={isClassic ? 'text-slate-500' : 'text-slate-400'}>Calidad</p>
+                  <p className={`font-bold ${getOeeColor(ws.quality)}`}>{ws.quality}%</p>
+                </div>
               </div>
-              <div>
-                <p className={isClassic ? 'text-slate-500' : 'text-slate-400'}>Rendimiento</p>
-                <p className={`font-bold ${getOeeColor(ws.performance)}`}>{ws.performance}%</p>
-              </div>
-              <div>
-                <p className={isClassic ? 'text-slate-500' : 'text-slate-400'}>Calidad</p>
-                <p className={`font-bold ${getOeeColor(ws.quality)}`}>{ws.quality}%</p>
-              </div>
-            </div>
+            )}
           </button>
         ))}
       </div>
