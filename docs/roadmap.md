@@ -4,7 +4,7 @@
 
 - **Estado:** Roadmap maestro activo. Unificación completada. Guías de usuario en 8 paneles. Graphify integrado.
 - **Última actualización:** 2026-09-27.
-- **Cifras vigentes:** **743 tests** (557 backend + 186 frontend) más 10 end-to-end y 7 de contrato de rutas. Las cifras que aparecen dentro de las fases completadas son las que había en su momento, no las de hoy.
+- **Cifras vigentes:** **741 pruebas** (534 backend + 207 frontend) más 13 de navegador y 7 de contrato de rutas. Medidas el 2026-10-02 ejecutando la suite desde un clon limpio. Las cifras que aparecen dentro de las fases completadas son las que había en su momento, no las de hoy.
 
 ## Propósito
 
@@ -42,7 +42,7 @@ Lo que queda abierto, por orden de riesgo:
    (migración 042: rol de aplicación, `tenants` bajo RLS, login por funciones
    acotadas, 7 pruebas de aislamiento en el CI). Fase 2 pendiente: 55 consultas de 10
    archivos que hoy funcionan solo porque el rol se salta las políticas, listadas una
-   por una en `docs/adr/009-rls-efectivo-rol-aplicacion.md`. **No se cambia la
+   por una en `docs/adr/012-rls-efectivo-rol-aplicacion.md`. **No se cambia la
    credencial de producción hasta cerrarlas.**
 
 0. ~~**Producción con el esquema de otra generación (P0).**~~ **Cerrado
@@ -115,7 +115,7 @@ Lo que queda abierto, por orden de riesgo:
 ## Fases completadas
 
 > Las cifras entre paréntesis son las que había al cerrar cada fase. El total hoy
-> es 743 tests (557 backend + 186 frontend) + 10 end-to-end + 7 de contrato de rutas.
+> es 741 pruebas (534 backend + 207 frontend) + 13 de navegador + 7 de contrato de rutas.
 
 - Fase 0 - Ordenación del proyecto y trazabilidad documental.
 - Fase 1 - Cimientos SaaS y aislamiento multi-tenant.
