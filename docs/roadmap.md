@@ -4,7 +4,7 @@
 
 - **Estado:** Roadmap maestro activo. Unificación completada. Guías de usuario en 8 paneles. Graphify integrado.
 - **Última actualización:** 2026-09-27.
-- **Cifras vigentes:** **794 pruebas** (582 backend + 212 frontend) más 13 de navegador y 7 de contrato de rutas. Medidas el 2026-10-02 ejecutando la suite desde un clon limpio. Las cifras que aparecen dentro de las fases completadas son las que había en su momento, no las de hoy.
+- **Cifras vigentes:** **817 pruebas** (605 backend + 212 frontend) más 13 de navegador y 7 de contrato de rutas. Medidas el 2026-10-02 ejecutando la suite desde un clon limpio. Las cifras que aparecen dentro de las fases completadas son las que había en su momento, no las de hoy.
 
 ## Propósito
 
@@ -115,7 +115,7 @@ Lo que queda abierto, por orden de riesgo:
 ## Fases completadas
 
 > Las cifras entre paréntesis son las que había al cerrar cada fase. El total hoy
-> es 794 pruebas (582 backend + 212 frontend) + 13 de navegador + 7 de contrato de rutas.
+> es 817 pruebas (605 backend + 212 frontend) + 13 de navegador + 7 de contrato de rutas.
 
 - Fase 0 - Ordenación del proyecto y trazabilidad documental.
 - Fase 1 - Cimientos SaaS y aislamiento multi-tenant.
