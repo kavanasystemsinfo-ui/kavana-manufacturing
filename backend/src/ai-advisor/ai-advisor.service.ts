@@ -5,6 +5,7 @@ import { tenantQuery } from '../db/tenant-query.js';
 import { tracePrompt } from '../telemetry/metrics.js';
 import { versionContext, ContextVersion } from './context-version.js';
 import { estimateCostCents, formatCost } from './cost-tracking.js';
+import { OeeService } from '../oee/oee.service.js';
 
 interface ContextBundle {
   orders: string;
@@ -26,6 +27,8 @@ export class AiAdvisorService {
   private readonly logger = new Logger(AiAdvisorService.name);
   private readonly cache = new Map<string, CacheEntry>();
   private readonly CACHE_TTL_MS = 60_000; // 1 minuto
+
+  constructor(private readonly oeeService: OeeService) {}
 
   private getCacheKey(question: string, contextFilter?: { order_id?: string; workstation_id?: string; model_id?: string }): string {
     const filterKey = contextFilter ? JSON.stringify(contextFilter) : '';
@@ -114,24 +117,22 @@ export class AiAdvisorService {
       filter?.model_id ? [filter.model_id] : [],
     );
 
-    // OEE summary
-    const oee = await tenantQuery(
-      pool,
-      `SELECT ws.name as workstation_name,
-              ws.id as workstation_id,
-              COALESCE(AVG(wh.availability), 0) as availability,
-              COALESCE(AVG(wh.performance), 0) as performance,
-              COALESCE(AVG(wh.quality), 0) as quality,
-              COALESCE(AVG(wh.oee), 0) as oee
-       FROM oee_metrics wh
-       JOIN workstations ws ON ws.tenant_id = wh.tenant_id AND ws.id = wh.workstation_id
-       WHERE wh.tenant_id = get_current_tenant()
-         AND wh.period_start >= NOW() - INTERVAL '7 days'
-       ${filter?.workstation_id ? 'AND wh.workstation_id = $1' : ''}
-       GROUP BY ws.name, ws.id
-       ORDER BY ws.name`,
-      filter?.workstation_id ? [filter.workstation_id] : [],
+    // OEE por puesto de los últimos 7 días, calculado en vivo con la MISMA
+    // función que usa el panel. Antes se leía la tabla histórica, y esa tabla
+    // solo se llena cuando alguien lanza el recálculo (hoy nadie lo hace), así
+    // que el asistente podía estar citando números de la última vez que se
+    // ejecutó, con un rendimiento fijo del 0,85.
+    const hasta = new Date();
+    const desde = new Date(hasta.getTime() - 7 * 24 * 3600 * 1000);
+    const oeePorPuesto = await this.oeeService.getOeeByWorkstation(
+      desde.toISOString(),
+      hasta.toISOString(),
     );
+    const oee = {
+      rows: filter?.workstation_id
+        ? oeePorPuesto.filter((puesto) => puesto.workstation_id === filter.workstation_id)
+        : oeePorPuesto,
+    };
 
     // Quality issues
     const quality = await tenantQuery(
@@ -190,7 +191,7 @@ export class AiAdvisorService {
       '--- Modelos de fabricación ---',
       ctx.models,
       '',
-      '--- OEE por puesto (últimos 7 días) ---',
+      '--- OEE por puesto (últimos 7 días, en porcentaje) ---',
       ctx.oee,
       '',
       '--- Incidencias de calidad (últimos 7 días) ---',

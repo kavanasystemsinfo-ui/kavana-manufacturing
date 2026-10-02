@@ -1,6 +1,22 @@
-import { Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable } from '@nestjs/common';
 import { postgresPool } from '../db/postgres.provider.js';
 import { getTenantContext } from '../auth/tenant-context.storage.js';
+import { calcularOee, resumirBloques, type BloqueDeTrabajo } from './oee.calculo.js';
+import { rangoOeeSchema, type RangoOee } from './oee.rango.js';
+
+/**
+ * Un periodo mal pedido no puede devolver ceros: en pantalla se leen como un
+ * OEE de verdad. Se rechaza con su motivo.
+ */
+function validarRango(startDate: string, endDate: string): RangoOee {
+  const resultado = rangoOeeSchema.safeParse({ startDate, endDate });
+  if (!resultado.success) {
+    throw new BadRequestException(
+      `Periodo inválido: ${resultado.error.issues.map((problema) => problema.message).join('; ')}`,
+    );
+  }
+  return resultado.data;
+}
 
 export interface OeeSummary {
   workstation_id: string;
@@ -47,6 +63,7 @@ export class OeeService {
     startDate: string,
     endDate: string,
   ): Promise<OeeSummary> {
+    const rango = validarRango(startDate, endDate);
     const context = getTenantContext();
 
     // Get workstation name
@@ -63,74 +80,69 @@ export class OeeService {
        WHERE tenant_id = $1 AND workstation_id = $2
          AND start_time >= $3 AND end_time <= $4
        ORDER BY start_time ASC`,
-      [String(context.tenantId), workstationId, startDate, endDate],
+      [String(context.tenantId), workstationId, rango.startDate, rango.endDate],
     );
 
-    const blocks = blocksResult.rows;
-
-    // Calculate totals
-    let totalProductionMs = 0;
-    let totalDowntimeMs = 0;
-    let totalProduced = 0;
-    let totalDefects = 0;
-
-    for (const block of blocks) {
-      const duration = new Date(block.end_time).getTime() - new Date(block.start_time).getTime();
-      if (block.type === 'produccion') {
-        totalProductionMs += duration;
-        totalProduced += Number(block.produced_quantity ?? 0);
-        totalDefects += Number(block.defect_quantity ?? 0);
-      } else {
-        totalDowntimeMs += duration;
-      }
-    }
-
-    const totalPlannedMs = totalProductionMs + totalDowntimeMs;
-
-    // Availability = production time / planned time
-    const availability = totalPlannedMs > 0 ? totalProductionMs / totalPlannedMs : 0;
-
-    // Get target rate for performance calculation
-    const modelResult = await postgresPool.query(
-      `SELECT mm.target_rate
-       FROM orders po
-       JOIN manufacturing_models mm ON po.tenant_id = mm.tenant_id AND po.code = mm.name
-       WHERE po.tenant_id = $1 AND po.workstation_id = $2
-       LIMIT 1`,
-      [String(context.tenantId), workstationId],
-    );
-    const targetRate = Number(modelResult.rows[0]?.target_rate ?? 0);
-
-    // Performance = actual output rate / target rate
-    const actualRateMs = totalProductionMs > 0 ? totalProduced / (totalProductionMs / 3600000) : 0;
-    const performance = targetRate > 0 ? Math.min(actualRateMs / targetRate, 1) : 0;
-
-    // Quality = good parts / total parts
-    const quality = totalProduced > 0 ? (totalProduced - totalDefects) / totalProduced : 0;
-
-    // OEE = Availability × Performance × Quality
-    const oee = availability * performance * quality;
+    const bloques = blocksResult.rows as BloqueDeTrabajo[];
+    const resumen = resumirBloques(bloques);
+    const targetRate = await this.getTargetRate(workstationId, rango.startDate, rango.endDate);
+    const calculado = calcularOee({ bloques, targetRate });
 
     return {
       workstation_id: workstationId,
       workstation_name: wsName,
-      availability: Math.round(availability * 10000) / 100,
-      performance: Math.round(performance * 10000) / 100,
-      quality: Math.round(quality * 10000) / 100,
-      oee: Math.round(oee * 10000) / 100,
-      total_production_time_ms: totalProductionMs,
-      total_downtime_ms: totalDowntimeMs,
-      total_produced: totalProduced,
-      total_defects: totalDefects,
+      availability: calculado.availability,
+      performance: calculado.performance,
+      quality: calculado.quality,
+      oee: calculado.oee,
+      total_production_time_ms: resumen.produccionMs,
+      total_downtime_ms: resumen.paradaMs,
+      total_produced: resumen.producidas,
+      total_defects: resumen.defectuosas,
       period_start: startDate,
       period_end: endDate,
     };
+  }
+
+  /**
+   * Objetivo de producción del puesto en el periodo: el del modelo de la orden
+   * que de verdad produjo, y ligado por identificador.
+   *
+   * Antes esta consulta comparaba el CÓDIGO de la orden con el NOMBRE del
+   * modelo (`po.code = mm.name`), dos cosas que no tienen por qué parecerse:
+   * casi nunca había coincidencia, el objetivo salía cero y el rendimiento se
+   * iba con él. El ejemplo vivo: en la demo había puestos con OEE 0 y otros con
+   * valor real según qué orden cayera en el LIMIT 1.
+   */
+  private async getTargetRate(
+    workstationId: string,
+    startDate: string,
+    endDate: string,
+  ): Promise<number> {
+    const context = getTenantContext();
+
+    const resultado = await postgresPool.query(
+      `SELECT mm.target_rate
+       FROM manufacturing_models mm
+       JOIN orders o ON o.tenant_id = mm.tenant_id AND o.model_id = mm.id
+       JOIN production_work_blocks wb ON wb.tenant_id = o.tenant_id AND wb.order_id = o.id
+       WHERE wb.tenant_id = $1 AND wb.workstation_id = $2
+         AND wb.type = 'produccion'
+         AND wb.start_time >= $3 AND wb.end_time <= $4
+       GROUP BY mm.target_rate
+       ORDER BY SUM(EXTRACT(EPOCH FROM (wb.end_time - wb.start_time))) DESC
+       LIMIT 1`,
+      [String(context.tenantId), workstationId, startDate, endDate],
+    );
+
+    return Number(resultado.rows[0]?.target_rate ?? 0);
   }
 
   async getOeeByWorkstation(
     startDate: string,
     endDate: string,
   ): Promise<OeeByWorkstation[]> {
+    const rango = validarRango(startDate, endDate);
     const context = getTenantContext();
 
     const result = await postgresPool.query(
@@ -143,7 +155,7 @@ export class OeeService {
 
     const summaries: OeeByWorkstation[] = [];
     for (const ws of result.rows) {
-      const summary = await this.getOeeSummary(ws.id, startDate, endDate);
+      const summary = await this.getOeeSummary(ws.id, rango.startDate, rango.endDate);
       summaries.push({
         workstation_id: ws.id,
         workstation_name: ws.name,
@@ -162,6 +174,7 @@ export class OeeService {
     startDate: string,
     endDate: string,
   ): Promise<DowntimeBreakdown[]> {
+    const rango = validarRango(startDate, endDate);
     const context = getTenantContext();
 
     const result = await postgresPool.query(
@@ -174,7 +187,7 @@ export class OeeService {
          AND downtime_reason IS NOT NULL
        GROUP BY downtime_reason
        ORDER BY total_ms DESC`,
-      [String(context.tenantId), workstationId, startDate, endDate],
+      [String(context.tenantId), workstationId, rango.startDate, rango.endDate],
     );
 
     const totalDowntimeMs = result.rows.reduce(

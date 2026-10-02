@@ -1,5 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { AiAdvisorService } from './ai-advisor.service.js';
+import type { OeeService } from '../oee/oee.service.js';
 import * as tenantContext from '../auth/tenant-context.storage.js';
 import * as tenantQueryModule from '../db/tenant-query.js';
 
@@ -32,7 +33,21 @@ describe('AiAdvisorService', () => {
       userId: 'test-user',
       role: 'tenant_admin',
     });
-    service = new AiAdvisorService();
+    // El asistente calcula el OEE en vivo con el mismo servicio que el panel:
+    // en la prueba se le pasa un doble que devuelve una jornada conocida.
+    const oeeService = {
+      getOeeByWorkstation: vi.fn().mockResolvedValue([
+        {
+          workstation_id: 'ws-1',
+          workstation_name: 'Línea 1',
+          availability: 80,
+          performance: 80,
+          quality: 97.5,
+          oee: 62.4,
+        },
+      ]),
+    } as unknown as OeeService;
+    service = new AiAdvisorService(oeeService);
   });
 
   it('returns offline fallback when LLM call fails', async () => {
