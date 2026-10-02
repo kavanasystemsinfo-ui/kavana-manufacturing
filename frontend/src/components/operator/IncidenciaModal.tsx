@@ -11,13 +11,14 @@ interface Props {
   operatorId: string | null;
   workstationId: string | null;
   orderId: string | null;
+  isClassic?: boolean;
 }
 
 type ModalStatus = 'creating' | 'waiting' | 'photo' | 'expired' | 'error' | 'submitting';
 
 const POLL_MS = 2000;
 
-export function IncidenciaModal({ isOpen, onClose, operatorId, workstationId, orderId }: Props) {
+export function IncidenciaModal({ isOpen, onClose, operatorId, workstationId, orderId, isClassic = false }: Props) {
   const [session, setSession] = useState<UploadSession | null>(null);
   const [photoDataUrl, setPhotoDataUrl] = useState<string | null>(null);
   const [status, setStatus] = useState<ModalStatus>('creating');
@@ -120,11 +121,11 @@ export function IncidenciaModal({ isOpen, onClose, operatorId, workstationId, or
   );
 
   const waitingState = (
-    <div className="mb-5 rounded-xl border-2 border-dashed border-kavana-steel/40 bg-kavana-dark/60 p-5 text-center">
+    <div className="mb-5 rounded-xl border-2 border-dashed border-kavana-steel/40 {isClassic ? 'bg-gray-50' : 'bg-kavana-dark/60'} p-5 text-center">
       <div className="mx-auto mb-4 w-fit rounded-xl bg-white p-3">
         <QRCodeSVG value={qrUrl} size={150} />
       </div>
-      <p className="text-sm font-bold uppercase tracking-wider text-white">Escanea con tu móvil</p>
+      <p className="text-sm font-bold uppercase tracking-wider {isClassic ? 'text-gray-900' : 'text-white'}">Escanea con tu móvil</p>
       <p className="mt-1 text-xs text-slate-400">
         Abre la cámara del móvil, escanea el QR y sube la foto de la incidencia.
       </p>
@@ -132,7 +133,7 @@ export function IncidenciaModal({ isOpen, onClose, operatorId, workstationId, or
   );
 
   const photoState = (
-    <div className="mb-5 rounded-xl border-2 border-dashed border-kavana-steel/40 bg-kavana-dark/60 p-5 text-center">
+    <div className="mb-5 rounded-xl border-2 border-dashed border-kavana-steel/40 {isClassic ? 'bg-gray-50' : 'bg-kavana-dark/60'} p-5 text-center">
       <div className="relative">
         {photoDataUrl ? (
           <img
@@ -158,11 +159,11 @@ export function IncidenciaModal({ isOpen, onClose, operatorId, workstationId, or
   );
 
   const expiredState = (
-    <div className="mb-5 rounded-xl border-2 border-dashed border-kavana-steel/40 bg-kavana-dark/60 p-5 text-center">
+    <div className="mb-5 rounded-xl border-2 border-dashed border-kavana-steel/40 {isClassic ? 'bg-gray-50' : 'bg-kavana-dark/60'} p-5 text-center">
       <div className="mx-auto mb-4 w-fit rounded-xl bg-white p-3">
         <QRCodeSVG value={qrUrl} size={150} />
       </div>
-      <p className="text-sm font-bold uppercase tracking-wider text-white">Escanea con tu móvil</p>
+      <p className="text-sm font-bold uppercase tracking-wider {isClassic ? 'text-gray-900' : 'text-white'}">Escanea con tu móvil</p>
       <p className="mt-1 text-xs text-slate-400">
         Abre la cámara del móvil, escanea el QR y sube la foto de la incidencia.
       </p>
@@ -175,7 +176,7 @@ export function IncidenciaModal({ isOpen, onClose, operatorId, workstationId, or
   const formContent = (
     <div className="space-y-4">
       <div>
-        <label className="mb-1 block text-xs font-bold uppercase tracking-wider text-kavana-steel">Título *</label>
+        <label className="mb-1 block text-xs font-bold uppercase tracking-wider text-slate-400">Título *</label>
         <input
           value={title}
           onChange={(e) => setTitle(e.target.value)}
@@ -187,7 +188,7 @@ export function IncidenciaModal({ isOpen, onClose, operatorId, workstationId, or
 
       <div className="grid grid-cols-2 gap-4">
         <div>
-          <label className="mb-1 block text-xs font-bold uppercase tracking-wider text-kavana-steel">Tipo</label>
+          <label className="mb-1 block text-xs font-bold uppercase tracking-wider text-slate-400">Tipo</label>
           <select
             value={type}
             onChange={(e) => setType(e.target.value)}
@@ -201,14 +202,14 @@ export function IncidenciaModal({ isOpen, onClose, operatorId, workstationId, or
           </select>
         </div>
         <div className="flex items-end">
-          <p className="text-[10px] font-bold uppercase tracking-widest text-kavana-steel/60">
+          <p className="text-[10px] font-bold uppercase tracking-widest text-slate-400/60">
             La prioridad la valora el supervisor
           </p>
         </div>
       </div>
 
       <div>
-        <label className="mb-1 block text-xs font-bold uppercase tracking-wider text-kavana-steel">Descripción</label>
+        <label className="mb-1 block text-xs font-bold uppercase tracking-wider text-slate-400">Descripción</label>
         <textarea
           value={description}
           onChange={(e) => setDescription(e.target.value)}

@@ -43,6 +43,7 @@ import { useMyShiftKPI } from './hooks/useMyShiftKPI.js';
 import { ThemeToggle } from './components/ThemeToggle.js';
 import { HelpModal } from './components/HelpModal.js';
 import { AiAdvisorFab } from './components/AiAdvisorFab.js';
+import { PauseModal } from './components/operator/PauseModal.js';
 import { OPERATOR_HELP } from './help-content.js';
 import { useState } from 'react';
 import { mapCustomFieldsToUI, type CustomFieldUI } from './utils/customFieldsMapper.js';
@@ -152,6 +153,35 @@ export function OperatorPanel() {
   const { kpi: shiftKpi, isLoading: isShiftKpiLoading, error: shiftKpiError, refresh: refreshShiftKpi } = useMyShiftKPI();
 
   const [isEditingFields, setIsEditingFields] = useState(false);
+  const [isPauseModalOpen, setIsPauseModalOpen] = useState(false);
+
+  const handleConfirmPause = async (reason: string) => {
+    const now = new Date().toISOString();
+    await registerWorkBlock(
+      'parada',
+      now,
+      now,
+      reason,
+      0,
+      0,
+      null
+    );
+    setIsPauseModalOpen(false);
+  };
+
+  const handleResume = async () => {
+    const now = new Date().toISOString();
+    const oneMinuteLater = new Date(Date.now() + 60 * 1000).toISOString();
+    await registerWorkBlock(
+      'produccion',
+      now,
+      oneMinuteLater,
+      null,
+      0,
+      0,
+      null
+    );
+  };
 
   // Note: We are using both selectors and hook. This may cause duplication but ensures we have both.
   // For simplicity, we could rely solely on the hook, but the goal was to demonstrate selectors.
@@ -267,6 +297,18 @@ export function OperatorPanel() {
               >
                 ⚠ Incidencia
               </button>
+              <button
+                onClick={() => setIsPauseModalOpen(true)}
+                className="rounded-full bg-kavana-surface px-4 py-3 text-sm font-bold text-rose-500 ring-1 ring-rose-500/40 transition hover:bg-rose-500/30 hover:text-white"
+              >
+                Pausar
+              </button>
+              <button
+                onClick={handleResume}
+                className="rounded-full bg-kavana-surface px-4 py-3 text-sm font-bold text-emerald-500 ring-1 ring-emerald-500/40 transition hover:bg-emerald-500/30 hover:text-white"
+              >
+                Reanudar
+              </button>
               <HelpModal {...OPERATOR_HELP} />
               <ThemeToggle />
             </div>
@@ -275,7 +317,7 @@ export function OperatorPanel() {
           <section className="grid gap-6 lg:grid-cols-[1.1fr_0.9fr]">
             <div className="rounded-2xl border-2 border-kavana-orange/40 bg-kavana-dark/70 p-5 shadow-inner flex flex-col justify-between">
               <div>
-                <p className="text-sm font-bold uppercase tracking-[0.24em] text-kavana-steel">Orden actual</p>
+                <p className="text-sm font-bold uppercase tracking-[0.24em] text-slate-400">Orden actual</p>
                 <h2 className="mt-3 text-2xl font-black text-white md:text-4xl">
                   {activeOrder?.code || (orderId ? `OF-${orderId.slice(0, 8)}` : 'Sin orden asignada')}
                 </h2>
@@ -287,7 +329,7 @@ export function OperatorPanel() {
 
                 {activeOrderCustomFields && Object.keys(activeOrderCustomFields).length > 0 && (
                   <div className="mt-4 rounded-xl border border-kavana-steel/20 bg-kavana-surface/50 p-4">
-                    <p className="text-xs font-bold uppercase tracking-wider text-kavana-steel mb-3">Datos de la orden</p>
+                    <p className="text-xs font-bold uppercase tracking-wider text-slate-400 mb-3">Datos de la orden</p>
                     <div className="grid grid-cols-2 gap-3">
                       {Object.entries(activeOrderCustomFields).map(([key, value]) => (
                         <div key={key}>
@@ -303,7 +345,7 @@ export function OperatorPanel() {
                 <div className="mt-6 grid grid-cols-2 gap-4">
                   {customFields.map((field) => (
                     <div key={field.key} className="rounded-xl border border-kavana-steel/20 bg-kavana-surface p-4">
-                      <label className="text-xs font-bold uppercase tracking-wider text-kavana-steel mb-1 block">{field.label}</label>
+                      <label className="text-xs font-bold uppercase tracking-wider text-slate-400 mb-1 block">{field.label}</label>
                       <p className="mt-1 text-sm font-medium text-white">
                         {String(activeOrderCustomFields?.[field.key] ?? '\\u2014')}
                       </p>
@@ -358,7 +400,7 @@ export function OperatorPanel() {
               )}
               <div className="rounded-2xl border-2 border-kavana-orange/40 bg-kavana-dark/70 p-5 shadow-inner">
                 <div className="mb-4 flex items-center justify-between gap-3">
-                  <p className="text-sm font-bold uppercase tracking-[0.24em] text-kavana-steel">Registrar Bloque de Tiempo</p>
+                  <p className="text-sm font-bold uppercase tracking-[0.24em] text-slate-400">Registrar Bloque de Tiempo</p>
                   {lastBlock && (
                     <button
                       type="button"
@@ -373,7 +415,7 @@ export function OperatorPanel() {
                 <form onSubmit={handleRegisterBlock} className="flex flex-col gap-4">
                   <div className="grid grid-cols-2 gap-4">
                     <div>
-                      <label className="block text-xs font-bold uppercase tracking-wider text-kavana-steel mb-1">Hora Inicio</label>
+                      <label className="block text-xs font-bold uppercase tracking-wider text-slate-400 mb-1">Hora Inicio</label>
                       <input
                         type="time"
                         value={startTime}
@@ -383,7 +425,7 @@ export function OperatorPanel() {
                       />
                     </div>
                     <div>
-                      <label className="block text-xs font-bold uppercase tracking-wider text-kavana-steel mb-1">Hora Fin</label>
+                      <label className="block text-xs font-bold uppercase tracking-wider text-slate-400 mb-1">Hora Fin</label>
                       <input
                         type="time"
                         value={endTime}
@@ -396,7 +438,7 @@ export function OperatorPanel() {
 
                   <div className="grid grid-cols-2 gap-4">
                     <div>
-                      <label className="block text-xs font-bold uppercase tracking-wider text-kavana-steel mb-1">Producción Buena</label>
+                      <label className="block text-xs font-bold uppercase tracking-wider text-slate-400 mb-1">Producción Buena</label>
                       <input
                         type="number"
                         value={producedQuantity}
@@ -406,7 +448,7 @@ export function OperatorPanel() {
                       />
                     </div>
                     <div>
-                      <label className="block text-xs font-bold uppercase tracking-wider text-kavana-steel mb-1">Defectos</label>
+                      <label className="block text-xs font-bold uppercase tracking-wider text-slate-400 mb-1">Defectos</label>
                       <input
                         type="number"
                         value={defectQuantity}
@@ -418,7 +460,7 @@ export function OperatorPanel() {
                   </div>
 
                   <div>
-                    <label className="block text-xs font-bold uppercase tracking-wider text-kavana-steel mb-1">Observaciones</label>
+                    <label className="block text-xs font-bold uppercase tracking-wider text-slate-400 mb-1">Observaciones</label>
                     <textarea
                       value={observations}
                       onChange={(e) => setObservations(e.target.value)}
@@ -430,7 +472,7 @@ export function OperatorPanel() {
                   <button
                     type="submit"
                     disabled={isMutating || isSyncing}
-                    className="mt-2 w-full rounded-xl bg-kavana-orange px-6 py-4 text-base font-black uppercase tracking-wider text-white transition hover:bg-kavana-orange-light disabled:opacity-50"
+                    className="mt-2 w-full rounded-xl bg-[#A84A1A] px-6 py-4 text-base font-black uppercase tracking-wider text-white transition hover:bg-[#BC5B2F] disabled:opacity-50"
                   >
                     {isMutating ? 'Guardando...' : 'Registrar Producción'}
                   </button>
@@ -462,6 +504,11 @@ export function OperatorPanel() {
         </section>
       </main>
       <AiAdvisorFab />
+      <PauseModal
+        isOpen={isPauseModalOpen}
+        onClose={() => setIsPauseModalOpen(false)}
+        onConfirm={handleConfirmPause}
+      />
     </>
   );
 }
