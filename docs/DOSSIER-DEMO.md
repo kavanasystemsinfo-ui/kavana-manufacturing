@@ -45,7 +45,7 @@ sabe usar, pero con una interfaz que un operario de planta entiende sin manual.
   La demo nunca enseña una pantalla vacía ni un histórico muerto.
 
 ### Ingeniería
-- **Pruebas como condición, no como adorno**: 582 pruebas de backend, 207 de
+- **Pruebas como condición, no como adorno**: 605 pruebas de backend, 212 de
   frontend y 13 de navegador (E2E) end-to-end contra la aplicación real.
 - **CI con 6 trabajos** en GitHub Actions (lint, typecheck, test, e2e,
   tamaño de imágenes Docker, build).
@@ -113,7 +113,7 @@ mocks. Las credenciales de la demo se facilitan a quien la va a probar.
 - Partes de trabajo: **1.259** repartidos en **92 días** de histórico.
 - Planta: **15 puestos**, **10 operarios**, 1 supervisor, 1 administrador.
 - Incidencias registradas: **21**.
-- Pruebas: **582** backend, **207** frontend, **13** E2E (esta última pasada en
+- Pruebas: **605** backend, **212** frontend, **13** E2E (esta última pasada en
   2 minutos, sin reintentos).
 - Verificación del blindaje de la demo: **10/10** en verde.
 - Demo del día regenerada: **12 órdenes** y **54 partes** del día en curso.
