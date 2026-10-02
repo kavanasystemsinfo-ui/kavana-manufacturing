@@ -33,10 +33,24 @@ export interface TenantConfig {
   updatedAt: string;
 }
 
+/**
+ * Copia local de lo que el operario necesita para trabajar, con la red caída:
+ * la lista de órdenes de su puesto y la orden que tenía abierta. Se guarda en
+ * IndexedDB y no en la caché del navegador porque aquí se purga al cerrar
+ * sesión, y el quiosco es compartido entre turnos.
+ */
+export interface LocalSnapshot {
+  id: string;
+  tenantId: string;
+  payload: unknown;
+  updatedAt: string;
+}
+
 class KavanaHmiDatabase extends Dexie {
   offlineBlocks!: Table<OfflineWorkBlock>;
   failedBlocks!: Table<FailedOfflineWorkBlock>;
   tenantConfig!: Table<TenantConfig>;
+  snapshots!: Table<LocalSnapshot>;
 
   constructor() {
     super('KavanaHmiDatabase');
@@ -55,6 +69,13 @@ class KavanaHmiDatabase extends Dexie {
       offlineBlocks: 'id, start_time, tenant_id, order_id, version, device_id',
       failedBlocks: 'id, start_time, tenant_id, order_id, version, device_id',
       tenantConfig: 'tenantId',
+    });
+    // Copia de trabajo para cuando no hay red: órdenes del puesto y orden abierta.
+    this.version(5).stores({
+      offlineBlocks: 'id, start_time, tenant_id, order_id, version, device_id',
+      failedBlocks: 'id, start_time, tenant_id, order_id, version, device_id',
+      tenantConfig: 'tenantId',
+      snapshots: 'id, tenantId, updatedAt',
     });
   }
 }
@@ -77,6 +98,7 @@ export async function purgeLocalData(): Promise<void> {
         localDb.offlineBlocks.clear(),
         localDb.failedBlocks.clear(),
         localDb.tenantConfig.clear(),
+        localDb.snapshots.clear(),
       ]);
     } catch {
       // Último recurso: nada local que purgar de forma fiable; el token ya

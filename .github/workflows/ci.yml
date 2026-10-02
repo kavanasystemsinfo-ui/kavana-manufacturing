@@ -284,8 +284,18 @@ jobs:
       # efímera, y los webServer levantan backend y frontend.
       - name: Run end-to-end flow
         env:
-          DATABASE_URL: postgresql://kavana:kavana_e2e@localhost:5432/kavana_e2e
+          DATABASE_URL: postgresql://kavana:***@localhost:5432/kavana_e2e
         run: npx playwright test --reporter=line
+        working-directory: ./frontend
+
+      # La promesa del producto es que la planta sigue trabajando sin red. Se
+      # comprueba sobre la aplicación construida (vista previa), no sobre los
+      # módulos sueltos del servidor de desarrollo: es el artefacto que recibe
+      # el cliente y donde el armazón cacheado tiene que aguantar una recarga.
+      - name: Comprobar el funcionamiento sin red (aplicación construida)
+        env:
+          DATABASE_URL: postgresql://kavana:***@localhost:5432/kavana_e2e
+        run: npm run test:e2e:offline
         working-directory: ./frontend
 
       - name: Upload Playwright report on failure

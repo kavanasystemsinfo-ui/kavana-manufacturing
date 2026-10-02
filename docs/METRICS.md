@@ -13,7 +13,7 @@
 | **Lenguajes** | TypeScript, TSX, SQL, JSON, YAML, MD, Python, Bash |
 | **Commits** | +120 (rama `main`) |
 | **Tiempo de desarrollo** | ~4 semanas desde refactorización V2 |
-| **Informe de pruebas** | 207 frontend + 534 backend = **741 pruebas** (+ 13 de navegador + 7 de contrato de rutas) |
+| **Informe de pruebas** | 212 frontend + 582 backend = **794 pruebas** (+ 13 de navegador + 7 de contrato de rutas) |
 | **Mutation testing** | `core-mes-production.service.ts`: 130 de 170 mutantes matados (76,5 %) tras el spec de integración del 2026-09-27. Las cifras de la primera pasada (17,6 %) salieron de un runner con un fallo silencioso: ver [docs/mutation-testing.md](mutation-testing.md) |
 
 ## Cobertura por módulo
@@ -53,7 +53,7 @@ Cifras de la última ejecución verificada (2026-09-23). Se actualizan ejecutand
 la suite, no contando `it(` con un `grep`.
 
 ### Backend (Vitest)
-- **534 pruebas en 49 archivos** (`npm run test` en `backend/`, con `DATABASE_URL`
+- **582 pruebas en 51 archivos** (`npm run test` en `backend/`, con `DATABASE_URL`
   apuntando a una base migrada; el CI la prepara antes de la suite).
 - Cubre auth, orders, OEE, quality, cost, workstations, manufacturing-models,
   users, tenant-capabilities, incidencias, materials, toolings, queue, y el
@@ -112,5 +112,5 @@ la suite, no contando `it(` con un `grep`.
 verificaron por última vez el 2026-09-27 ejecutando las suites (557 backend).*
 
 > Las cifras de pruebas de esta página salen de ejecutar la suite desde un clon
-> limpio, no de contar ficheros. Última medición: 2026-10-02, 534 de backend y 207
+> limpio, no de contar ficheros. Última medición: 2026-10-02, 582 de backend y 212
 > de frontend en verde.

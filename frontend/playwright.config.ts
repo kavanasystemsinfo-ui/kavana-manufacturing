@@ -8,6 +8,10 @@ const FRONTEND_PORT = process.env.E2E_FRONTEND_PORT ?? '5173';
 
 export default defineConfig({
   testDir: './e2e',
+  // El funcionamiento sin red se comprueba contra la aplicación construida
+  // (playwright.offline.config.ts), no contra los módulos sueltos del servidor
+  // de desarrollo: aquí se ignora para no dar un verde que no significa nada.
+  testIgnore: ['**/offline-first.spec.ts'],
   globalSetup: './e2e/global-setup.ts',
   fullyParallel: true,
   forbidOnly: !!process.env.CI,

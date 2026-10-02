@@ -140,6 +140,34 @@ async function loadQueueCounters() {
   await useHmiStore.getState().setFailedCount(await localDb.failedBlocks.count());
 }
 
+// Copia de trabajo del dispositivo. La red en planta va a ratos, así que lo que
+// el operario necesita para empezar el turno (su lista de órdenes y la orden que
+// tenía abierta) se guarda aquí y se lee cuando el servidor no está.
+const CLAVE_ORDENES = 'ordenes-disponibles';
+
+async function guardarCopia(id: string, payload: unknown): Promise<void> {
+  try {
+    await localDb.snapshots.put({
+      id,
+      tenantId: useHmiStore.getState().tenantId,
+      payload,
+      updatedAt: new Date().toISOString(),
+    });
+  } catch (error) {
+    console.warn('No se pudo guardar la copia local:', error);
+  }
+}
+
+async function leerCopia<T>(id: string): Promise<T | null> {
+  try {
+    const guardada = await localDb.snapshots.get(id);
+    return (guardada?.payload as T) ?? null;
+  } catch (error) {
+    console.warn('No se pudo leer la copia local:', error);
+    return null;
+  }
+}
+
 const initialContext = getTenantContextFromToken();
 
 export const useHmiStore = create<HmiState>()((set, get) => ({
@@ -263,17 +291,25 @@ export const useHmiStore = create<HmiState>()((set, get) => ({
   },
 
   loadAvailableOrders: async () => {
-    if (!get().isOnline) return;
-    set({ isLoadingOrders: true });
-    try {
-      const orders = await callApiWithTimeout<AvailableOrder[]>('/api/v1/orders/available');
-      set({ availableOrders: orders ?? [] });
-    } catch (error) {
-      console.warn('Failed to load available orders:', error);
-      set({ availableOrders: [] });
-    } finally {
-      set({ isLoadingOrders: false });
+    // Con red se pide al servidor y se guarda copia. Sin red (o si el servidor
+    // no responde) la lista sale del dispositivo: en una nave sin cobertura el
+    // operario tiene que poder elegir orden igual.
+    if (get().isOnline) {
+      set({ isLoadingOrders: true });
+      try {
+        const orders = await callApiWithTimeout<AvailableOrder[]>('/api/v1/orders/available');
+        set({ availableOrders: orders ?? [] });
+        await guardarCopia(CLAVE_ORDENES, orders ?? []);
+      } catch (error) {
+        console.warn('Failed to load available orders:', error);
+        set({ availableOrders: (await leerCopia<AvailableOrder[]>(CLAVE_ORDENES)) ?? [] });
+      } finally {
+        set({ isLoadingOrders: false });
+      }
+      return;
     }
+
+    set({ availableOrders: (await leerCopia<AvailableOrder[]>(CLAVE_ORDENES)) ?? [] });
   },
 
   selectOrder: (order: AvailableOrder) => {
@@ -286,17 +322,30 @@ export const useHmiStore = create<HmiState>()((set, get) => ({
   },
 
   loadOrder: async (orderId: string) => {
-    if (!get().isOnline) return;
-    try {
-      const order = await callApiWithTimeout<any>(`/api/v1/production/orders/${orderId}`);
-      if (order && order.status) {
-        set({ 
-          currentStatus: order.status as ProductionStatus,
-          activeOrder: order
-        });
+    if (get().isOnline) {
+      try {
+        const order = await callApiWithTimeout<any>(`/api/v1/production/orders/${orderId}`);
+        if (order && order.status) {
+          set({
+            currentStatus: order.status as ProductionStatus,
+            activeOrder: order,
+          });
+          await guardarCopia(`orden:${orderId}`, order);
+          return;
+        }
+      } catch (error) {
+        console.warn('Failed to load real order status from backend:', error);
       }
-    } catch (error) {
-      console.warn('Failed to load real order status from backend:', error);
+    }
+
+    // Sin red (o sin respuesta del servidor) se sigue con la copia guardada: el
+    // operario tiene que poder apuntar el parte de la orden que ya tenía abierta.
+    const guardada = await leerCopia<any>(`orden:${orderId}`);
+    if (guardada && guardada.status) {
+      set({
+        currentStatus: guardada.status as ProductionStatus,
+        activeOrder: guardada,
+      });
     }
   },
 

@@ -14,4 +14,14 @@ export default defineConfig({
       '/api/v1': process.env.VITE_API_TARGET ?? 'http://localhost:3001',
     },
   },
+  // La vista previa sirve la aplicación construida, que es la que recibe el
+  // cliente. Se usa para comprobar el funcionamiento sin red contra el
+  // artefacto de verdad y no contra los módulos sueltos del servidor de
+  // desarrollo, y por eso necesita el mismo proxy que aquel.
+  preview: {
+    port: 4174,
+    proxy: {
+      '/api/v1': process.env.VITE_API_TARGET ?? 'http://localhost:3001',
+    },
+  },
 });
