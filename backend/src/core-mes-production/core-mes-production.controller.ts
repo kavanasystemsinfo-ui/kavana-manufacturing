@@ -16,17 +16,18 @@ import { RequireRole } from '../auth/roles.decorator.js';
 import { RolesGuard } from '../auth/roles.guard.js';
 
 @Controller('production')
-@RequireRole('operario', 'supervisor', 'tenant_admin')
 @UseGuards(RolesGuard)
 export class CoreMesProductionController {
   constructor(@Inject(CoreMesProductionService) private readonly service: CoreMesProductionService) {}
 
   @Get('orders')
+  @RequireRole('supervisor', 'tenant_admin')
   listOrders() {
     return this.service.listOrders();
   }
 
   @Get('operator/context')
+  @RequireRole('operario', 'supervisor', 'tenant_admin')
   async getOperatorContext() {
     const ctx = getTenantContext();
     const result = await postgresPool.query(
@@ -51,12 +52,14 @@ export class CoreMesProductionController {
   }
 
   @Post('orders')
+  @RequireRole('supervisor', 'tenant_admin')
   createOrder(@Body() body: unknown) {
     const dto = createProductionOrderSchema.parse(body);
     return this.service.createOrder(dto);
   }
 
   @Get('orders/:id')
+  @RequireRole('operario', 'supervisor', 'tenant_admin')
   async getOrder(@Param('id') id: string) {
     const order = await this.service.getOrder(id);
     if (!order) {
@@ -66,29 +69,34 @@ export class CoreMesProductionController {
   }
 
   @Post('orders/:id/transition')
+  @RequireRole('supervisor', 'tenant_admin')
   transitionOrder(@Param('id') id: string, @Body() body: unknown) {
     const dto = transitionProductionOrderSchema.parse(body);
     return this.service.transitionOrder(id, dto);
   }
 
   @Post('time-logs/sync')
+  @RequireRole('operario', 'supervisor', 'tenant_admin')
   syncWorkBlock(@Body() body: unknown) {
     const dto = syncWorkBlockSchema.parse(body);
     return this.service.syncWorkBlock(dto);
   }
 
   @Get('time-logs/mine')
+  @RequireRole('operario', 'supervisor', 'tenant_admin')
   listMyTimeLogs(@Query() query: unknown) {
     const dto = listMyTimeLogsQuerySchema.parse(query);
     return this.service.listMyTimeLogs(dto);
   }
 
   @Get('orders/:id/logs')
+  @RequireRole('operario', 'supervisor', 'tenant_admin')
   listOrderLogs(@Param('id') id: string) {
     return this.service.listOrderLogs(id);
   }
 
   @Patch('orders/:id/custom-fields')
+  @RequireRole('supervisor', 'tenant_admin')
   async updateCustomFields(@Param('id') id: string, @Body() body: unknown) {
     const dto = updateCustomFieldsSchema.parse(body);
     const order = await this.service.updateCustomFields(id, dto);
