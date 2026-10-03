@@ -37,7 +37,10 @@ export class ReportExportProcessor extends WorkerHost {
           query = `SELECT wb.*, ws.name as ws_name, o.code as order_code FROM production_work_blocks wb JOIN workstations ws ON ws.id = wb.workstation_id JOIN orders o ON o.id = wb.order_id WHERE wb.tenant_id = $1 ORDER BY wb.start_time DESC LIMIT 1000`;
           break;
         case 'costs':
-          query = `SELECT * FROM cost_records WHERE tenant_id = $1 ORDER BY recorded_at DESC LIMIT 1000`;
+          query = `SELECT id, order_id, category, amount, currency, description, created_at
+                   FROM cost_entries
+                   WHERE tenant_id = $1
+                   ORDER BY created_at DESC LIMIT 1000`;
           break;
       }
 
