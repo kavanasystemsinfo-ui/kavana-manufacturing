@@ -1,10 +1,11 @@
-import { Injectable, InternalServerErrorException } from '@nestjs/common';
+import { BadRequestException, Injectable, InternalServerErrorException } from '@nestjs/common';
 import { randomUUID } from 'node:crypto';
 import { postgresPool } from '../db/postgres.provider.js';
 import { tenantQuery } from '../db/tenant-query.js';
 import { getTenantContext } from '../auth/tenant-context.storage.js';
 import type { CreateOrderDto, UpdateOrderDto, ListOrdersQuery } from './dto.js';
 import { deriveWorkstationState } from '../workstations/workstation-state.js';
+import { validateOrderTransition, type OrderStatus } from './order-state-machine.js';
 
 // `o.code` es el identificador visible de la orden (el N.º de Orden que teclea
 // el supervisor). Faltaba en la proyección, así que las tarjetas del tablero
@@ -94,6 +95,21 @@ export class OrdersService {
   }
 
   async updateOrder(orderId: string, dto: UpdateOrderDto) {
+    // Solo validar transición de estado si se proporciona un status y es diferente al actual
+    if (dto.status !== undefined) {
+      const currentOrder = await this.getOrder(orderId);
+      // Si la orden no existe, dejar que el flujo original la maneje (devolverá null al final)
+      if (currentOrder && dto.status !== currentOrder.status) {
+        const transition = validateOrderTransition(
+          currentOrder.status as OrderStatus,
+          dto.status as OrderStatus,
+        );
+        if (!transition.valid) {
+          throw new BadRequestException(transition.reason);
+        }
+      }
+    }
+
     const setClauses: string[] = [];
     const values: unknown[] = [];
     let paramIndex = 1;

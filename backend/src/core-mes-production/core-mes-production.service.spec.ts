@@ -82,9 +82,12 @@ describe('CoreMesProductionService - syncWorkBlock', () => {
           return Promise.resolve({ rowCount: 1, rows: [{ id: 'event-2' }] });
         }
         if (queryStr.includes('UPDATE orders')) {
-          return Promise.resolve({ rows: [{ id: 'order-1', code: 'ORD-1', quantity: 100, produced_quantity: 50, defect_quantity: 0, status: 'in_progress', workstation_id: 'ws-1', custom_fields: {}, created_at: new Date(), updated_at: new Date() }] });
-        }
-        return Promise.resolve({ rows: [] });
+                  return Promise.resolve({ rows: [{ id: 'order-1', code: 'ORD-1', quantity: 100, produced_quantity: 100, defect_quantity: 0, status: 'in_progress', workstation_id: 'ws-1', custom_fields: {}, created_at: new Date(), updated_at: new Date() }] });
+                }
+                if (queryStr.includes('quantity, produced_quantity, defect_quantity, status') && queryStr.includes('FROM orders')) {
+                  return Promise.resolve({ rows: [{ quantity: 100, produced_quantity: 50, defect_quantity: 0, status: 'pending' }] });
+                }
+                return Promise.resolve({ rows: [] });
       })
     };
     vi.mocked(await import('../db/withTenantTransaction.js')).withTenantTransaction.mockImplementation(async (cb: any) => cb(mockedClient));

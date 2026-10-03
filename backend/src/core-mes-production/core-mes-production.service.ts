@@ -8,6 +8,7 @@ import { withTenantTransaction } from '../db/withTenantTransaction.js';
 import type { CreateProductionOrderDto, SyncWorkBlockDto, TransitionProductionOrderDto, UpdateCustomFieldsDto, ListMyTimeLogsDto } from './dto.js';
 import { TenantCapabilitiesService } from '../tenant-capabilities/tenant-capabilities.service.js';
 import { buildCustomFieldsZodSchema, type CustomFieldDefinition } from '../common/custom-fields.js';
+import { validateOrderTransition, type OrderStatus } from '../orders/order-state-machine.js';
 
 @Injectable()
 export class CoreMesProductionService {
@@ -84,6 +85,15 @@ export class CoreMesProductionService {
 
       if (!order) {
         throw new BadRequestException('The requested production order does not exist or you do not have permission.');
+      }
+
+      // Validar la transición de estado usando la máquina de estados
+      const transition = validateOrderTransition(
+        order.status as OrderStatus,
+        dto.target_status as OrderStatus,
+      );
+      if (!transition.valid) {
+        throw new BadRequestException(transition.reason);
       }
 
       if (dto.target_status === 'in_progress' && !dto.workstation_id && !order.workstation_id) {
@@ -165,16 +175,56 @@ WHERE tenant_id = $1::bigint AND id = $2::uuid
 
       let updateResult;
       if (isNewBlock) {
+        // Obtener la orden actual para validar límites
+        const orderResult = await client.query(
+          `SELECT quantity, produced_quantity, defect_quantity, status
+           FROM orders WHERE tenant_id = $1::bigint AND id = $2::uuid`,
+          [tenantId, dto.order_id],
+        );
+        
+        if (orderResult.rows.length === 0) {
+          throw new BadRequestException('Orden no encontrada');
+        }
+        
+        const order = orderResult.rows[0];
+        const targetQuantity = Number(order.quantity);
+        const currentProduced = Number(order.produced_quantity);
+        const currentDefects = Number(order.defect_quantity);
+        const newProduced = currentProduced + Number(dto.produced_quantity ?? 0);
+        const newDefects = currentDefects + Number(dto.defect_quantity ?? 0);
+        
+        // Validar que no se exceda la cantidad objetivo
+        if (newProduced > targetQuantity) {
+          throw new BadRequestException(
+            `No se pueden producir ${newProduced} unidades. La orden solo tiene ${targetQuantity} unidades.`
+          );
+        }
+        
+        // Validar que los defectos no excedan la producción
+        if (newDefects > newProduced) {
+          throw new BadRequestException(
+            `No se pueden registrar ${newDefects} defectos cuando solo se han producido ${newProduced} unidades.`
+          );
+        }
+        
+        // Determinar el nuevo estado: completar si se alcanzó la cantidad objetivo
+        let newStatus = order.status;
+        if (newProduced >= targetQuantity && order.status !== 'completed') {
+          newStatus = 'completed';
+        } else if (order.status === 'pending' && newProduced > 0) {
+          newStatus = 'in_progress';
+        }
+        
         updateResult = await client.query(
           `UPDATE orders
-           SET status = CASE WHEN status = 'pending' THEN 'in_progress' ELSE status END,
-               workstation_id = COALESCE($3::uuid, workstation_id),
-               produced_quantity = produced_quantity + COALESCE($4::numeric, 0),
-               defect_quantity = defect_quantity + COALESCE($5::numeric, 0),
+           SET status = $3,
+               workstation_id = COALESCE($4::uuid, workstation_id),
+               produced_quantity = $5,
+               defect_quantity = $6,
                updated_at = NOW()
            WHERE tenant_id = $1::bigint AND id = $2::uuid
            RETURNING id, code, quantity, produced_quantity, defect_quantity, status, workstation_id, custom_fields, created_at, updated_at`,
-          [tenantId, dto.order_id, dto.workstation_id, dto.produced_quantity ?? 0, dto.defect_quantity ?? 0],
+          [tenantId, dto.order_id, newStatus, dto.workstation_id, newProduced, newDefects],
         );
       } else {
         updateResult = await client.query(
@@ -240,7 +290,7 @@ WHERE tenant_id = $1::bigint AND id = $2::uuid
   private async lockOrder(client: PoolClient, orderId: string) {
     const context = getTenantContext();
     const result = await client.query(
-      `SELECT id, status, workstation_id
+      `SELECT id, status, workstation_id, quantity, produced_quantity, defect_quantity
        FROM orders
        WHERE tenant_id = $1::bigint AND id = $2::uuid
        FOR UPDATE`,

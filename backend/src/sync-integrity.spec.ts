@@ -142,6 +142,9 @@ describe('Offline Sync Integrity — syncWorkBlock', () => {
           if (sql.includes('UPDATE orders')) {
             return Promise.resolve({ rows: [{ id: 'order-1', code: 'ORD-1', quantity: 100, produced_quantity: 100, defect_quantity: 0, status: 'in_progress', workstation_id: 'ws-1', custom_fields: {}, created_at: new Date(), updated_at: new Date() }] });
           }
+          if (sql.includes('quantity, produced_quantity, defect_quantity, status') && sql.includes('FROM orders')) {
+            return Promise.resolve({ rows: [{ quantity: 100, produced_quantity: 50, defect_quantity: 0, status: 'pending' }] });
+          }
           return Promise.resolve({ rows: [] });
         }),
       };
@@ -158,7 +161,7 @@ describe('Offline Sync Integrity — syncWorkBlock', () => {
         type: 'produccion' as const,
         start_time: '2026-06-14T08:00:00Z',
         end_time: '2026-06-14T10:00:00Z',
-        produced_quantity: 100,
+        produced_quantity: 50,
         is_offline_event: true,
       };
 
