@@ -58,6 +58,7 @@ export class DocumentIngestProcessor extends WorkerHost {
     const client = await pool.connect();
 
     try {
+      await client.query('BEGIN');
       await client.query('SELECT set_config($1, $2, true)', ['app.current_tenant_id', tenantId]);
 
       // 1. Registrar documento fuente
@@ -103,6 +104,9 @@ export class DocumentIngestProcessor extends WorkerHost {
       this.logger.log(`Ingest completo: doc=${docId}, chunks=${indexed}, tenant=${tenantId}`);
       return { chunks: chunks.length, indexed };
 
+    } catch (error) {
+      await client.query('ROLLBACK').catch(() => undefined);
+      throw error;
     } finally {
       client.release();
     }
