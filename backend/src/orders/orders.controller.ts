@@ -8,24 +8,26 @@ import { RequireRole } from '../auth/roles.decorator.js';
 import { RolesGuard } from '../auth/roles.guard.js';
 
 @Controller('orders')
-@RequireRole('operario', 'supervisor', 'tenant_admin')
 @UseGuards(RolesGuard)
 export class OrdersController {
   constructor(@Inject(OrdersService) private readonly ordersService: OrdersService) {}
 
   @Post()
+  @RequireRole('supervisor', 'tenant_admin')
   async createOrder(@Body() body: CreateOrderDto) {
     const validated = CreateOrderDtoSchema.parse(body);
     return this.ordersService.createOrder(validated);
   }
 
   @Get()
+  @RequireRole('supervisor', 'tenant_admin')
   async listOrders(@Query() query: unknown) {
     const filters = ListOrdersQuerySchema.parse(query);
     return this.ordersService.listOrders(filters);
   }
 
   @Get('available')
+  @RequireRole('operario', 'supervisor', 'tenant_admin')
   async listAvailableOrders() {
     const ctx = getTenantContext();
     const result = await postgresPool.query(
@@ -51,11 +53,13 @@ export class OrdersController {
   }
 
   @Get('workstations-status')
+  @RequireRole('supervisor', 'tenant_admin')
   async getWorkstationsStatus() {
     return this.ordersService.getWorkstationStatus();
   }
 
   @Get(':id')
+  @RequireRole('operario', 'supervisor', 'tenant_admin')
   async getOrder(@Param('id') id: string) {
     const order = await this.ordersService.getOrder(id);
     if (!order) {
@@ -65,11 +69,13 @@ export class OrdersController {
   }
 
   @Get(':id/activity')
+  @RequireRole('operario', 'supervisor', 'tenant_admin')
   async getOrderActivity(@Param('id') id: string) {
     return this.ordersService.getActivity(id);
   }
 
   @Put(':id')
+  @RequireRole('supervisor', 'tenant_admin')
   async updateOrder(@Param('id') id: string, @Body() body: UpdateOrderDto) {
     const validated = UpdateOrderDtoSchema.parse(body);
     const order = await this.ordersService.updateOrder(id, validated);
@@ -80,6 +86,7 @@ export class OrdersController {
   }
 
   @Delete(':id')
+  @RequireRole('tenant_admin')
   async deleteOrder(@Param('id') id: string) {
     const deleted = await this.ordersService.deleteOrder(id);
     if (!deleted) {
