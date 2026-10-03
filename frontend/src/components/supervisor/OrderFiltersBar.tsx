@@ -130,7 +130,7 @@ export function OrderFiltersBar({
               type="button"
               aria-pressed={view === opcion}
               onClick={() => onViewChange(opcion)}
-              className={`min-h-[44px] rounded-md px-3 text-sm font-semibold transition ${
+              className={`min-h-[64px] rounded-md px-3 text-sm font-semibold transition ${
                 view === opcion
                   ? 'bg-kavana-orange text-white'
                   : isClassic

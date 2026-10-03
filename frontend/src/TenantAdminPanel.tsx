@@ -78,7 +78,7 @@ export function TenantAdminPanel() {
             </div>
 
             <div>
-              <h2 className="mb-4 text-xl font-black uppercase tracking-wide text-kavana-steel">Módulos Activos</h2>
+              <h2 className="mb-4 text-xl font-black uppercase tracking-wide text-slate-400">Módulos Activos</h2>
               <div className="grid gap-4 md:grid-cols-2">
                 {Object.entries(capabilities.modules).map(([key, mod]) => {
                   const isCore = key === 'core_mes';
@@ -122,7 +122,7 @@ export function TenantAdminPanel() {
 
             {/* Visual Schema Editor for Custom Fields */}
             <div className="border-t border-kavana-steel/30 pt-6">
-              <h2 className="text-xl font-black uppercase tracking-wide text-kavana-steel">Configuración de Campos Personalizados</h2>
+              <h2 className="text-xl font-black uppercase tracking-wide text-slate-400">Configuración de Campos Personalizados</h2>
               <p className="mt-2 text-sm text-slate-400">
                 Define las variables sectoriales requeridas para las órdenes de producción (ej.: ancho_bobina, modelo_producto).
               </p>

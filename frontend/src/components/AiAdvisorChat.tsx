@@ -189,7 +189,7 @@ export function AiAdvisorChat({ mode = 'mes' }: AiAdvisorChatProps) {
         <button
           type="submit"
           disabled={loading || !input.trim()}
-          className={`min-w-[48px] min-h-[48px] rounded-xl font-bold transition disabled:opacity-40 ${
+          className={`min-w-[64px] min-h-[64px] rounded-xl font-bold transition disabled:opacity-40 ${
             isClassic
               ? 'bg-blue-600 text-white hover:bg-blue-700'
               : 'bg-kavana-orange text-white hover:bg-kavana-orange-light'

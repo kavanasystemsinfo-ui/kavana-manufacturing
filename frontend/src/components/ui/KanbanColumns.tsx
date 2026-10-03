@@ -125,7 +125,7 @@ function KanbanColumnView<T extends KanbanItem>({
       className={`flex min-h-[220px] w-[80vw] max-w-[320px] shrink-0 snap-start flex-col rounded-xl border-2 p-3 transition sm:w-auto sm:min-w-[240px] sm:max-w-none sm:flex-1 sm:shrink ${borde}`}
     >
       <div className="mb-3 flex items-center justify-between">
-        <h3 className={`text-xs font-bold uppercase tracking-wider ${isClassic ? 'text-slate-600' : 'text-kavana-steel'}`}>
+        <h3 className={`text-xs font-bold uppercase tracking-wider ${isClassic ? 'text-slate-600' : 'text-slate-400'}`}>
           {column.title}
         </h3>
         <span className="rounded-full bg-kavana-orange/20 px-2 py-0.5 text-xs font-bold text-kavana-orange">

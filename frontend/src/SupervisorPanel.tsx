@@ -53,7 +53,7 @@ export function SupervisorPanel() {
             <HelpModal {...SUPERVISOR_HELP} />
             <button
               onClick={() => setShowForm(!showForm)}
-              className="min-h-[44px] rounded-2xl bg-kavana-orange px-5 py-3 text-base font-bold text-white shadow-lg transition hover:bg-kavana-orange-light active:scale-95"
+              className="min-h-[64px] rounded-2xl bg-kavana-orange px-5 py-3 text-base font-bold text-white shadow-lg transition hover:bg-kavana-orange-light active:scale-95"
             >
               {showForm ? 'Cancelar' : '+ Nueva Orden'}
             </button>
@@ -87,7 +87,7 @@ export function SupervisorPanel() {
                 <select
                   value={selectedModel}
                   onChange={(e) => setSelectedModel(e.target.value)}
-                  className="min-h-[44px] w-full rounded-lg border-2 border-kavana-steel/30 bg-kavana-dark px-3 py-2.5 text-sm text-white focus:border-kavana-orange focus:outline-none"
+                  className="min-h-[64px] w-full rounded-lg border-2 border-kavana-steel/30 bg-kavana-dark px-3 py-2.5 text-sm text-white focus:border-kavana-orange focus:outline-none"
                 >
                   <option value="">Seleccionar modelo...</option>
                   {models.map((m: any) => (
@@ -100,7 +100,7 @@ export function SupervisorPanel() {
                 <select
                   value={selectedWorkstation}
                   onChange={(e) => setSelectedWorkstation(e.target.value)}
-                  className="min-h-[44px] w-full rounded-lg border-2 border-kavana-steel/30 bg-kavana-dark px-3 py-2.5 text-sm text-white focus:border-kavana-orange focus:outline-none"
+                  className="min-h-[64px] w-full rounded-lg border-2 border-kavana-steel/30 bg-kavana-dark px-3 py-2.5 text-sm text-white focus:border-kavana-orange focus:outline-none"
                 >
                   <option value="">Seleccionar puesto...</option>
                   {/* Solo puestos activos: el clásico ya filtraba y este no, así
@@ -119,7 +119,7 @@ export function SupervisorPanel() {
                   value={quantity}
                   onChange={(e) => setQuantity(e.target.value)}
                   placeholder="0"
-                  className="min-h-[44px] w-full rounded-lg border-2 border-kavana-steel/30 bg-kavana-dark px-3 py-2.5 text-sm text-white focus:border-kavana-orange focus:outline-none"
+                  className="min-h-[64px] w-full rounded-lg border-2 border-kavana-steel/30 bg-kavana-dark px-3 py-2.5 text-sm text-white focus:border-kavana-orange focus:outline-none"
                 />
               </div>
               <div>
@@ -128,7 +128,7 @@ export function SupervisorPanel() {
                   value={orderNumber}
                   onChange={(e) => setOrderNumber(e.target.value)}
                   placeholder="OP-0000"
-                  className="min-h-[44px] w-full rounded-lg border-2 border-kavana-steel/30 bg-kavana-dark px-3 py-2.5 text-sm text-white focus:border-kavana-orange focus:outline-none"
+                  className="min-h-[64px] w-full rounded-lg border-2 border-kavana-steel/30 bg-kavana-dark px-3 py-2.5 text-sm text-white focus:border-kavana-orange focus:outline-none"
                 />
               </div>
               <div>
@@ -137,7 +137,7 @@ export function SupervisorPanel() {
                   value={measurement}
                   onChange={(e) => setMeasurement(e.target.value)}
                   placeholder="mm/cm"
-                  className="min-h-[44px] w-full rounded-lg border-2 border-kavana-steel/30 bg-kavana-dark px-3 py-2.5 text-sm text-white focus:border-kavana-orange focus:outline-none"
+                  className="min-h-[64px] w-full rounded-lg border-2 border-kavana-steel/30 bg-kavana-dark px-3 py-2.5 text-sm text-white focus:border-kavana-orange focus:outline-none"
                 />
               </div>
               <div>
@@ -146,7 +146,7 @@ export function SupervisorPanel() {
                   value={material}
                   onChange={(e) => setMaterial(e.target.value)}
                   placeholder="..."
-                  className="min-h-[44px] w-full rounded-lg border-2 border-kavana-steel/30 bg-kavana-dark px-3 py-2.5 text-sm text-white focus:border-kavana-orange focus:outline-none"
+                  className="min-h-[64px] w-full rounded-lg border-2 border-kavana-steel/30 bg-kavana-dark px-3 py-2.5 text-sm text-white focus:border-kavana-orange focus:outline-none"
                 />
               </div>
               <div>
@@ -155,13 +155,13 @@ export function SupervisorPanel() {
                   value={notes}
                   onChange={(e) => setNotes(e.target.value)}
                   placeholder="..."
-                  className="min-h-[44px] w-full rounded-lg border-2 border-kavana-steel/30 bg-kavana-dark px-3 py-2.5 text-sm text-white focus:border-kavana-orange focus:outline-none"
+                  className="min-h-[64px] w-full rounded-lg border-2 border-kavana-steel/30 bg-kavana-dark px-3 py-2.5 text-sm text-white focus:border-kavana-orange focus:outline-none"
                 />
               </div>
               <div className="flex flex-wrap items-end gap-2">
                 <button
                   type="submit"
-                  className="inline-flex min-h-[44px] items-center rounded-lg bg-kavana-orange px-6 py-2.5 text-sm font-bold text-white transition hover:bg-kavana-orange-light active:scale-95"
+                  className="inline-flex min-h-[64px] items-center rounded-lg bg-kavana-orange px-6 py-2.5 text-sm font-bold text-white transition hover:bg-kavana-orange-light active:scale-95"
                 >
                   Crear orden
                 </button>
@@ -179,7 +179,7 @@ export function SupervisorPanel() {
             <button
               key={tab}
               onClick={() => setActiveTab(tab)}
-              className={`min-h-[44px] whitespace-nowrap rounded-lg px-5 py-2.5 text-sm font-bold transition ${
+              className={`min-h-[64px] whitespace-nowrap rounded-lg px-5 py-2.5 text-sm font-bold transition ${
                 activeTab === tab
                   ? 'bg-kavana-orange text-white shadow'
                   : 'bg-kavana-surface text-slate-300 hover:text-white'

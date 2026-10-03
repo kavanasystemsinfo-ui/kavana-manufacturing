@@ -175,7 +175,7 @@ export function LoginPage({ onLogin }: LoginPageProps) {
             <button
               type="submit"
               disabled={submitting || !username.trim() || !password.trim() || !tenantSlug.trim()}
-              className={`w-full font-bold py-3 px-4 rounded-sm transition-all active:scale-95 flex items-center justify-center gap-2 min-h-[48px] ${
+              className={`w-full font-bold py-3 px-4 rounded-sm transition-all active:scale-95 flex items-center justify-center gap-2 min-h-[64px] ${
                 isClassic
                   ? 'bg-blue-600 text-white hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed'
                   : 'bg-orange-600 text-white hover:bg-orange-700 disabled:opacity-50 disabled:cursor-not-allowed shadow-lg shadow-orange-600/20'

@@ -174,7 +174,7 @@ export function TenantLogin({ subdomain, onLogin }: TenantLoginProps) {
           <button
             type="submit"
             disabled={submitting || !username.trim() || !password.trim()}
-            className={`w-full py-3 rounded-lg text-sm font-semibold transition-colors min-h-[48px] ${
+            className={`w-full py-3 rounded-lg text-sm font-semibold transition-colors min-h-[64px] ${
               isClassic
                 ? 'bg-blue-600 text-white hover:bg-blue-700 disabled:opacity-50'
                 : 'bg-indigo-600 text-white hover:bg-indigo-700 disabled:opacity-50'
