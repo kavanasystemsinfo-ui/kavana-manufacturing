@@ -34,7 +34,7 @@ export function PeriodoSelector({ isClassic }: Props) {
 
   return (
     <section aria-label="Periodo" className={`mb-6 flex flex-wrap items-center gap-2 rounded-2xl border p-3 ${isClassic ? 'border-gray-200 bg-gray-50' : 'border-kavana-steel/20 bg-kavana-surface/40'}`}>
-      <span className={`mr-1 text-xs font-bold uppercase tracking-wider ${isClassic ? 'text-gray-500' : 'text-kavana-steel'}`}>Periodo</span>
+      <span className={`mr-1 text-xs font-bold uppercase tracking-wider ${isClassic ? 'text-gray-500' : 'text-slate-400'}`}>Periodo</span>
 
       {MODOS_VISIBLES.map((mode) => (
         <button key={mode} type="button" onClick={() => setMode(mode)} className={btn(periodo.mode === mode)}>

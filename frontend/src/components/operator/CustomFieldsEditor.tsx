@@ -29,7 +29,7 @@ interface Props {
 export function CustomFieldsEditor({ fields, values, onChange, onSave, onCancel, saving, error, isClassic }: Props) {
   const label = isClassic
     ? 'text-xs font-semibold text-gray-600 mb-1 block'
-    : 'text-xs font-bold uppercase tracking-wider text-kavana-steel mb-1 block';
+    : 'text-xs font-bold uppercase tracking-wider text-slate-400 mb-1 block';
   const control = isClassic
     ? 'w-full border border-gray-300 rounded px-2 py-1 text-sm bg-white text-gray-900 focus:ring-kavana-orange focus:border-kavana-orange outline-none'
     : 'w-full bg-kavana-dark text-white border border-kavana-steel/30 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-kavana-orange';

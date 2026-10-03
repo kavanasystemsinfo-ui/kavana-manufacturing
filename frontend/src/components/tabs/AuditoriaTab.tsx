@@ -51,7 +51,7 @@ export function AuditoriaTab({ isClassic }: Props) {
     : 'bg-kavana-surface/60 backdrop-blur-sm rounded-xl border border-kavana-steel/20 overflow-hidden';
   const th = isClassic
     ? 'px-4 py-2.5 text-left text-xs font-semibold text-gray-500 uppercase'
-    : 'px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-kavana-steel';
+    : 'px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-slate-400';
   const td = isClassic ? 'px-4 py-3 text-sm text-gray-800' : 'px-4 py-3 text-sm text-slate-200';
   const hint = isClassic ? 'text-xs text-gray-500' : 'text-xs text-slate-400';
 

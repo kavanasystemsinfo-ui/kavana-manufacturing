@@ -40,7 +40,7 @@ export function PauseModal({ isOpen, onClose, onConfirm }: PauseModalProps) {
         
         <div className="space-y-6">
           <label className="block">
-            <span className="mb-3 block text-sm font-bold uppercase tracking-[0.2em] text-kavana-steel">
+            <span className="mb-3 block text-sm font-bold uppercase tracking-[0.2em] text-slate-400">
               Motivo de parada
             </span>
             <input
