@@ -1,6 +1,7 @@
 import { BadRequestException, Injectable } from '@nestjs/common';
 import { postgresPool } from '../db/postgres.provider.js';
 import { getTenantContext } from '../auth/tenant-context.storage.js';
+import { tenantQuery } from '../db/tenant-query.js';
 import { calcularOee, resumirBloques, type BloqueDeTrabajo } from './oee.calculo.js';
 import { rangoOeeSchema, type RangoOee } from './oee.rango.js';
 
@@ -73,14 +74,16 @@ export class OeeService {
     const context = getTenantContext();
 
     // Get workstation name
-    const wsResult = await postgresPool.query(
+    const wsResult = await tenantQuery(
+      postgresPool,
       `SELECT name FROM workstations WHERE tenant_id = $1 AND id = $2`,
       [String(context.tenantId), workstationId],
     );
     const wsName = wsResult.rows[0]?.name ?? 'Unknown';
 
     // Get production blocks
-    const blocksResult = await postgresPool.query(
+    const blocksResult = await tenantQuery(
+      postgresPool,
       `SELECT type, start_time, end_time, produced_quantity, defect_quantity, downtime_reason
        FROM production_work_blocks
        WHERE tenant_id = $1 AND workstation_id = $2
@@ -127,7 +130,8 @@ export class OeeService {
   ): Promise<number> {
     const context = getTenantContext();
 
-    const resultado = await postgresPool.query(
+    const resultado = await tenantQuery(
+      postgresPool,
       `SELECT mm.target_rate
        FROM manufacturing_models mm
        JOIN orders o ON o.tenant_id = mm.tenant_id AND o.model_id = mm.id
@@ -151,7 +155,8 @@ export class OeeService {
     const rango = validarRango(startDate, endDate);
     const context = getTenantContext();
 
-    const result = await postgresPool.query(
+    const result = await tenantQuery(
+      postgresPool,
       `SELECT w.id, w.name
        FROM workstations w
        WHERE w.tenant_id = $1 AND w.status = 'active'
@@ -184,7 +189,8 @@ export class OeeService {
     const rango = validarRango(startDate, endDate);
     const context = getTenantContext();
 
-    const result = await postgresPool.query(
+    const result = await tenantQuery(
+      postgresPool,
       `SELECT downtime_reason, COUNT(*) as count,
               SUM(EXTRACT(EPOCH FROM (end_time - start_time)) * 1000)::bigint as total_ms
        FROM production_work_blocks

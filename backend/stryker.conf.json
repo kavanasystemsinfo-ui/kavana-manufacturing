@@ -2,7 +2,6 @@
   "$schema": "https://stryker-mutator.io/schema/stryker-schema.json",
   "packageManager": "npm",
   "testRunner": "vitest",
-  "mutator": "typescript",
   "reporters": ["html", "json", "clear-text", "progress"],
   "coverageAnalysis": "off",
   "tsconfigFile": "tsconfig.json",
@@ -15,14 +14,22 @@
     "!src/**/*.spec.ts",
     "!src/**/*.test.ts",
     "!src/main.ts",
-    "!src/ai-advisor/**"
+    "!src/ai-advisor/**",
+    "!src/auth-login/auth-login-puesto.spec.ts"
   ],
   "files": [
     "src/**/*.ts",
     "!src/ai-advisor/**",
     "vitest.config.ts",
     "tsconfig.json",
-    "package.json"
+    "package.json",
+    "database/migrations/**/*.sql",
+    "database/seed.sql"
+  ],
+  "ignorePatterns": [
+    "dist/**",
+    "node_modules/**",
+    ".stryker-tmp/**"
   ],
   "timeoutFactor": 2,
   "timeoutMS": 60000,

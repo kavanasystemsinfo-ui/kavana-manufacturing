@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { postgresPool } from '../db/postgres.provider.js';
 import { getTenantContext } from '../auth/tenant-context.storage.js';
+import { tenantQuery } from '../db/tenant-query.js';
 
 export interface QualityCheck {
   id: string;
@@ -27,7 +28,8 @@ export interface QualitySummary {
 export class QualityService {
   async createCheck(orderId: string, workstationId: string, result: 'pass' | 'fail' | 'conditional', defectCount: number, defectType?: string, notes?: string): Promise<QualityCheck> {
     const context = getTenantContext();
-    const r = await postgresPool.query(
+    const r = await tenantQuery(
+      postgresPool,
       `INSERT INTO quality_checks (tenant_id, order_id, workstation_id, inspector_id, result, defect_count, defect_type, notes)
        VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
        RETURNING id, order_id, workstation_id, inspector_id, result, defect_count, defect_type, notes, checked_at`,
@@ -38,7 +40,8 @@ export class QualityService {
 
   async listChecks(orderId: string): Promise<QualityCheck[]> {
     const context = getTenantContext();
-    const r = await postgresPool.query(
+    const r = await tenantQuery(
+      postgresPool,
       `SELECT id, order_id, workstation_id, inspector_id, result, defect_count, defect_type, notes, checked_at
        FROM quality_checks
        WHERE tenant_id = $1 AND order_id = $2
@@ -50,7 +53,8 @@ export class QualityService {
 
   async getSummary(orderId: string): Promise<QualitySummary> {
     const context = getTenantContext();
-    const r = await postgresPool.query(
+    const r = await tenantQuery(
+      postgresPool,
       `SELECT
          COUNT(*)::int as total_checks,
          COUNT(*) FILTER (WHERE result = 'pass')::int as passed,

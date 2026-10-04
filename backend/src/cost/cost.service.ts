@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { postgresPool } from '../db/postgres.provider.js';
 import { getTenantContext } from '../auth/tenant-context.storage.js';
+import { tenantQuery } from '../db/tenant-query.js';
 
 export interface CostEntry {
   id: string;
@@ -25,7 +26,8 @@ export interface CostSummary {
 export class CostService {
   async createEntry(orderId: string, category: 'material' | 'labor' | 'overhead' | 'energy', amount: number, currency: string, description?: string): Promise<CostEntry> {
     const context = getTenantContext();
-    const r = await postgresPool.query(
+    const r = await tenantQuery(
+      postgresPool,
       `INSERT INTO cost_entries (tenant_id, order_id, category, amount, currency, description)
        VALUES ($1, $2, $3, $4, $5, $6)
        RETURNING id, order_id, category, amount, currency, description, created_at`,
@@ -36,7 +38,8 @@ export class CostService {
 
   async listEntries(orderId: string): Promise<CostEntry[]> {
     const context = getTenantContext();
-    const r = await postgresPool.query(
+    const r = await tenantQuery(
+      postgresPool,
       `SELECT id, order_id, category, amount, currency, description, created_at
        FROM cost_entries
        WHERE tenant_id = $1 AND order_id = $2
@@ -48,7 +51,8 @@ export class CostService {
 
   async getSummary(orderId: string): Promise<CostSummary> {
     const context = getTenantContext();
-    const r = await postgresPool.query(
+    const r = await tenantQuery(
+      postgresPool,
       `SELECT
          COALESCE(SUM(amount) FILTER (WHERE category = 'material'), 0)::numeric as total_material,
          COALESCE(SUM(amount) FILTER (WHERE category = 'labor'), 0)::numeric as total_labor,

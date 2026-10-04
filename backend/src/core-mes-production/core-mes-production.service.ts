@@ -5,6 +5,7 @@ import { z } from 'zod';
 import { getTenantContext } from '../auth/tenant-context.storage.js';
 import { postgresPool } from '../db/postgres.provider.js';
 import { withTenantTransaction } from '../db/withTenantTransaction.js';
+import { tenantQuery } from '../db/tenant-query.js';
 import type { CreateProductionOrderDto, SyncWorkBlockDto, TransitionProductionOrderDto, UpdateCustomFieldsDto, ListMyTimeLogsDto } from './dto.js';
 import { TenantCapabilitiesService } from '../tenant-capabilities/tenant-capabilities.service.js';
 import { buildCustomFieldsZodSchema, type CustomFieldDefinition } from '../common/custom-fields.js';
@@ -35,20 +36,19 @@ export class CoreMesProductionService {
   }
 
   async listOrders() {
-    const context = getTenantContext();
-    const result = await postgresPool.query(
+    return tenantQuery(
+      postgresPool,
       `SELECT id, code, quantity, produced_quantity, defect_quantity, status, workstation_id, custom_fields, created_at, updated_at
        FROM orders
        WHERE tenant_id = $1::bigint
        ORDER BY created_at DESC`,
-      [context.tenantId],
     );
-    return result.rows;
   }
 
   async getOrder(orderId: string) {
     const context = getTenantContext();
-    const result = await postgresPool.query(
+    const result = await tenantQuery(
+      postgresPool,
       `SELECT id, code, quantity, produced_quantity, defect_quantity, status, workstation_id, custom_fields, created_at, updated_at
        FROM orders
        WHERE tenant_id = $1 AND id = $2`,
@@ -64,7 +64,8 @@ export class CoreMesProductionService {
     try { dynamicZodSchema.parse(dto.custom_fields ?? {}); }
     catch (err) { const msg = err instanceof Error ? err.message : String(err); throw new BadRequestException(`Invalid custom fields: ${msg}`); }
 
-    const result = await postgresPool.query(
+    const result = await tenantQuery(
+      postgresPool,
       `UPDATE orders SET custom_fields = $3, updated_at = NOW()
        WHERE tenant_id = $1 AND id = $2
        RETURNING id, code, quantity, produced_quantity, defect_quantity, status, workstation_id, custom_fields, created_at, updated_at`,
@@ -248,7 +249,8 @@ WHERE tenant_id = $1::bigint AND id = $2::uuid
 
   async listOrderLogs(orderId: string) {
     const context = getTenantContext();
-    const result = await postgresPool.query(
+    const result = await tenantQuery(
+      postgresPool,
       `SELECT id, order_id, workstation_id, operator_id, type, downtime_reason, start_time, end_time, produced_quantity, defect_quantity, observations, is_offline_event, client_device_id
        FROM production_work_blocks
        WHERE tenant_id = $1::bigint AND order_id = $2::uuid
@@ -265,7 +267,8 @@ WHERE tenant_id = $1::bigint AND id = $2::uuid
    */
   async listMyTimeLogs(dto: ListMyTimeLogsDto) {
     const context = getTenantContext();
-    const result = await postgresPool.query(
+    const result = await tenantQuery(
+      postgresPool,
       `SELECT id, order_id, workstation_id, operator_id, type, downtime_reason, start_time, end_time, produced_quantity, defect_quantity, observations, is_offline_event
        FROM production_work_blocks
        WHERE tenant_id = $1::bigint AND operator_id = $2::uuid

@@ -10,6 +10,8 @@ import {
 import { CUSTOM_FIELD_TYPES, customFieldsSchemaValidator, type CustomFieldType } from '../common/custom-fields.js';
 import { parseAuditQuery, type ConfigAuditEntry } from './audit-query.js';
 import type { PoolClient } from 'pg';
+import { tenantQueryFor } from '../db/tenant-query.js';
+import { withTenantTransactionFor } from '../db/withTenantTransaction.js';
 
 // ponytail: known module keys from migration 005 seed. Add here when a new module is created.
 const KNOWN_MODULE_KEYS = new Set([
@@ -24,7 +26,9 @@ const KNOWN_MODULE_KEYS = new Set([
 export class TenantCapabilitiesService {
   async getCapabilities(tenantId: bigint): Promise<TenantCapabilities> {
     // 1. Check current governance_version (cheap single-column read)
-    const versionResult = await postgresPool.query(
+    const versionResult = await tenantQueryFor(
+      postgresPool,
+      tenantId,
       'SELECT governance_version FROM tenants WHERE id = $1',
       [tenantId.toString()],
     );
@@ -42,7 +46,9 @@ export class TenantCapabilitiesService {
     }
 
     // 3. Cache miss → full read
-    const result = await postgresPool.query(
+    const result = await tenantQueryFor(
+      postgresPool,
+      tenantId,
       `SELECT feature_matrix, custom_fields_schema, governance_version
        FROM tenants
        WHERE id = $1`,
@@ -99,9 +105,7 @@ export class TenantCapabilitiesService {
       throw new ForbiddenException('The core_mes module cannot be disabled.');
     }
 
-    const client = await postgresPool.connect();
-    try {
-      await client.query('BEGIN');
+    await withTenantTransactionFor(tenantId, async (client) => {
       await this.setAuditActor(client, userId);
 
       // Capture hard_limits before update for integrity check
@@ -138,16 +142,9 @@ export class TenantCapabilitiesService {
         throw new ForbiddenException('Integrity violation: hard_limits was modified during feature_matrix update.');
       }
 
-      await client.query('COMMIT');
-
       // Invalidate L1 cache so next request fetches new state
       this.invalidateCache(tenantId);
-    } catch (error) {
-      await client.query('ROLLBACK');
-      throw error;
-    } finally {
-      client.release();
-    }
+    });
   }
 
   async updateCustomFieldsSchema(tenantId: bigint, userId: string, newSchema: any): Promise<void> {
@@ -180,9 +177,7 @@ export class TenantCapabilitiesService {
     }
 
     // 3. Persist update in DB within a transaction (Postgres trigger handles audit)
-    const client = await postgresPool.connect();
-    try {
-      await client.query('BEGIN');
+    await withTenantTransactionFor(tenantId, async (client) => {
       await this.setAuditActor(client, userId);
 
       // Capture hard_limits before update for integrity check
@@ -214,16 +209,9 @@ export class TenantCapabilitiesService {
         throw new ForbiddenException('Integrity violation: hard_limits was modified during custom_fields_schema update.');
       }
 
-      await client.query('COMMIT');
-
       // Invalidate L1 cache so next request fetches new state
       this.invalidateCache(tenantId);
-    } catch (error) {
-      await client.query('ROLLBACK');
-      throw error;
-    } finally {
-      client.release();
-    }
+    });
   }
 
   invalidateCache(tenantId: bigint): void {
@@ -254,12 +242,16 @@ export class TenantCapabilitiesService {
     }
     const where = conditions.join(' AND ');
 
-    const totalResult = await postgresPool.query<{ total: number }>(
+    const totalResult = await tenantQueryFor(
+      postgresPool,
+      tenantId,
       `SELECT COUNT(*)::int AS total FROM tenant_config_audit WHERE ${where}`,
       params,
     );
 
-    const rows = await postgresPool.query<ConfigAuditEntry>(
+    const rows = await tenantQueryFor(
+      postgresPool,
+      tenantId,
       `SELECT a.id, a.actor_user_id, u.username AS actor_username, a.action,
               a.previous_value, a.new_value, a.metadata, a.created_at
        FROM tenant_config_audit a
@@ -274,7 +266,9 @@ export class TenantCapabilitiesService {
   }
 
   async getToolingTypes(tenantId: bigint): Promise<string[]> {
-    const result = await postgresPool.query(
+    const result = await tenantQueryFor(
+      postgresPool,
+      tenantId,
       `SELECT feature_matrix#>'{tooling,types}' as types FROM tenants WHERE id = $1`,
       [tenantId.toString()],
     );
@@ -294,9 +288,7 @@ export class TenantCapabilitiesService {
   }
 
   async saveToolingTypes(tenantId: bigint, userId: string, types: string[]): Promise<void> {
-    const client = await postgresPool.connect();
-    try {
-      await client.query('BEGIN');
+    await withTenantTransactionFor(tenantId, async (client) => {
       await this.setAuditActor(client, userId);
 
       await client.query(
@@ -310,14 +302,7 @@ export class TenantCapabilitiesService {
          WHERE id = $1`,
         [tenantId.toString(), JSON.stringify(types)],
       );
-
-      await client.query('COMMIT');
-    } catch (err) {
-      await client.query('ROLLBACK');
-      throw err;
-    } finally {
-      client.release();
-    }
+    });
 
     this.invalidateCache(tenantId);
   }

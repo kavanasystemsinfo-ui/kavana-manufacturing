@@ -30,3 +30,29 @@ export async function tenantQuery(
     client.release();
   }
 }
+
+/**
+ * Variant that accepts an explicit tenantId instead of reading from context.
+ * Useful for services called from controllers that already have the tenant context
+ * and pass the tenantId as a parameter.
+ */
+export async function tenantQueryFor(
+  pool: Pool,
+  tenantId: bigint,
+  text: string,
+  params?: unknown[],
+): Promise<QueryResult> {
+  const client = await pool.connect();
+  try {
+    await client.query('BEGIN');
+    await client.query("SELECT set_config('app.current_tenant_id', $1, true)", [tenantId.toString()]);
+    const result = await client.query(text, params);
+    await client.query('COMMIT');
+    return result;
+  } catch (error) {
+    await client.query('ROLLBACK');
+    throw error;
+  } finally {
+    client.release();
+  }
+}
