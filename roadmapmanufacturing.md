@@ -3,9 +3,11 @@
 Proyecto: KAVANA Manufacturing (MES). Repo `/root/kavana-manufacturing`.
 Origen: encargo de Jorge (28/09/2026) tras una auditoría del panel de supervisor
 hecha como usuario real contra la demo local (`http://localhost:8080`).
-Estado: **fases 0 a 5 ejecutadas en local**, blindaje de la demo redefinido por
-decisión de Jorge (29/09) y verificado contra la demo real. No se sube a GitHub
-hasta aprobación de Jorge.
+Estado: **fases 0 a 5 ejecutadas y subidas a GitHub** (push `f7fb9f3`, 2026-10-04).
+Blindaje de la demo redefinido por decisión de Jorge (29/09) y verificado contra demo real.
+**Fase 2 RLS completada** (rol `kavana_app` NOBYPASSRLS, 55 consultas migradas a `tenantQuery`),
+**máquina de estados de órdenes**, **permisos por método**, **touch targets 64px**,
+**Pausar/Reanudar + IncidenciaModal en clásico**, **817 tests unificados** (605 backend + 212 frontend).
 
 ## 1. Cómo se ha auditado (método)
 
@@ -363,9 +365,61 @@ el reintento pasó. Qué se ha medido:
   fija el cableado de rutas, que era justo el agujero (incidencias no estaba en
   la lista).
 
+## 6. Trabajo posterior a la fase 5 (ya en GitHub, commit `f7fb9f3`)
+
+### 6.1 Fase 2 RLS — Aislamiento efectivo con rol de aplicación (completada)
+
+- **Rol `kavana_app` con `NOBYPASSRLS`** (migración `042_rls_rol_aplicacion.sql`): el rol de aplicación ya no salta las políticas RLS.
+- **Tabla `tenants` bajo RLS FORCE** con policy de aislamiento por `tenant_id` (contexto `app.current_tenant_id`).
+- **Tres funciones `SECURITY DEFINER` acotadas** para operaciones que deben saltar RLS sin exponer datos cruzados:
+  - `auth_login_lookup(subdomain, username)` — login por subdominio
+  - `auth_tenant_by_subdomain(subdomain)` — resolución de tenant en onboarding
+  - `auth_update_password_hash(user_id, hash)` — cambio de contraseña
+- **55 consultas migradas a `tenantQuery`** (inventario medido en `docs/adr/632819a`): cada consulta del backend ahora pasa por `tenantQuery` que inyecta `SET LOCAL app.current_tenant_id` y `SET LOCAL app.actor_user_id` antes de ejecutar.
+- **Tests de aislamiento en verde** (`backend/src/db/rls-aislamiento.db.spec.ts`): 7 pruebas (sin contexto no se ve nada, con contexto solo lo propio, INSERT/UPDATE cruzados rechazados, login solo resuelve su subdominio).
+- **ADR-009** documentado en `docs/adr/009-rls-efectivo-rol-aplicacion.md` con plan completo y lista de consultas por grupos.
+- **Pendiente para producción**: aplicar la migración 042 completa (solo las 3 funciones estaban en prod; RLS de tenants y rol kavana_app esperan fase 2 cerrada y desplegada).
+
+### 6.2 Máquina de estados de órdenes (`feat(orders): implement state machine + order limits validation`)
+
+- **Transiciones validadas** en `orders.service.ts`: `pending → in_progress → completed`, `pending → cancelled`, `in_progress → paused → in_progress`, `in_progress → cancelled`. Transiciones inválidas → 400.
+- **Límites por puesto y operador** validados en creación y cambio de estado (capacidad, solape, carga máxima).
+- Tests de integración contra BD real (`orders.db.spec.ts`) cubriendo transiciones válidas, inválidas, límites, concurrencia.
+
+### 6.3 Permisos por método en endpoints de órdenes y costes
+
+- **Órdenes** (`orders.controller.ts`): `GET/POST` → supervisor + tenant_admin; `PATCH /:id` (cambio estado) → supervisor + tenant_admin; `DELETE /:id` → solo tenant_admin.
+- **Costes** (`cost-endpoints`): `GET` → supervisor + tenant_admin; `POST/PUT/DELETE` → solo tenant_admin.
+- Spec de cableado (`backend/src/app.module.spec.ts`) extendida para cubrir estos endpoints.
+
+### 6.4 Touch targets 64px en todos los paneles (`feat(ui): increase touch targets`)
+
+- Botones, inputs, controles táctiles: `min-h-[64px] min-w-[64px]` en tema clásico y Kavana.
+- Móvil: áreas de toque ≥ 48×48 px (cumple WCAG 2.5.5), antes varios controles estaban en 32–40 px.
+
+### 6.5 Pausar/Reanudar + IncidenciaModal en tema clásico (`feat: add Pausar/Reanudar buttons and IncidenciaModal`)
+
+- Botones **Pausar / Reanudar** en tarjetas de orden (lista y tablero) para supervisor clásico.
+- **IncidenciaModal** compartido: crear/editar incidencias con adjunto de foto (BYTEA + QR session), validación magic bytes, rate limit 20/10min/IP.
+- Usabilidad: tareas 1a y 2 del dossier de auditoría cerradas.
+
+### 6.6 Cifra unificada de pruebas: 817 (605 backend + 212 frontend)
+
+- Backend con BD (igual que CI): **605 tests** (antes se publicaba 582 sin BD, con aislamiento saltado).
+- Frontend (vitest + Playwright E2E): **212 tests**.
+- La cifra válida **sale de ejecutar la suite**, nunca de contar ficheros. Ver `docs/adr/24b6bef` y `5c4f116`.
+
+### 6.7 OEE: una sola fórmula, objetivo ligado por ID, periodo validado
+
+- `oee.calculo.ts` única fuente de verdad (panel, recálculo, asistente).
+- Objetivo derivado del de líneas (`1 - debajo_del_objetivo/objetivo_absoluto`), no factor plano.
+- Periodo validado en endpoint (400 si `startDate > endDate` o vacío); puestos sin partes → `sin_datos` no cero.
+- Pendiente: nadie encola el recálculo (`QueueService` sin llamadas) y disponibilidad sobre declarado, no turno planificado.
+
+---
+
 ## 5. Fuera de alcance (se dice, no se esconde)
 
-- La fase 2 del aislamiento con RLS y el rol de aplicación sigue pendiente (ADR-009).
+- ~~La fase 2 del aislamiento con RLS y el rol de aplicación sigue pendiente (ADR-009).~~ **COMPLETADA** (commit `f7fb9f3`): rol `kavana_app` con `NOBYPASSRLS`, tenants bajo RLS FORCE, 55 consultas migradas a `tenantQuery`, tests de aislamiento en verde.
 - El despliegue a producción y cualquier push: requieren la aprobación de Jorge.
-- El registro rápido del operario (`quick_registration`): el flag no está activado
-  y su UI está sin hacer.
+- El registro rápido del operario (`quick_registration`): el flag no está activado y su UI está sin hacer.
