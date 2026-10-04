@@ -1,4 +1,5 @@
 {
+  "version": 2,
   "rewrites": [
     { "source": "/api/v1/(.*)", "destination": "https://kavana-manufacturing-api.onrender.com/api/v1/$1" },
     { "source": "/production/(.*)", "destination": "https://kavana-manufacturing-api.onrender.com/production/$1" },
@@ -13,4 +14,3 @@
     { "source": "/(.*)", "destination": "/index.html" }
   ]
 }
-# trigger redeploy 1791146377
