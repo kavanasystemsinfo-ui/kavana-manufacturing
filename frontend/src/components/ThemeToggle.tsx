@@ -18,11 +18,11 @@ export function ThemeToggle({ variant = 'header' }: ThemeToggleProps) {
           color: isClassic ? '#f1f5f9' : '#1e293b',
           borderColor: isClassic ? '#334155' : '#e2e8f0',
         }}
-        title={`Cambiar a tema ${isClassic ? 'Kavana' : 'Clásico'}`}
+        title={`Cambiar a tema ${isClassic ? 'Oscuro' : 'Claro'}`}
       >
         <div className="flex items-center gap-2 px-4 py-2 text-sm font-medium">
           <span>{isClassic ? '🖥️' : '🎮'}</span>
-          <span>{isClassic ? 'Clásico' : 'Kavana'}</span>
+          <span>{isClassic ? 'Oscuro' : 'Claro'}</span>
         </div>
       </button>
     );
