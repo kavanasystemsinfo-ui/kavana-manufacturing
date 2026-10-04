@@ -58,7 +58,7 @@ export function ClassicSupervisorPanel() {
   } = useSupervisorPanel();
 
   // El clásico abre en lista: es su forma de siempre, ahora con columnas.
-  const [view, setView] = useState<OrdersView>('lista');
+  const [view, setView] = useState<OrdersView>('tablero');
 
   return (
     <div className="min-h-screen bg-slate-50 text-slate-900">
