@@ -11,6 +11,7 @@
     { "source": "/ai-advisor/(.*)", "destination": "https://kavana-manufacturing-api.onrender.com/api/v1/ai-advisor/$1" },
     { "source": "/global-admin/(.*)", "destination": "https://kavana-manufacturing-api.onrender.com/api/v1/global-admin/$1" },
     { "source": "/api/(.*)", "destination": "https://kavana-manufacturing-api.onrender.com/api/v1/$1" },
+    { "source": "/assets/(.*)", "destination": "/assets/$1" },
     { "source": "/(.*)", "destination": "/index.html" }
   ]
 }
