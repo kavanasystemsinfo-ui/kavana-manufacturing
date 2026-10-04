@@ -169,8 +169,8 @@ cd backend && npm install && npm run dev      # http://localhost:3001
 cd frontend && npm install && npm run dev      # http://localhost:5173
 
 # 5. Tests
-npm run test                                   # 148 frontend tests (Vitest)
-cd frontend && npm run test:e2e                # 9 E2E (Playwright: flujo completo, tableros, tema y smoke)
+npm run test                                   # 817 pruebas (backend + frontend, workspaces)
+cd frontend && npm run test:e2e                # 13 E2E (Playwright: flujo completo, tableros, tema y smoke)
 cd backend && npm run test                     # 605 pruebas de API
 
 # 6. Docker (stack completo)
@@ -189,12 +189,12 @@ docker compose up -d
 
 ### ✅ Implementado y verificable
 - [x] Arquitectura multi-tenant con RLS (PostgreSQL nativo)
-- [x] Backend NestJS funcional (17 módulos: auth, orders, OEE, quality, cost, materials, incidencias, toolings...)
+- [x] Backend NestJS funcional (19 módulos: auth, orders, OEE, quality, cost, materials, incidencias, toolings...)
 - [x] Offline-first operativo (Dexie/IndexedDB + sincronización FIFO)
 - [x] Feature flags JSONB (cada cliente activa solo lo que necesita)
 - [x] AI Advisor industrial (RAG con datos reales de planta)
 - [x] Fábrica demo completa (18 modelos solares, 15 puestos, 17 materias primas con BOM)
-- [x] Tests automatizados: 26 frontend + 286 API
+- [x] Tests automatizados: 212 frontend + 605 API
 - [x] ADRs documentados con alternativas evaluadas
 - [x] Despliegue automatizado (Vercel + Render + Neon)
 - [x] Tema dual (Kavana + Clásico) para diferentes perfiles de usuario
