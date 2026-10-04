@@ -36,13 +36,16 @@ export class CoreMesProductionService {
   }
 
   async listOrders() {
-    return tenantQuery(
+    const context = getTenantContext();
+    const result = await tenantQuery(
       postgresPool,
       `SELECT id, code, quantity, produced_quantity, defect_quantity, status, workstation_id, custom_fields, created_at, updated_at
        FROM orders
        WHERE tenant_id = $1::bigint
        ORDER BY created_at DESC`,
+      [String(context.tenantId)],
     );
+    return result.rows;
   }
 
   async getOrder(orderId: string) {

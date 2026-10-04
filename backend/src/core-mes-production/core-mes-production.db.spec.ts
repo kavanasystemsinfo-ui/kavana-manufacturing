@@ -464,6 +464,10 @@ describe.skipIf(!HAS_DATABASE)('CoreMesProductionService contra base de datos re
     });
 
     it('cierra la orden sin puesto indicado', async () => {
+      await asTenant(TENANT_A, ids.operatorA1, 'operario', () =>
+        service().transitionOrder(orderA, { target_status: 'in_progress' }),
+      );
+
       const dto: TransitionProductionOrderDto = { target_status: 'completed' };
 
       const result = await asTenant(TENANT_A, ids.operatorA1, 'operario', () => service().transitionOrder(orderA, dto));
