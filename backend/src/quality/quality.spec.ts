@@ -1,10 +1,10 @@
 import { describe, expect, it, vi, beforeEach } from 'vitest';
 import { QualityService } from './quality.service.js';
-import { postgresPool } from '../db/postgres.provider.js';
+import { tenantQuery } from '../db/tenant-query.js';
 import * as tenantContext from '../auth/tenant-context.storage.js';
 
-vi.mock('../db/postgres.provider.js', () => ({
-  postgresPool: { query: vi.fn() },
+vi.mock('../db/tenant-query.js', () => ({
+  tenantQuery: vi.fn(),
 }));
 
 vi.mock('../auth/tenant-context.storage.js', () => ({
@@ -25,7 +25,7 @@ describe('QualityService', () => {
   });
 
   it('createCheck inserts and returns a quality check', async () => {
-    (postgresPool.query as any).mockResolvedValue({
+    (tenantQuery as any).mockResolvedValue({
       rows: [{
         id: 'qc-1',
         order_id: 'order-1',
@@ -45,7 +45,7 @@ describe('QualityService', () => {
   });
 
   it('getSummary calculates pass rate correctly', async () => {
-    (postgresPool.query as any).mockResolvedValue({
+    (tenantQuery as any).mockResolvedValue({
       rows: [{
         total_checks: 10,
         passed: 8,

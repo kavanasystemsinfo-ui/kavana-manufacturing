@@ -6,7 +6,10 @@ import { BadRequestException } from '@nestjs/common';
 import * as tenantContext from '../auth/tenant-context.storage.js';
 
 vi.mock('../db/postgres.provider.js', () => ({
-  postgresPool: { query: vi.fn() },
+  postgresPool: { 
+    query: vi.fn(),
+    connect: vi.fn()
+  }
 }));
 vi.mock('../db/withTenantTransaction.js', () => ({
   withTenantTransaction: vi.fn(async (cb) => cb({ query: vi.fn() })),
@@ -126,14 +129,21 @@ describe('CoreMesProductionService - listMyTimeLogs (2.2 Mi turno hoy)', () => {
   });
 
   it('filtra por tenant y por el operario del token, nunca por parámetro externo', async () => {
-    vi.mocked(postgresPool.query).mockResolvedValue({ rows: [] } as any);
+    const mockClient = {
+      query: vi.fn()
+        .mockResolvedValueOnce({ rowCount: 0 }) // BEGIN
+        .mockResolvedValueOnce({ rowCount: 0 }) // set_config
+        .mockResolvedValue({ rows: [] }), // actual SELECT
+      release: vi.fn(),
+    };
+    vi.mocked(postgresPool.connect).mockResolvedValue(mockClient as any);
 
     await service.listMyTimeLogs({
       from: '2026-09-22T00:00:00.000Z',
       to: '2026-09-23T00:00:00.000Z',
     });
 
-    const [sql, params] = vi.mocked(postgresPool.query).mock.calls[0] as unknown as [string, unknown[]];
+    const [sql, params] = mockClient.query.mock.calls[2] as unknown as [string, unknown[]]; // Third call is the actual query
     expect(sql).toContain('operator_id = $2::uuid');
     expect(params[0]).toBe('10');
     expect(params[1]).toBe('operator-uuid');
@@ -146,7 +156,14 @@ describe('CoreMesProductionService - listMyTimeLogs (2.2 Mi turno hoy)', () => {
       { id: 'b1', type: 'produccion', start_time: '2026-09-22T08:00:00.000Z', produced_quantity: 100, defect_quantity: 2 },
       { id: 'b2', type: 'parada', start_time: '2026-09-22T10:00:00.000Z' },
     ];
-    vi.mocked(postgresPool.query).mockResolvedValue({ rows } as any);
+    const mockClient = {
+      query: vi.fn()
+        .mockResolvedValueOnce({ rowCount: 0 }) // BEGIN
+        .mockResolvedValueOnce({ rowCount: 0 }) // set_config
+        .mockResolvedValue({ rows }), // actual SELECT
+      release: vi.fn(),
+    };
+    vi.mocked(postgresPool.connect).mockResolvedValue(mockClient as any);
 
     const result = await service.listMyTimeLogs({
       from: '2026-09-22T00:00:00.000Z',
@@ -154,7 +171,7 @@ describe('CoreMesProductionService - listMyTimeLogs (2.2 Mi turno hoy)', () => {
     });
 
     expect(result).toEqual(rows);
-    const [sql] = vi.mocked(postgresPool.query).mock.calls[0] as unknown as [string];
+    const [sql] = mockClient.query.mock.calls[2] as unknown as [string]; // Third call is the actual query
     expect(sql).toContain('ORDER BY start_time ASC');
   });
 });

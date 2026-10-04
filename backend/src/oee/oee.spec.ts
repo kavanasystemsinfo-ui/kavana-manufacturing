@@ -1,10 +1,10 @@
 import { describe, expect, it, vi, beforeEach } from 'vitest';
 import { OeeService } from './oee.service.js';
-import { postgresPool } from '../db/postgres.provider.js';
+import { tenantQuery } from '../db/tenant-query.js';
 import * as tenantContext from '../auth/tenant-context.storage.js';
 
-vi.mock('../db/postgres.provider.js', () => ({
-  postgresPool: { query: vi.fn() },
+vi.mock('../db/tenant-query.js', () => ({
+  tenantQuery: vi.fn(),
 }));
 
 vi.mock('../auth/tenant-context.storage.js', () => ({
@@ -27,7 +27,7 @@ describe('OeeService', () => {
   describe('getOeeSummary', () => {
     it('calculates OEE correctly for production blocks', async () => {
       // Mock workstation query
-      (postgresPool.query as any)
+      (tenantQuery as any)
         .mockResolvedValueOnce({ rows: [{ name: 'Línea 1' }] })
         // Mock production blocks
         .mockResolvedValueOnce({
@@ -59,7 +59,7 @@ describe('OeeService', () => {
     });
 
     it('returns zero OEE when no blocks exist', async () => {
-      (postgresPool.query as any)
+      (tenantQuery as any)
         .mockResolvedValueOnce({ rows: [{ name: 'Línea 2' }] })
         .mockResolvedValueOnce({ rows: [] })
         .mockResolvedValueOnce({ rows: [] });
@@ -75,7 +75,7 @@ describe('OeeService', () => {
     });
 
     it('reduces availability when downtime exists', async () => {
-      (postgresPool.query as any)
+      (tenantQuery as any)
         .mockResolvedValueOnce({ rows: [{ name: 'Línea 3' }] })
         .mockResolvedValueOnce({
           rows: [
@@ -112,7 +112,7 @@ describe('OeeService', () => {
 
   describe('getOeeByWorkstation', () => {
     it('returns OEE for all active workstations', async () => {
-      (postgresPool.query as any)
+      (tenantQuery as any)
         .mockResolvedValueOnce({
           rows: [
             { id: 'ws-1', name: 'Línea 1' },
@@ -141,7 +141,7 @@ describe('OeeService', () => {
 
   describe('getDowntimeBreakdown', () => {
     it('returns downtime reasons sorted by total time', async () => {
-      (postgresPool.query as any).mockResolvedValue({
+      (tenantQuery as any).mockResolvedValue({
         rows: [
           { downtime_reason: 'Mantenimiento', count: 3, total_ms: 10800000 },
           { downtime_reason: 'Falla técnica', count: 1, total_ms: 3600000 },
@@ -162,7 +162,7 @@ describe('OeeService', () => {
     });
 
     it('returns empty array when no downtime exists', async () => {
-      (postgresPool.query as any).mockResolvedValue({ rows: [] });
+      (tenantQuery as any).mockResolvedValue({ rows: [] });
 
       const result = await service.getDowntimeBreakdown(
         'ws-1',

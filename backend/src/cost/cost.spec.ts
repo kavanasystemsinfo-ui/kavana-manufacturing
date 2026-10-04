@@ -1,10 +1,10 @@
 import { describe, expect, it, vi, beforeEach } from 'vitest';
 import { CostService } from './cost.service.js';
-import { postgresPool } from '../db/postgres.provider.js';
+import { tenantQuery } from '../db/tenant-query.js';
 import * as tenantContext from '../auth/tenant-context.storage.js';
 
-vi.mock('../db/postgres.provider.js', () => ({
-  postgresPool: { query: vi.fn() },
+vi.mock('../db/tenant-query.js', () => ({
+  tenantQuery: vi.fn(),
 }));
 
 vi.mock('../auth/tenant-context.storage.js', () => ({
@@ -25,7 +25,7 @@ describe('CostService', () => {
   });
 
   it('createEntry inserts and returns a cost entry', async () => {
-    (postgresPool.query as any).mockResolvedValue({
+    (tenantQuery as any).mockResolvedValue({
       rows: [{
         id: 'ce-1',
         order_id: 'order-1',
@@ -43,7 +43,7 @@ describe('CostService', () => {
   });
 
   it('getSummary calculates totals by category', async () => {
-    (postgresPool.query as any).mockResolvedValue({
+    (tenantQuery as any).mockResolvedValue({
       rows: [{
         total_material: 5000,
         total_labor: 3000,

@@ -9,6 +9,7 @@ import {
 } from './dto.js';
 import { getTenantContext } from '../auth/tenant-context.storage.js';
 import { postgresPool } from '../db/postgres.provider.js';
+import { tenantQuery } from '../db/tenant-query.js';
 
 const ORDER_NOT_FOUND_MSG = 'The requested production order does not exist or you do not have permission.';
 
@@ -30,7 +31,8 @@ export class CoreMesProductionController {
   @RequireRole('operario', 'supervisor', 'tenant_admin')
   async getOperatorContext() {
     const ctx = getTenantContext();
-    const result = await postgresPool.query(
+    const result = await tenantQuery(
+      postgresPool,
       `SELECT u.id as operator_id,
               COALESCE(NULLIF(u.first_name || ' ' || u.last_name, ' '), u.username) as operator_name,
               u.default_workstation_id, w.name as workstation_name

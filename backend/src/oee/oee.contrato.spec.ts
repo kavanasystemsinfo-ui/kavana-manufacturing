@@ -16,58 +16,103 @@ import { rangoOeeSchema } from './oee.rango.js';
  *    que calculaba el panel: dos pantallas, dos números.
  */
 
-vi.mock('../db/postgres.provider.js', () => ({
-  postgresPool: { query: vi.fn() },
-}));
+vi.mock('../db/postgres.provider.js', () => {
+  const createMockClient = () => {
+    const queryMock = vi.fn();
+    return {
+      query: queryMock,
+      release: vi.fn(),
+      _queryMock: queryMock,
+    };
+  };
+
+  // Create mock client eagerly so tests can access it before connect() is called
+  const mockClient = createMockClient();
+
+  return {
+    postgresPool: {
+      query: vi.fn(),
+      connect: vi.fn().mockResolvedValue(mockClient),
+      _getMockClient: () => mockClient,
+    },
+  };
+});
 
 vi.mock('../auth/tenant-context.storage.js', () => ({
   getTenantContext: vi.fn(),
 }));
 
-const sqlEjecutado = (): string =>
-  (postgresPool.query as unknown as { mock: { calls: unknown[][] } }).mock.calls
-    .map((c) => String(c[0]))
-    .join('\n');
+const sqlEjecutado = (): string => {
+    const mockClient = (postgresPool as any)._getMockClient?.();
+    if (!mockClient) return '';
+    return (mockClient._queryMock as unknown as { mock: { calls: unknown[][] } }).mock.calls
+      .map((c) => String(c[0]))
+      .join('\\n');
+  };
 
 describe('OEE: de dónde sale el objetivo de producción', () => {
   let service: OeeService;
 
   beforeEach(() => {
-    vi.resetAllMocks();
     vi.spyOn(tenantContext, 'getTenantContext').mockReturnValue({
       tenantId: 1n,
       userId: 'admin-1',
       role: 'tenant_admin',
     });
+    // Reset only the query mock, not connect
+    const mockClient = (postgresPool as any)._getMockClient();
+    mockClient.query.mockReset();
+    mockClient.release.mockReset();
     service = new OeeService();
   });
 
   it('liga la orden con su modelo por identificador, no comparando código y nombre', async () => {
-    (postgresPool.query as never as ReturnType<typeof vi.fn>)
-      .mockResolvedValueOnce({ rows: [{ name: 'Línea 1' }] })
-      .mockResolvedValueOnce({
-        rows: [
-          {
+    const mockClient = (postgresPool as any)._getMockClient();
+    const queryCalls: string[] = [];
+
+    mockClient.query.mockImplementation(async (sql: string, params?: unknown[]) => {
+      queryCalls.push(sql);
+      
+      // Sequence: BEGIN -> set_config -> actual query -> COMMIT
+      if (sql.includes('BEGIN')) {
+        return { rows: [], rowCount: 1 };
+      }
+      if (sql.includes('set_config')) {
+        return { rows: [], rowCount: 1 };
+      }
+      if (sql.includes('SELECT name FROM workstations')) {
+        return { rows: [{ name: 'Línea 1' }], rowCount: 1 };
+      }
+      if (sql.includes('FROM production_work_blocks')) {
+        return {
+          rows: [{
             type: 'produccion',
             start_time: '2026-07-04T08:00:00Z',
             end_time: '2026-07-04T12:00:00Z',
             produced_quantity: 800,
             defect_quantity: 20,
             downtime_reason: null,
-          },
-        ],
-      })
-      .mockResolvedValueOnce({ rows: [{ target_rate: 250 }] });
+          }],
+          rowCount: 1,
+        };
+      }
+      if (sql.includes('SELECT mm.target_rate')) {
+        return { rows: [{ target_rate: 250 }], rowCount: 1 };
+      }
+      if (sql.includes('COMMIT')) {
+        return { rows: [], rowCount: 1 };
+      }
+      return { rows: [], rowCount: 0 };
+    });
 
     const resultado = await service.getOeeSummary('ws-1', '2026-07-04T00:00:00Z', '2026-07-04T23:59:59Z');
 
-    const sql = sqlEjecutado();
+    const sql = queryCalls.join('\\n');
     expect(sql).toContain('model_id');
     expect(sql).not.toContain('po.code = mm.name');
 
-    // 800 piezas en 4 h con objetivo de 250 por hora: el rendimiento es 80.
     expect(resultado.performance).toBe(80);
-    expect(resultado.oee).toBeCloseTo(78, 0); // 1 × 0,8 × 0,975 = 78
+    expect(resultado.oee).toBeCloseTo(78, 0);
   });
 });
 
@@ -104,26 +149,54 @@ describe('OEE: un cero sin partes no es un resultado', () => {
   let service: OeeService;
 
   beforeEach(() => {
-    vi.resetAllMocks();
     vi.spyOn(tenantContext, 'getTenantContext').mockReturnValue({
       tenantId: 1n,
       userId: 'admin-1',
       role: 'tenant_admin',
     });
+    // Reset only the query mock, not connect
+    const mockClient = (postgresPool as any)._getMockClient();
+    mockClient.query.mockReset();
+    mockClient.release.mockReset();
     service = new OeeService();
   });
 
-  const simularPuesto = (bloques: unknown[]) => {
-    const consulta = postgresPool.query as never as ReturnType<typeof vi.fn>;
-    consulta
-      .mockResolvedValueOnce({ rows: [{ id: 'ws-1', name: 'Línea 1' }] })
-      .mockResolvedValueOnce({ rows: [{ name: 'Línea 1' }] })
-      .mockResolvedValueOnce({ rows: bloques })
-      .mockResolvedValueOnce({ rows: [{ target_rate: 250 }] });
+  const simularPuesto = (bloques: unknown[]): string[] => {
+    const mockClient = (postgresPool as any)._getMockClient();
+    const queryCalls: string[] = [];
+
+    mockClient.query.mockImplementation(async (sql: string, params?: unknown[]) => {
+      queryCalls.push(sql);
+
+      if (sql.includes('BEGIN')) {
+        return { rows: [], rowCount: 1 };
+      }
+      if (sql.includes('set_config')) {
+        return { rows: [], rowCount: 1 };
+      }
+      if (sql.includes('workstations') && sql.includes('w.id') && sql.includes('w.name')) {
+        return { rows: [{ id: 'ws-1', name: 'Línea 1' }], rowCount: 1 };
+      }
+      if (sql.includes('workstations') && sql.includes('tenant_id') && sql.includes('id =')) {
+        return { rows: [{ name: 'Línea 1' }], rowCount: 1 };
+      }
+      if (sql.includes('FROM production_work_block')) {
+        return { rows: bloques, rowCount: bloques.length };
+      }
+      if (sql.includes('target_rate')) {
+        return { rows: [{ target_rate: 250 }], rowCount: 1 };
+      }
+      if (sql.includes('COMMIT')) {
+        return { rows: [], rowCount: 1 };
+      }
+      return { rows: [], rowCount: 0 };
+    });
+
+    return queryCalls;
   };
 
   it('avisa de que el puesto no tiene partes, en vez de enseñar un cero', async () => {
-    simularPuesto([]);
+    const queryCalls = simularPuesto([]);
 
     const lista = await service.getOeeByWorkstation('2026-07-04', '2026-07-04T23:59:59Z');
 
@@ -132,7 +205,7 @@ describe('OEE: un cero sin partes no es un resultado', () => {
   });
 
   it('con partes registradas el cero sí sería un resultado y se calcula', async () => {
-    simularPuesto([
+    const queryCalls = simularPuesto([
       {
         type: 'produccion',
         start_time: '2026-07-04T08:00:00Z',
@@ -143,14 +216,17 @@ describe('OEE: un cero sin partes no es un resultado', () => {
       },
     ]);
 
-    const lista = await service.getOeeByWorkstation('2026-07-04', '2026-07-04T23:59:59Z');
+    const lista = await service.getOeeByWorkstation('2026-07-04T00:00:00Z', '2026-07-04T23:59:59Z');
 
     expect(lista[0]?.sin_datos).toBe(false);
     expect(lista[0]?.performance).toBe(80);
   });
 
   it('rechaza una consulta sin fechas con su motivo, no con ceros', async () => {
+    const queryCalls = simularPuesto([]);
+
     await expect(service.getOeeSummary('ws-1', '', '')).rejects.toThrow(/Periodo inválido/);
-    expect(sqlEjecutado()).not.toContain('production_work_blocks');
+    const sql = queryCalls.join('\\n');
+    expect(sql).not.toContain('production_work_blocks');
   });
 });

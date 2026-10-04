@@ -3,18 +3,16 @@ import { CoreMesProductionService } from './core-mes-production.service.js';
 import { TenantCapabilitiesService } from '../tenant-capabilities/tenant-capabilities.service.js';
 import { BadRequestException } from '@nestjs/common';
 
-const { mockQuery } = vi.hoisted(() => ({
-  mockQuery: vi.fn().mockResolvedValue({ rows: [{ id: 'order-1', custom_fields: {} }], rowCount: 1 }),
+const { mockQuery, mockConnect } = vi.hoisted(() => ({
+  mockQuery: vi.fn(),
+  mockConnect: vi.fn(),
 }));
 
 vi.mock('../db/postgres.provider.js', () => {
   return {
     postgresPool: {
       query: mockQuery,
-      connect: vi.fn(() => ({
-        query: vi.fn().mockResolvedValue({ rows: [{ id: 'order-1' }] }),
-        release: vi.fn(),
-      })),
+      connect: mockConnect,
     },
   };
 });
@@ -33,6 +31,7 @@ describe('Core MES Production - Custom Fields Dynamic Validation', () => {
 
   beforeEach(() => {
     vi.restoreAllMocks();
+    mockConnect.mockReset();
     capabilitiesService = new TenantCapabilitiesService();
     service = new CoreMesProductionService(capabilitiesService);
   });
@@ -63,6 +62,33 @@ describe('Core MES Production - Custom Fields Dynamic Validation', () => {
       },
     };
 
+    mockConnect.mockImplementationOnce(() => {
+      // withTenantTransaction for INSERT
+      let callCount = 0;
+      return {
+        query: vi.fn().mockImplementation((text) => {
+          callCount++;
+          if (text === 'BEGIN') {
+            return Promise.resolve({ rowCount: 0 });
+          }
+          if (text.startsWith("SELECT set_config('app.current_tenant_id'")) {
+            return Promise.resolve({ rowCount: 0 });
+          }
+          if (text.trim().startsWith('INSERT')) {
+            return Promise.resolve({
+              rows: [{ id: 'order-1', code: 'OF-001', target_quantity: 100, workstation_id: 'ws-1', custom_fields: { lote: 'L-2026-A', temperatura: 22.5 }, status: 'pending', created_by: 'user-01', created_at: new Date(), updated_at: new Date() }],
+              rowCount: 1,
+            });
+          }
+          if (text === 'COMMIT') {
+            return Promise.resolve({ rowCount: 0 });
+          }
+          return Promise.resolve({ rows: [], rowCount: 0 });
+        }),
+        release: vi.fn(),
+      };
+    });
+
     await expect(service.createOrder(dto)).resolves.not.toThrow();
   });
 
@@ -87,6 +113,33 @@ describe('Core MES Production - Custom Fields Dynamic Validation', () => {
       workstation_id: 'ws-1',
       custom_fields: {}, // missing required field 'lote'
     };
+
+    mockConnect.mockImplementationOnce(() => {
+      // withTenantTransaction for INSERT (will fail validation, but we still need to mock it)
+      let callCount = 0;
+      return {
+        query: vi.fn().mockImplementation((text) => {
+          callCount++;
+          if (text === 'BEGIN') {
+            return Promise.resolve({ rowCount: 0 });
+          }
+          if (text.startsWith("SELECT set_config('app.current_tenant_id'")) {
+            return Promise.resolve({ rowCount: 0 });
+          }
+          if (text.trim().startsWith('INSERT')) {
+            return Promise.resolve({
+              rows: [{ id: 'order-1', code: 'OF-001', target_quantity: 100, workstation_id: 'ws-1', custom_fields: {}, status: 'pending', created_by: 'user-01', created_at: new Date(), updated_at: new Date() }],
+              rowCount: 1,
+            });
+          }
+          if (text === 'COMMIT') {
+            return Promise.resolve({ rowCount: 0 });
+          }
+          return Promise.resolve({ rows: [], rowCount: 0 });
+        }),
+        release: vi.fn(),
+      };
+    });
 
     await expect(service.createOrder(dto)).rejects.toThrow(BadRequestException);
   });
@@ -116,6 +169,33 @@ describe('Core MES Production - Custom Fields Dynamic Validation', () => {
       },
     };
 
+    mockConnect.mockImplementationOnce(() => {
+      // withTenantTransaction for INSERT (will fail validation)
+      let callCount = 0;
+      return {
+        query: vi.fn().mockImplementation((text) => {
+          callCount++;
+          if (text === 'BEGIN') {
+            return Promise.resolve({ rowCount: 0 });
+          }
+          if (text.startsWith("SELECT set_config('app.current_tenant_id'")) {
+            return Promise.resolve({ rowCount: 0 });
+          }
+          if (text.trim().startsWith('INSERT')) {
+            return Promise.resolve({
+              rows: [{ id: 'order-1', code: 'OF-001', target_quantity: 100, workstation_id: 'ws-1', custom_fields: { lote: 'L-2026-A', hacker_field: 'exploit' }, status: 'pending', created_by: 'user-01', created_at: new Date(), updated_at: new Date() }],
+              rowCount: 1,
+            });
+          }
+          if (text === 'COMMIT') {
+            return Promise.resolve({ rowCount: 0 });
+          }
+          return Promise.resolve({ rows: [], rowCount: 0 });
+        }),
+        release: vi.fn(),
+      };
+    });
+
     await expect(service.createOrder(dto)).rejects.toThrow(BadRequestException);
   });
 
@@ -135,9 +215,29 @@ describe('Core MES Production - Custom Fields Dynamic Validation', () => {
       },
     });
 
-    mockQuery.mockResolvedValueOnce({
-      rows: [{ id: 'order-1', code: 'OF-001', custom_fields: { material: 'acero', lote: 'L-001' } }],
-      rowCount: 1,
+    mockConnect.mockImplementationOnce(() => {
+      // tenantQuery for UPDATE
+      return {
+        query: vi.fn().mockImplementation((text) => {
+          if (text === 'BEGIN') {
+            return Promise.resolve({ rowCount: 0 });
+          }
+          if (text.startsWith("SELECT set_config('app.current_tenant_id'")) {
+            return Promise.resolve({ rowCount: 0 });
+          }
+          if (text.includes('UPDATE orders')) {
+            return Promise.resolve({
+              rows: [{ id: 'order-1', code: 'OF-001', custom_fields: { material: 'acero', lote: 'L-001' } }],
+              rowCount: 1,
+            });
+          }
+          if (text === 'COMMIT') {
+            return Promise.resolve({ rowCount: 0 });
+          }
+          return Promise.resolve({ rows: [], rowCount: 0 });
+        }),
+        release: vi.fn(),
+      };
     });
 
     const result = await service.updateCustomFields('order-1', {
@@ -163,6 +263,31 @@ describe('Core MES Production - Custom Fields Dynamic Validation', () => {
       },
     });
 
+    mockConnect.mockImplementationOnce(() => {
+      // tenantQuery for UPDATE
+      return {
+        query: vi.fn().mockImplementation((text) => {
+          if (text === 'BEGIN') {
+            return Promise.resolve({ rowCount: 0 });
+          }
+          if (text.startsWith("SELECT set_config('app.current_tenant_id'")) {
+            return Promise.resolve({ rowCount: 0 });
+          }
+          if (text.trim().startsWith('UPDATE')) {
+            return Promise.resolve({
+              rows: [{ id: 'order-1', code: 'OF-001', custom_fields: { material: 'acero', hacker_field: 'exploit' } }],
+              rowCount: 1,
+            });
+          }
+          if (text === 'COMMIT') {
+            return Promise.resolve({ rowCount: 0 });
+          }
+          return Promise.resolve({ rows: [], rowCount: 0 });
+        }),
+        release: vi.fn(),
+      };
+    });
+
     await expect(
       service.updateCustomFields('order-1', {
         custom_fields: { material: 'acero', hacker_field: 'exploit' },
@@ -179,7 +304,30 @@ describe('Core MES Production - Custom Fields Dynamic Validation', () => {
       customFieldsSchema: { production_orders: { fields: [] } },
     });
 
-    mockQuery.mockResolvedValueOnce({ rows: [], rowCount: 0 });
+    mockConnect.mockImplementationOnce(() => {
+      // tenantQuery for UPDATE
+      return {
+        query: vi.fn().mockImplementation((text) => {
+          if (text === 'BEGIN') {
+            return Promise.resolve({ rowCount: 0 });
+          }
+          if (text.startsWith("SELECT set_config('app.current_tenant_id'")) {
+            return Promise.resolve({ rowCount: 0 });
+          }
+          if (text.trim().startsWith('UPDATE')) {
+            return Promise.resolve({
+              rows: [],
+              rowCount: 0,
+            });
+          }
+          if (text === 'COMMIT') {
+            return Promise.resolve({ rowCount: 0 });
+          }
+          return Promise.resolve({ rows: [], rowCount: 0 });
+        }),
+        release: vi.fn(),
+      };
+    });
 
     await expect(
       service.updateCustomFields('non-existent', { custom_fields: {} }),

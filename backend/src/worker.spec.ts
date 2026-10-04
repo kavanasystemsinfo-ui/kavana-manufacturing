@@ -1,9 +1,5 @@
-import { describe, it, expect, vi } from 'vitest';
+import { describe, it, expect, vi, beforeEach } from 'vitest';
 
-// El worker arranca el contexto REAL de Nest con Redis: en CI no hay Redis
-// y NestFactory aborta el proceso al fallar la inicialización. Se mockea el
-// módulo entero: lo que se prueba es el cableado de shutdown del bootstrap,
-// no la integración con BullMQ.
 vi.mock('@nestjs/core', () => ({
   NestFactory: {
     createApplicationContext: vi.fn().mockResolvedValue({
@@ -12,9 +8,20 @@ vi.mock('@nestjs/core', () => ({
   },
 }));
 
+vi.mock('./queue/queue.module.js', () => ({
+  QueueModule: class QueueModule {},
+}));
+
 describe('worker bootstrap', () => {
+  let bootstrap: () => Promise<void>;
+
+  beforeEach(async () => {
+    vi.resetModules();
+    const workerModule = await import('./worker.js');
+    bootstrap = workerModule.bootstrap;
+  });
+
   it('arranca el contexto de Nest y registra el apagado limpio', async () => {
-    const { bootstrap } = await import('./worker.js');
     const logSpy = vi.spyOn(console, 'log').mockImplementation(() => {});
     const onSpy = vi.fn();
     const exitSpy = vi.fn();
