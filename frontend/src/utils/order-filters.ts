@@ -19,7 +19,7 @@ export const ORDENES_POR_PAGINA = 60;
  * propósito, no se pinta solo.
  */
 export const DEFAULT_ORDER_FILTERS: OrderFilters = {
-  status: [],
+  status: ['pending', 'in_progress'],
   workstationId: '',
   q: '',
   limit: ORDENES_POR_PAGINA,
