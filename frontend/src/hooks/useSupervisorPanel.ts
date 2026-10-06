@@ -6,7 +6,7 @@ import { incidenciaMoveNotice } from '../utils/incidencia-notice.js';
 import { DEMO_DELETE_NOTICE, isDemoReadOnlyError } from '../utils/demo-readonly.js';
 import type { OrderFilters } from '../utils/order-filters.js';
 
-export type SupervisorTab = 'orders' | 'workstations' | 'incidencias';
+export type SupervisorTab = 'resumen' | 'live' | 'orders' | 'workstations' | 'incidencias';
 
 export interface SupervisorPanelState {
   // Estado del store (Zustand)
@@ -73,7 +73,7 @@ export function useSupervisorPanel(): SupervisorPanelState {
   const [measurement, setMeasurement] = useState('');
   const [material, setMaterial] = useState('');
   const [notes, setNotes] = useState('');
-  const [activeTab, setActiveTab] = useState<SupervisorTab>('orders');
+  const [activeTab, setActiveTab] = useState<SupervisorTab>('resumen');
   const [expandedOrder, setExpandedOrder] = useState<string | null>(null);
   const [incidencias, setIncidencias] = useState<Incidencia[]>([]);
   const [incidenciasLoading, setIncidenciasLoading] = useState(false);
@@ -218,17 +218,29 @@ export function useSupervisorPanel(): SupervisorPanelState {
     loadMoreOrders: store.loadMoreOrders,
     orderNotice: store.notice,
     clearOrderNotice: store.clearNotice,
-    showForm, setShowForm,
-    selectedModel, setSelectedModel,
-    selectedWorkstation, setSelectedWorkstation,
-    quantity, setQuantity,
-    orderNumber, setOrderNumber,
-    measurement, setMeasurement,
-    material, setMaterial,
-    notes, setNotes,
-    activeTab, setActiveTab,
-    expandedOrder, setExpandedOrder,
-    incidencias, incidenciasLoading, incidenciasError,
+    showForm,
+    setShowForm,
+    selectedModel,
+    setSelectedModel,
+    selectedWorkstation,
+    setSelectedWorkstation,
+    quantity,
+    setQuantity,
+    orderNumber,
+    setOrderNumber,
+    measurement,
+    setMeasurement,
+    material,
+    setMaterial,
+    notes,
+    setNotes,
+    activeTab,
+    setActiveTab,
+    expandedOrder,
+    setExpandedOrder,
+    incidencias,
+    incidenciasLoading,
+    incidenciasError,
     incidenciaNotice: notice,
     handleSubmit,
     handleToggleExpand,

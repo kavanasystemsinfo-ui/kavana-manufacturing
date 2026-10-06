@@ -5,6 +5,9 @@ import { ActivityFeed } from './components/ActivityFeed.js';
 import { WorkstationBoard } from './components/WorkstationBoard.js';
 import { KanbanBoard } from './components/KanbanBoard.js';
 import { IncidenciasKanban } from './components/incidencias/IncidenciasKanban.js';
+import { ResumenTab } from './components/ResumenTab.js';
+import { LiveLineTab } from './components/LiveLineTab.js';
+import { OeeAdvancedTab } from './components/OeeAdvancedTab.js';
 import type { Incidencia } from './api/admin-entities.js';
 import { HelpModal } from './components/HelpModal.js';
 import { SUPERVISOR_HELP } from './help-content.js';
@@ -38,7 +41,7 @@ function IncidenciasTablero({ incidencias, loading, error, onStatusChange, onDel
 
 /**
  * Panel de supervisión, tema clásico.
- *
+ * 
  * Comparte con el tema Kavana la barra de filtros, la tabla y el tablero: los dos
  * temas cambian el color y el reparto de espacio, no lo que se puede hacer. Antes
  * el clásico solo tenía botones por tarjeta y el moderno solo arrastre, así que
@@ -100,8 +103,6 @@ export function ClassicSupervisorPanel() {
           </div>
         )}
 
-        {/* El aviso de incidencias existía solo en el tema Kavana: mover o
-            intentar borrar una incidencia desde el clásico no contaba nada. */}
         {incidenciaNotice && (
           <div role="status" aria-live="polite" className={`mb-4 ${themed(NOTICE_INFO, true)}`}>
             {incidenciaNotice}
@@ -166,18 +167,33 @@ export function ClassicSupervisorPanel() {
 
         {/* Tabs */}
         <div className="mb-4 flex gap-1 overflow-x-auto rounded-lg border border-slate-200 bg-white p-1 shadow-sm">
-          <button onClick={() => setActiveTab('orders')} className={`min-h-[64px] flex-1 whitespace-nowrap rounded-md px-4 py-2 text-sm font-medium transition ${activeTab === 'orders' ? 'bg-kavana-orange text-white' : 'text-slate-600 hover:bg-slate-100'}`}>
-            Órdenes
+          <button onClick={() => setActiveTab('resumen')} className={`min-h-[64px] flex-1 whitespace-nowrap rounded-md px-4 py-2 text-sm font-medium transition ${activeTab === 'resumen' ? 'bg-kavana-orange text-white' : 'text-slate-600 hover:bg-slate-100'}`}>
+            RESUMEN
+          </button>
+          <button onClick={() => setActiveTab('live')} className={`min-h-[64px] flex-1 whitespace-nowrap rounded-md px-4 py-2 text-sm font-medium transition ${activeTab === 'live' ? 'bg-kavana-orange text-white' : 'text-slate-600 hover:bg-slate-100'}`}>
+            LÍNEA EN VIVO
+          </button>
+          <button onClick={() => setActiveTab('oee')} className={`min-h-[64px] flex-1 whitespace-nowrap rounded-md px-4 py-2 text-sm font-medium transition ${activeTab === 'oee' ? 'bg-kavana-orange text-white' : 'text-slate-600 hover:bg-slate-100'}`}>
+            OEE AVANZADO
           </button>
           <button onClick={() => setActiveTab('workstations')} className={`min-h-[64px] flex-1 whitespace-nowrap rounded-md px-4 py-2 text-sm font-medium transition ${activeTab === 'workstations' ? 'bg-kavana-orange text-white' : 'text-slate-600 hover:bg-slate-100'}`}>
-            Puestos ({workstationStatus.length})
+            PUESTOS ({workstationStatus.length})
           </button>
           <button onClick={() => setActiveTab('incidencias')} className={`min-h-[64px] flex-1 whitespace-nowrap rounded-md px-4 py-2 text-sm font-medium transition ${activeTab === 'incidencias' ? 'bg-kavana-orange text-white' : 'text-slate-600 hover:bg-slate-100'}`}>
-            🚨 Incidencias ({incidencias.length})
+            🚨 INCIDENCIAS ({incidencias.length})
+          </button>
+          <button onClick={() => setActiveTab('orders')} className={`min-h-[64px] flex-1 whitespace-nowrap rounded-md px-4 py-2 text-sm font-medium transition ${activeTab === 'orders' ? 'bg-kavana-orange text-white' : 'text-slate-600 hover:bg-slate-100'}`}>
+            📋 ÓRDENES
           </button>
         </div>
 
-        {activeTab === 'orders' ? (
+        {activeTab === 'resumen' ? (
+          <ResumenTab />
+        ) : activeTab === 'live' ? (
+          <LiveLineTab />
+        ) : activeTab === 'oee' ? (
+          <OeeAdvancedTab />
+        ) : activeTab === 'orders' ? (
           <>
             <OrderFiltersBar
               isClassic
