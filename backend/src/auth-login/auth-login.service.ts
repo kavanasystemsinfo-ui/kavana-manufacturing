@@ -98,7 +98,7 @@ export class AuthLoginService {
     // aprovechando que ya validamos la contraseña en claro.
     await this.rehashIfLegacy(user.id, password, user.password_hash);
 
-    const token = this.generateToken(user.tenant_id, user.id, user.role);
+    const token = this.generateToken(Number(user.tenant_id), user.id, user.role);
 
     return {
       token,
@@ -124,7 +124,7 @@ export class AuthLoginService {
       throw new UnauthorizedException('Invalid credentials.');
     }
 
-    const token = this.generateToken(user.tenant_id, user.id, user.role);
+    const token = this.generateToken(Number(user.tenant_id), user.id, user.role);
 
     return {
       token,
