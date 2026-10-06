@@ -9,7 +9,7 @@ export interface WorkstationBadge {
 const IDLE: WorkstationBadge = {
   label: 'Sin actividad',
   dot: 'bg-amber-400',
-  chip: 'border-amber-400/40 bg-amber-400/10 text-amber-200',
+  chip: 'border-amber-500/50 bg-amber-500/20 text-amber-600',
 };
 
 /**
@@ -24,7 +24,7 @@ export function workstationBadge(state: string | null | undefined): WorkstationB
     return {
       label: 'En marcha',
       dot: 'bg-green-400',
-      chip: 'border-green-400/40 bg-green-400/10 text-green-200',
+      chip: 'border-green-500/50 bg-green-500/20 text-green-600',
     };
   }
 
@@ -32,7 +32,7 @@ export function workstationBadge(state: string | null | undefined): WorkstationB
     return {
       label: 'Parada',
       dot: 'bg-red-500',
-      chip: 'border-red-500/40 bg-red-500/10 text-red-200',
+      chip: 'border-red-600/50 bg-red-600/20 text-red-600',
     };
   }
 
