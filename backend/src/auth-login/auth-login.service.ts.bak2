@@ -87,7 +87,6 @@ export class AuthLoginService {
     }
 
     const user = r.rows[0];
-    throw new Error("User found test");
 
     if (!this.verifyPassword(password, user.password_hash)) {
       this.recordFailure(key);
@@ -99,7 +98,7 @@ export class AuthLoginService {
     // aprovechando que ya validamos la contraseña en claro.
     await this.rehashIfLegacy(user.id, password, user.password_hash);
 
-    const token = this.generateToken(Number(user.tenant_id), user.id, user.role);
+    const token = this.generateToken(user.tenant_id, user.id, user.role);
 
     return {
       token,
@@ -118,15 +117,14 @@ export class AuthLoginService {
     if (r.rowCount === 0) {
       throw new UnauthorizedException('Invalid credentials.');
     }
-    const user = r.rows[0];
-    throw new Error("User found test");
+
     const user = r.rows[0];
 
     if (!this.verifyPassword(password, user.password_hash)) {
       throw new UnauthorizedException('Invalid credentials.');
     }
 
-    const token = this.generateToken(Number(user.tenant_id), user.id, user.role);
+    const token = this.generateToken(user.tenant_id, user.id, user.role);
 
     return {
       token,
