@@ -87,7 +87,6 @@ export class AuthLoginService {
     }
 
     const user = r.rows[0];
-    throw new Error("User found test");
 
     if (!this.verifyPassword(password, user.password_hash)) {
       this.recordFailure(key);
@@ -118,8 +117,6 @@ export class AuthLoginService {
     if (r.rowCount === 0) {
       throw new UnauthorizedException('Invalid credentials.');
     }
-    const user = r.rows[0];
-    throw new Error("User found test");
     const user = r.rows[0];
 
     if (!this.verifyPassword(password, user.password_hash)) {
