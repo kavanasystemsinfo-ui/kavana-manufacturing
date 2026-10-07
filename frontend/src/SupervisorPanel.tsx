@@ -44,13 +44,41 @@ export function SupervisorPanel() {
   // El tablero es la vista natural de este tema.
   const [view, setView] = useState<OrdersView>('tablero');
 
-  // Tour steps definition
+  // Tour steps definition - granular por campo/gráfica
   const tourSteps: TourStep[] = [
     {
-      id: 'header',
-      selector: 'header',
+      id: 'header-title',
+      selector: 'h1',
       title: 'Panel Supervisor',
-      content: 'Cabecera principal: título, botón "+ Nueva Orden" para crear órdenes, "Ayuda" (?) para guías contextuales, y cambio de tema Clásico/Kavana.',
+      content: 'Cabecera principal con título del panel. Aquí ves en qué módulo estás.',
+      position: 'bottom',
+    },
+    {
+      id: 'header-new-order',
+      selector: 'button:has-text("+ Nueva Orden")',
+      title: 'Crear orden',
+      content: 'Botón "+ Nueva Orden": abre el formulario para crear una nueva orden de producción (modelo, puesto, cantidad, medidas, material, notas).',
+      position: 'bottom',
+    },
+    {
+      id: 'header-help',
+      selector: 'button:has-text("Ayuda"), button[aria-label*="Ayuda"]',
+      title: 'Ayuda contextual',
+      content: 'Botón "Ayuda" (?): abre guías contextuales específicas del panel de supervisor.',
+      position: 'bottom',
+    },
+    {
+      id: 'header-tour',
+      selector: 'button:has-text("Tour")',
+      title: 'Tour guiado',
+      content: 'Botón "🎯 Tour": inicia este recorrido guiado. Siempre visible, puedes repetirlo cuando quieras.',
+      position: 'bottom',
+    },
+    {
+      id: 'header-theme',
+      selector: 'button[aria-label*="Tema"], button[aria-label*="theme"]',
+      title: 'Cambio de tema',
+      content: 'Toggle Clásico/Kavana: cambia entre el tema clásico (claro, denso) y el tema Kavana (oscuro, espacioso). Los datos y acciones son idénticos.',
       position: 'bottom',
     },
     {
@@ -61,58 +89,127 @@ export function SupervisorPanel() {
       position: 'bottom',
     },
     {
-      id: 'resumen',
-      selector: '[class*="space-y-6"]',
-      title: 'Resumen ejecutivo',
-      content: 'KPIs de órdenes, producción diaria con tooltips, Pareto de paradas, rendimiento del día con barra de progreso, órdenes por estado, tendencia OEE semanal.',
+      id: 'resumen-kpis',
+      selector: '[class*="grid"] > [class*="rounded"]:first-child',
+      title: 'KPIs de órdenes',
+      content: 'Tarjetas KPI: Órdenes totales, En progreso, Completadas hoy, Pendientes. Se actualizan en tiempo real.',
       position: 'top',
       action: () => { /* already on resumen tab */ },
     },
     {
-      id: 'alerts',
-      selector: '[class*="space-y-3"]',
-      title: 'Alertas reales',
-      content: 'Puesto detenido (rojo), Problemas calidad (ámbar), Mantenimiento (azul), Stock crítico (verde) — todos con datos reales. "Ver todas" abre vista completa. "Revisar pendientes" salta a Incidencias.',
+      id: 'resumen-production-chart',
+      selector: 'canvas, [class*="ProductionChart"]',
+      title: 'Producción diaria',
+      content: 'Gráfica de barras: producción por día (últimos 7-30 días). Hover para ver detalle exacto por día.',
+      position: 'top',
+    },
+    {
+      id: 'resumen-pareto',
+      selector: '[class*="DowntimePareto"]',
+      title: 'Pareto de paradas',
+      content: 'Gráfica Pareto: top motivos de parada ordenados por frecuencia, con curva acumulada. Identifica el 20% de causas que generan el 80% de paradas.',
+      position: 'top',
+    },
+    {
+      id: 'resumen-performance',
+      selector: '[class*="Rendimiento"]',
+      title: 'Rendimiento del día',
+      content: 'Barra de progreso: % de producción real vs objetivo del día. Verde = objetivo cumplido, ámbar = cerca, rojo = por debajo.',
+      position: 'top',
+    },
+    {
+      id: 'resumen-orders-state',
+      selector: '[class*="Órdenes por estado"]',
+      title: 'Órdenes por estado',
+      content: 'Distribución visual: Pendientes, En progreso, Completadas, Canceladas. Click para filtrar en tab ÓRDENES.',
+      position: 'top',
+    },
+    {
+      id: 'resumen-oee-trend',
+      selector: '[class*="Tendencia OEE"]',
+      title: 'Tendencia OEE semanal',
+      content: 'Línea temporal: OEE diario de la última semana. Detecta caídas y tendencias.',
+      position: 'top',
+    },
+    {
+      id: 'alerts-stopped',
+      selector: '[class*="Puesto detenido"]',
+      title: 'Alerta: Puesto detenido',
+      content: 'Puestos en estado "stopped" > 4h sin actividad. Rojo = crítico. "Ver todas" lista completa.',
       position: 'left',
     },
     {
-      id: 'actions',
-      selector: '[class*="space-y-2"]',
-      title: 'Acciones rápidas',
-      content: 'Ver reporte (requiere módulo reportes), Programar mantenimiento (requiere CMMS), Revisar pendientes → tab Incidencias. Botones futuros deshabilitados con tooltip honesto.',
+      id: 'alerts-quality',
+      selector: '[class*="Problemas calidad"]',
+      title: 'Alerta: Problemas calidad',
+      content: 'Órdenes con defectos > umbral. Ámbar = atención. "Revisar pendientes" salta a tab INCIDENCIAS filtrado por calidad.',
       position: 'left',
     },
     {
-      id: 'live',
+      id: 'alerts-maintenance',
+      selector: '[class*="Mantenimiento"]',
+      title: 'Alerta: Mantenimiento',
+      content: 'Puestos con mantenimiento programado o vencido. Azul = info. Requiere módulo CMMS (pendiente).',
+      position: 'left',
+    },
+    {
+      id: 'alerts-stock',
+      selector: '[class*="Stock crítico"]',
+      title: 'Alerta: Stock crítico',
+      content: 'Referencias con stock actual < stock mínimo. Verde = dato real desde BD. "Ver todas" abre vista completa de materiales.',
+      position: 'left',
+    },
+    {
+      id: 'actions-report',
+      selector: 'button:has-text("Ver reporte")',
+      title: 'Acción: Ver reporte',
+      content: 'Genera reporte de producción (PDF/Excel). Deshabilitado: requiere módulo reportes pendiente. Tooltip honesto.',
+      position: 'left',
+    },
+    {
+      id: 'actions-maintenance',
+      selector: 'button:has-text("Programar mantenimiento")',
+      title: 'Acción: Programar mantenimiento',
+      content: 'Crea orden de mantenimiento preventivo/correctivo. Deshabilitado: requiere CMMS pendiente.',
+      position: 'left',
+    },
+    {
+      id: 'actions-review',
+      selector: 'button:has-text("Revisar pendientes")',
+      title: 'Acción: Revisar pendientes',
+      content: 'Navega directo a tab INCIDENCIAS filtrado por "abierto/en_progreso". Funciona ya.',
+      position: 'left',
+    },
+    {
+      id: 'live-tab',
       selector: 'button:has-text("LÍNEA EN VIVO")',
       title: 'Línea en vivo',
       content: 'Timeline de 8h por puesto. Estados running/stopped/idle con bloques de producción y paradas. Scroll horizontal para turno completo.',
       position: 'bottom',
-      action: () => { /* will be handled by click */ },
     },
     {
-      id: 'oee',
+      id: 'oee-tab',
       selector: 'button:has-text("OEE AVANZADO")',
       title: 'OEE Avanzado',
       content: 'Medias de planta, tendencia Día/Semana/Mes (cambia endpoint), ranking puestos, tabla detalle, 6 Grandes Pérdidas (modelado proporcional documentado).',
       position: 'bottom',
     },
     {
-      id: 'orders',
+      id: 'orders-tab',
       selector: 'button:has-text("ÓRDENES")',
       title: 'Órdenes',
       content: 'Filtros servidor, paginación, Kanban drag&drop para cambiar estado, tabla alternativa, detalle expandible con actividad.',
       position: 'bottom',
     },
     {
-      id: 'workstations',
+      id: 'workstations-tab',
       selector: 'button:has-text("PUESTOS")',
       title: 'Puestos',
       content: 'Grid de puestos con semáforo running/stopped/idle, operador asignado, última actividad. Click para ver detalle.',
       position: 'bottom',
     },
     {
-      id: 'incidencias',
+      id: 'incidencias-tab',
       selector: 'button:has-text("INCIDENCIAS")',
       title: 'Incidencias',
       content: 'Kanban 4 columnas (abierto/en_progreso/resuelto/cerrado), drag&drop, tipos: calidad/mantenimiento/seguridad/otros. Filtros y búsqueda.',
@@ -133,15 +230,14 @@ export function SupervisorPanel() {
             </div>
             <div className="flex flex-wrap items-center gap-3">
               <HelpModal {...SUPERVISOR_HELP} />
-              {!tourCompleted && (
-                <button
-                  onClick={startTour}
-                  className="min-h-[64px] rounded-2xl bg-kavana-orange/20 px-5 py-3 text-base font-bold text-kavana-orange-light border border-kavana-orange/30 shadow-lg transition hover:bg-kavana-orange/30 active:scale-95"
-                  title="Tour guiado del panel"
-                >
-                  🎯 Tour
-                </button>
-              )}
+              {/* Botón Tour SIEMPRE visible */}
+              <button
+                onClick={startTour}
+                className="min-h-[64px] rounded-2xl bg-kavana-orange/20 px-5 py-3 text-base font-bold text-kavana-orange-light border border-kavana-orange/30 shadow-lg transition hover:bg-kavana-orange/30 active:scale-95"
+                title="Tour guiado del panel"
+              >
+                🎯 Tour
+              </button>
               <button
                 onClick={() => setShowForm(!showForm)}
                 className="min-h-[64px] rounded-2xl bg-kavana-orange px-5 py-3 text-base font-bold text-white shadow-lg transition hover:bg-kavana-orange-light active:scale-95"

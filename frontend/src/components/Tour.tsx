@@ -21,12 +21,17 @@ export function Tour({ steps, isOpen, onClose, onComplete }: TourProps) {
   const [currentStep, setCurrentStep] = useState(0);
   const [targetRect, setTargetRect] = useState<DOMRect | null>(null);
   const tooltipRef = useRef<HTMLDivElement>(null);
+  const isMountedRef = useRef(true);
 
   // Reset to first step when tour opens
   useEffect(() => {
     if (isOpen) {
       setCurrentStep(0);
+      setTargetRect(null); // Clear previous rect
     }
+    return () => {
+      isMountedRef.current = false;
+    };
   }, [isOpen]);
 
   // Find target element and calculate position
@@ -43,10 +48,12 @@ export function Tour({ steps, isOpen, onClose, onComplete }: TourProps) {
 
     // Small delay to allow DOM updates from action
     const timeout = setTimeout(() => {
+      if (!isMountedRef.current) return;
+      
       const target = document.querySelector(step.selector);
       if (target) {
         setTargetRect(target.getBoundingClientRect());
-      } else if (step.position === 'center') {
+      } else if (step.position === 'center' || !step.selector) {
         // Center of viewport for steps without selector
         setTargetRect({
           top: window.innerHeight / 2,
@@ -64,9 +71,36 @@ export function Tour({ steps, isOpen, onClose, onComplete }: TourProps) {
     return () => clearTimeout(timeout);
   }, [currentStep, isOpen, steps]);
 
+  // Handle keyboard navigation
+  useEffect(() => {
+    if (!isOpen) return;
+
+    const handleKeyDown = (e: KeyboardEvent) => {
+      switch (e.key) {
+        case 'ArrowRight':
+        case 'Enter':
+          e.preventDefault();
+          goNext();
+          break;
+        case 'ArrowLeft':
+          e.preventDefault();
+          goPrev();
+          break;
+        case 'Escape':
+          e.preventDefault();
+          skip();
+          break;
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [isOpen, currentStep, steps.length]);
+
   const goNext = () => {
     if (currentStep < steps.length - 1) {
       setCurrentStep(currentStep + 1);
+      setTargetRect(null); // Clear rect for smooth transition
     } else {
       onComplete();
       onClose();
@@ -76,6 +110,7 @@ export function Tour({ steps, isOpen, onClose, onComplete }: TourProps) {
   const goPrev = () => {
     if (currentStep > 0) {
       setCurrentStep(currentStep - 1);
+      setTargetRect(null); // Clear rect for smooth transition
     }
   };
 
@@ -166,10 +201,17 @@ export function Tour({ steps, isOpen, onClose, onComplete }: TourProps) {
     zIndex: 10000,
     padding: 24,
     fontFamily: 'inherit',
+    animation: 'slideIn 0.2s ease-out',
   };
 
   const tooltipContent = (
     <div ref={tooltipRef} style={tooltipStyle} className="tour-tooltip">
+      <style jsx>{`
+        @keyframes slideIn {
+          from { opacity: 0; transform: translateY(-10px); }
+          to { opacity: 1; transform: translateY(0); }
+        }
+      `}</style>
       <div className="flex items-start justify-between gap-4 mb-4">
         <div className="flex-1">
           <h3 className="text-lg font-semibold text-slate-900">{step.title}</h3>
@@ -195,7 +237,10 @@ export function Tour({ steps, isOpen, onClose, onComplete }: TourProps) {
           {steps.map((_, i) => (
             <button
               key={i}
-              onClick={() => setCurrentStep(i)}
+              onClick={() => {
+                setCurrentStep(i);
+                setTargetRect(null);
+              }}
               className={`w-2 h-2 rounded-full transition-colors ${
                 i === currentStep ? 'bg-kavana-orange' : 'bg-slate-300'
               }`}
@@ -237,27 +282,20 @@ export function Tour({ steps, isOpen, onClose, onComplete }: TourProps) {
 // Hook para usar el tour en cualquier componente
 export function useTour(steps: TourStep[]) {
   const [isOpen, setIsOpen] = useState(false);
-  const [completed, setCompleted] = useState(false);
-
-  // Check localStorage on mount
-  useEffect(() => {
-    const saved = localStorage.getItem('kavana-tour-completed');
-    if (saved === 'true') {
-      setCompleted(true);
-    }
-  }, []);
+  // NO ocultamos el botón tras completar: siempre visible
+  // const [completed, setCompleted] = useState(false);
 
   const start = () => setIsOpen(true);
   const close = () => setIsOpen(false);
   const complete = () => {
-    setCompleted(true);
+    // Marcamos como completado en localStorage pero NO ocultamos el botón
     localStorage.setItem('kavana-tour-completed', 'true');
     setIsOpen(false);
   };
 
   return {
     isOpen,
-    completed,
+    completed: false, // Siempre false para que el botón nunca se oculte
     start,
     close,
     complete,
