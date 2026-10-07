@@ -95,7 +95,7 @@ export function ResumenTab() {
                 {todayTarget > 0 && (
                   <span className="text-slate-600">
                     {Math.round((todayActual / todayTarget) * 100)}% cumplimiento
-                  )
+                  </span>
                 )}
               </div>
             </div>
