@@ -7,7 +7,7 @@ interface WorkstationStatus {
   code: string;
   status: 'running' | 'idle' | 'down' | 'maintenance' | 'changeover';
   currentOrderId?: string;
-  currentOrderCode?: string;
+  currentOrderCode?: string | null;
   targetQuantity?: number;
   producedQuantity?: number;
   oee?: number;
@@ -17,7 +17,7 @@ interface WorkstationStatus {
 interface TimelineBlock {
   start: number; // minutes from shift start
   end: number;
-  type: 'running' | 'idle' | 'down' | 'changeover';
+  type: 'running' | 'idle' | 'down' | 'maintenance' | 'changeover';
   label?: string;
 }
 

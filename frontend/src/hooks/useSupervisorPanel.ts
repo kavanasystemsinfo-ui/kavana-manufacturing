@@ -6,7 +6,7 @@ import { incidenciaMoveNotice } from '../utils/incidencia-notice.js';
 import { DEMO_DELETE_NOTICE, isDemoReadOnlyError } from '../utils/demo-readonly.js';
 import type { OrderFilters } from '../utils/order-filters.js';
 
-export type SupervisorTab = 'resumen' | 'live' | 'orders' | 'workstations' | 'incidencias';
+export type SupervisorTab = 'resumen' | 'live' | 'orders' | 'workstations' | 'incidencias' | 'oee';
 
 export interface SupervisorPanelState {
   // Estado del store (Zustand)
