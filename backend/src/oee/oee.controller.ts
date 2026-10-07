@@ -1,4 +1,4 @@
-import { Controller, Get, Param, Query, UseGuards} from '@nestjs/common';
+import { Controller, Get, Inject, Param, Query, UseGuards} from '@nestjs/common';
 import { RequireFeature } from '../tenant-capabilities/require-feature.decorator.js';
 import { OeeService } from './oee.service.js';
 
@@ -10,7 +10,9 @@ import { RolesGuard } from '../auth/roles.guard.js';
 @UseGuards(RolesGuard)
 @RequireFeature('oee_monitoring')
 export class OeeController {
-  constructor(private readonly oeeService: OeeService) {}
+  // @Inject explícito: tsx (esbuild) no emite design:paramtypes; sin el token
+  // el servicio entra como undefined y el endpoint revienta en 500 en dev.
+  constructor(@Inject(OeeService) private readonly oeeService: OeeService) {}
 
   @Get('workstation/:workstationId')
   async getOeeSummary(
