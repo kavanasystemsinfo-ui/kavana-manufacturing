@@ -16,11 +16,7 @@ export default defineConfig({
     },
   },
   // Force esbuild instead of rolldown for compatibility
-  optimizeDeps: {
-    esbuildOptions: {
-      target: 'es2020',
-    },
-  },
+  optimizeDeps: false,
   build: {
     target: 'es2020',
   },

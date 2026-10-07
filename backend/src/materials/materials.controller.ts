@@ -61,6 +61,14 @@ export class MaterialsController {
     return this.service.deleteBomItem(ctx.tenantId, id);
   }
 
+  // ─── Stock Critical ───
+  @Get('critical-stock')
+  @RequireRole('supervisor', 'tenant_admin')
+  async getCriticalStock() {
+    const ctx = getTenantContext();
+    return this.service.getCriticalStock(ctx.tenantId);
+  }
+
   // ─── Models by workstation (for supervisor order creation) ───
   @Get('by-workstation/:wsId')
   async getByWorkstation(@Param('wsId') wsId: string) {

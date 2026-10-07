@@ -13,6 +13,7 @@ import {
   type Workstation,
   type ActivityBlock,
 } from '../api/supervisor.js';
+import type { WorkstationLive } from '../components/WorkstationBoard.js';
 import {
   DEFAULT_ORDER_FILTERS,
   type OrderFilters,
@@ -29,7 +30,7 @@ interface SupervisorState {
   orders: Order[];
   models: ManufacturingModel[];
   workstations: Workstation[];
-  workstationStatus: Workstation[];
+  workstationStatus: WorkstationLive[];
   activity: ActivityBlock[];
   isLoading: boolean;
   error: string | null;
@@ -161,7 +162,7 @@ export const useSupervisorStore = create<SupervisorState>((set, get) => ({
       error: null,
       notice: null,
       orders: previas.map((o) =>
-        o.id === orderId ? { ...o, status: status as Order['status'] } : o,
+        o.id === orderId ? { ...o, status: status as Order['status'] } : o
       ),
     });
     try {

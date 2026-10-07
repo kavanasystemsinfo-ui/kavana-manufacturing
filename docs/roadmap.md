@@ -614,3 +614,67 @@ Cada ejecución de `$d` debe:
 5. Actualizar [`docs/technical/09_technical-debt.md`](docs/technical/09_technical-debt.md:1).
 6. Registrar próximos pasos.
 7. No modificar código salvo petición explícita.
+
+---
+
+## Apéndice: Supervisor Dashboard (Panel Supervisor) — Estado 2026-10-07
+
+Este apéndice documenta el panel de supervisor desplegado en `https://www.kavanasystems.com/manufacturing/` (último push `c32ffc5`). Es una vista de *producto terminado* para demo/portfolio, construida sobre la base MES multi-tenant del roadmap principal.
+
+### ✅ Implementado y funcional (6 tabs)
+
+| Tab | Funcionalidades clave | Datos |
+|-----|----------------------|-------|
+| **RESUMEN** | KPIs órdenes, Producción Diaria (tooltips), Pareto Paradas (curva acumulada), Rendimiento Día (barra progreso), Órdenes por estado, Tendencia OEE semanal, Alertas reales (Puesto detenido, Calidad, Stock crítico), Acciones rápidas | Tiempo real (polling 10s) |
+| **LÍNEA EN VIVO** | Timeline turno 8h por workstation, estados running/stopped/idle, bloques producción/parada | Tiempo real |
+| **OEE AVANZADO** | Medias planta, tendencia Día/Semana/Mes (cambia endpoint), ranking workstations, tabla detalle, 6 Grandes Pérdidas (modelado proporcional) | Agregados BD |
+| **ÓRDENES** | Tabla filtros servidor, paginación, Kanban drag & drop cambio estado | Tiempo real |
+| **PUESTOS** | Grid workstations semáforo, operador asignado, última actividad | Tiempo real |
+| **INCIDENCIAS** | Kanban 4 columnas (abierto/en_progreso/resuelto/cerrado), drag & drop, tipos: calidad/mantenimiento/seguridad/otros | Tiempo real |
+
+### Stack técnico del panel
+- Frontend: React 18 + TypeScript + Vite + Zustand + Tailwind
+- Backend: NestJS + TypeScript + PostgreSQL (pg pool) + multi-tenant RLS
+- Tests: Vitest (unit), Playwright (E2E)
+- Deploy: Render (backend + frontend) + Neon (DB)
+
+### ⚠️ Pendientes documentados (no implementados — decisión consciente)
+
+| Item | Estado | Esfuerzo | Decisión |
+|------|--------|----------|----------|
+| **Modal "Ver todas" alertas** | Botón conectado, modal no implementado | ~2h | No bloqueante — resumen muestra 3 alertas críticas |
+| **Ver reporte de producción** | Botón deshabilitado + tooltip | ~0.5-1 día (nuevo módulo) | Fuera scope — KPIs/Pareto/OEE/Timeline ya cubren valor demo |
+| **Programar mantenimiento** | Botón deshabilitado + tooltip | ~1 día (CMMS nuevo) | Fuera scope — sería producto separado CMMS |
+| **6 Grandes Pérdidas por motivo real** | Modelo proporcional (documentado en UI) | ~4-6h | Honestidad técnica > dato inventado |
+| **OEE "—" serie en 0** | Implementado como feature honesta | — | No es deuda |
+
+### Archivos clave modificados en esta entrega (2026-10-07)
+
+- `database/migrations/043_add_current_stock_to_raw_materials.sql` — columna `current_stock`
+- `backend/src/materials/materials.service.ts` — `getCriticalStock()` + select `current_stock`
+- `backend/src/materials/materials.controller.ts` — `GET /materials/critical-stock` (roles: supervisor, tenant_admin)
+- `frontend/src/api/supervisor.ts` — tipo `Material`, `fetchCriticalStock()`
+- `frontend/src/hooks/useSupervisorPanel.ts` — estado `criticalStock/loading/error`, fetch on mount
+- `frontend/src/components/ResumenTab.tsx` — stock crítico real (loading/error/data), "Ver todas" abre modal state, "Revisar pendientes" → tab Incidencias, botones reportes/mantenimiento deshabilitados con tooltip explicativo
+- `frontend/src/components/ResumenTab.spec.tsx` — test "Puesto detenido" con workstation `state === 'stopped'`
+
+### Para la landing / portfolio
+
+**Fortalezas a destacar:**
+- Dashboard supervisor completo (6 tabs) con métricas industriales reales: OEE, 6 Grandes Pérdidas, Pareto, Timeline turno 8h
+- Datos reales end-to-end: migración SQL → servicio backend → API → hook React → UI con estados loading/error
+- Multi-tenant con RLS PostgreSQL, demo blindada (borrado/movimiento no persiste, aviso neutro)
+- TDD real: specs antes, commits atómicos, CI verde
+- Arquitectura escalable: store global (Zustand), hooks desacoplados, componentes reutilizables
+- Honestidad técnica: botones futuros deshabilitados con tooltip, pérdidas modeladas documentadas, OEE "—" en serie vacía
+
+**Próximos pasos realistas (si el cliente/entrevistador pregunta):**
+1. Modal "Ver todas" alertas (2h)
+2. Módulo reportes producción exportable PDF/Excel (0.5-1 día)
+3. Módulo CMMS mantenimiento preventivo/correctivo (1 día)
+4. 6 Grandes Pérdidas capturadas por motivo real en `production_work_blocks` (4-6h)
+
+**No prometer:**
+- IA predictiva, ML, digital twin — no está en el código
+- App móvil nativa — es PWA responsive
+- ERP completo — es panel supervisor MES/MOM
