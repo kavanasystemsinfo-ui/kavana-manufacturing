@@ -13,6 +13,7 @@ import { LoginPage } from './LoginPage.js';
 import { LandingPage } from './LandingPage.js';
 import { getSubdomain, getTenantFromUrl } from './utils/subdomain.js';
 import { MobilePhotoUpload } from './pages/MobilePhotoUpload.js';
+import { ManufacturingLanding } from './components/ManufacturingLanding.js';
 import { OfflineBanner } from './components/ui/OfflineBanner.js';
 import { purgeLocalData } from './db/local-db.js';
 
@@ -124,6 +125,11 @@ export function AppRoutes() {
         {theme === 'classic' ? <ClassicGlobalAdminPanel /> : <GlobalAdminPanel />}
       </>
     );
+  }
+
+  // Manufacturing public landing (no auth required)
+  if (path === '/manufacturing' || path.startsWith('/manufacturing/')) {
+    return <ManufacturingLanding />;
   }
 
   // Subdomain-based tenant access
