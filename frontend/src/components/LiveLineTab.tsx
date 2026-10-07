@@ -37,7 +37,7 @@ export function LiveLineTab() {
         const statuses: WorkstationStatus['status'][] = ['running', 'idle', 'down', 'changeover'];
         const weights = [0.6, 0.2, 0.1, 0.1]; // 60% running, 20% idle, 10% down, 10% changeover
         
-        let random = Math.random();
+        const random = Math.random();
         let selectedStatus: WorkstationStatus['status'] = 'running';
         let cumulative = 0;
         for (let i = 0; i < weights.length; i++) {
