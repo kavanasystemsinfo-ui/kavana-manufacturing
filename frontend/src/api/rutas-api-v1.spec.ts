@@ -36,6 +36,7 @@ const PROD_FILES = [
   'api/supervisor.ts',
   'api/incidencias.ts',
   'api/my-time-logs.ts',
+  'api/analytics.ts',
   'store/hmi-store.ts',
   'LoginPage.tsx',
   'TenantLogin.tsx',
@@ -76,7 +77,7 @@ describe('Contrato de rutas /api/v1 en todo el frontend', () => {
         expect(
           route,
           `${file}: ruta sin prefijo: "${route}"`,
-        ).toMatch(/^\/(users|workstations|manufacturing-models|toolings|materials|orders|incidencias|tenant|oee|quality|costs|production|ai-advisor|health|docs|global-admin)/);
+        ).toMatch(/^\/(users|workstations|manufacturing-models|toolings|materials|orders|incidencias|tenant|oee|quality|costs|production|ai-advisor|health|docs|global-admin|analytics)/);
       }
       for (const route of literalRoutes) {
         // '/api/v1' a secas es la definición de la constante, no una ruta.

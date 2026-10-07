@@ -1,4 +1,6 @@
+import { useEffect, useState } from 'react';
 import { useSupervisorPanel } from '../hooks/useSupervisorPanel.js';
+import { fetchOeeWorkstations } from '../api/analytics.js';
 
 interface KpiCard {
   label: string;
@@ -13,7 +15,6 @@ interface KpiCard {
 export function KpiCardsRow() {
   const {
     orders,
-    workstationStatus,
     incidencias,
     incidenciasLoading,
     incidenciasError,
@@ -40,14 +41,35 @@ export function KpiCardsRow() {
     (i.type === 'mantenimiento' || i.type === 'seguridad')
   ).length;
   
-  // Calculate plant OEE (average of all workstations for today)
-  // For demo, we'll calculate from workstationStatus if it has OEE data
-  // In reality, this would come from an OEE endpoint
-  const plantOee = workstationStatus.reduce((sum, ws) => {
-    // Assuming workstationStatus has OEE data from the workstations-status endpoint
-    // For now, we'll use a placeholder calculation
-    return sum + (Math.random() * 0.3 + 0.7); // 70-100% range
-  }, 0) / (workstationStatus.length || 1);
+  // OEE de planta hoy: media de los puestos que sí tienen partes en el día.
+  // Antes salía de Math.random() y cambiaba en cada render; ahora sale del
+  // endpoint de OEE y, sin datos, se muestra un guion en vez de un número
+  // inventado.
+  const [plantOee, setPlantOee] = useState<number | null>(null);
+
+  useEffect(() => {
+    const ahora = new Date();
+    const inicioDelDia = new Date(ahora);
+    inicioDelDia.setHours(0, 0, 0, 0);
+
+    let cancelado = false;
+    fetchOeeWorkstations(inicioDelDia.toISOString(), ahora.toISOString())
+      .then((puestos) => {
+        if (cancelado) return;
+        const conDatos = puestos.filter((p) => !p.sin_datos);
+        if (conDatos.length === 0) {
+          setPlantOee(null);
+          return;
+        }
+        const media = conDatos.reduce((suma, p) => suma + (Number(p.oee) || 0), 0) / conDatos.length;
+        setPlantOee(media);
+      })
+      .catch(() => {
+        if (!cancelado) setPlantOee(null);
+      });
+
+    return () => { cancelado = true; };
+  }, []);
 
   return (
     <div className="mb-4 flex gap-1 overflow-x-auto rounded-lg border border-slate-200 bg-white p-1 shadow-sm">
@@ -80,7 +102,7 @@ export function KpiCardsRow() {
       >
         Completadas
         <div className="text-2xl font-bold mt-1">{completedWo}</div>
-        <div className="text-xs text-slate-500">Hoy</div>
+        <div className="text-xs text-slate-500">Histórico</div>
       </button>
       
       <button
@@ -124,9 +146,11 @@ export function KpiCardsRow() {
       >
         OEE Planta
         <div className="text-2xl font-bold mt-1">
-          {(plantOee * 100).toFixed(1)}%
+          {plantOee === null ? '—' : `${plantOee.toFixed(1)}%`}
         </div>
-        <div className="text-xs text-slate-500">Promedio</div>
+        <div className="text-xs text-slate-500">
+          {plantOee === null ? 'Sin datos hoy' : 'Promedio'}
+        </div>
       </button>
     </div>
   );

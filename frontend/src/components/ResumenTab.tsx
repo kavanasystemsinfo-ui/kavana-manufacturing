@@ -1,7 +1,17 @@
+import { useEffect, useState } from 'react';
 import { KpiCardsRow } from './KpiCardsRow.js';
 import { ProductionChart } from './ProductionChart.js';
 import { DowntimePareto } from './DowntimePareto.js';
 import { useSupervisorPanel } from '../hooks/useSupervisorPanel.js';
+import { rendimientoDelDia } from '../utils/resumen-kpi.js';
+import { formatNumber } from '../utils/formatNumber.js';
+import { fetchOeeDaily, type OeeDia } from '../api/analytics.js';
+
+const COLOR_NIVEL = {
+  verde: { texto: 'text-green-600', barra: 'bg-green-500' },
+  ambar: { texto: 'text-amber-600', barra: 'bg-amber-500' },
+  rojo: { texto: 'text-red-600', barra: 'bg-red-500' },
+} as const;
 
 export function ResumenTab() {
   const { orders, workstationStatus, incidencias } = useSupervisorPanel();
@@ -12,26 +22,28 @@ export function ResumenTab() {
   const completedWo = orders.filter(o => o.status === 'completed').length;
   const pendingWo = orders.filter(o => o.status === 'pending').length;
   
-  // Calculate today's production target vs actual
+  // Objetivo real frente a lo producido hoy, con los NUMERIC de pg ya
+  // convertidos a número (antes salían concatenados: "01827.00001328.0000...").
   const today = new Date();
-  const todayOrders = orders.filter(o => {
-    const orderDate = new Date(o.created_at);
-    return orderDate.toDateString() === today.toDateString();
-  });
+  const rendimiento = rendimientoDelDia(orders, today);
   
-  const todayTarget = todayOrders.reduce((sum, order) => sum + order.quantity, 0);
-  const todayActual = todayOrders.reduce((sum, order) => sum + (order.produced_quantity || 0), 0);
+  // Tendencia de OEE de los últimos 7 días, calculada por el backend.
+  const [oeeSerie, setOeeSerie] = useState<OeeDia[]>([]);
+  const [oeeCargando, setOeeCargando] = useState(true);
+  const [oeeError, setOeeError] = useState<string | null>(null);
   
-  // Calculate OEE trend (mock for now)
-  const oeeTrend = [
-    { date: 'Lun', value: 0.78 },
-    { date: 'Mar', value: 0.82 },
-    { date: 'Mié', value: 0.75 },
-    { date: 'Jue', value: 0.85 },
-    { date: 'Vie', value: 0.88 },
-    { date: 'Sáb', value: 0.65 },
-    { date: 'Dom', value: 0.60 }
-  ];
+  useEffect(() => {
+    let cancelado = false;
+    fetchOeeDaily(7)
+      .then((serie) => { if (!cancelado) { setOeeSerie(serie); setOeeError(null); } })
+      .catch(() => { if (!cancelado) setOeeError('No se pudo cargar la tendencia de OEE'); })
+      .finally(() => { if (!cancelado) setOeeCargando(false); });
+    return () => { cancelado = true; };
+  }, []);
+  
+  const oeePromedio = oeeSerie.length > 0
+    ? oeeSerie.reduce((sum, d) => sum + d.oee, 0) / oeeSerie.length
+    : null;
   
   return (
     <div className="space-y-6">
@@ -67,34 +79,29 @@ export function ResumenTab() {
               <div className="flex items-baseline gap-3">
                 <div className="flex-1">
                   <p className="text-sm font-medium text-slate-700">Objetivo diario</p>
-                  <p className="text-2xl font-bold text-slate-900">{todayTarget.toLocaleString()} unidades</p>
+                  <p className="text-2xl font-bold text-slate-900">{formatNumber(rendimiento.objetivo)} unidades</p>
                 </div>
                 <div className="flex-1">
                   <p className="text-sm font-medium text-slate-700">Producción real</p>
-                  <p className={`text-2xl font-bold ${todayActual >= todayTarget * 0.95 ? 'text-green-600' : todayActual >= todayTarget * 0.8 ? 'text-amber-600' : 'text-red-600'}`}>
-                    {todayActual.toLocaleString()} unidades
+                  <p className={`text-2xl font-bold ${COLOR_NIVEL[rendimiento.nivel].texto}`}>
+                    {formatNumber(rendimiento.real)} unidades
                   </p>
                 </div>
               </div>
               
               <div className="h-2 w-full bg-slate-200/50 rounded-full relative mt-2">
                 <div 
-                  className={`h-full w-[${Math.min((todayActual / todayTarget) * 100, 100)}%] 
-                           ${todayActual >= todayTarget * 0.95 ? 'bg-green-500' : 
-                            todayActual >= todayTarget * 0.8 ? 'bg-amber-500' : 
-                            'bg-red-500'} rounded-full transition-all`}
-                  style={{ 
-                    width: `${Math.min((todayActual / todayTarget) * 100, 100)}%` 
-                  }}
+                  className={`h-full ${COLOR_NIVEL[rendimiento.nivel].barra} rounded-full transition-all`}
+                  style={{ width: `${rendimiento.progresoPct}%` }}
                 />
               </div>
               
               <div className="flex justify-between text-xs mt-1">
                 <span>0%</span>
                 <span>100%</span>
-                {todayTarget > 0 && (
+                {rendimiento.cumplimiento !== null && (
                   <span className="text-slate-600">
-                    {Math.round((todayActual / todayTarget) * 100)}% cumplimiento
+                    {rendimiento.cumplimiento}% cumplimiento
                   </span>
                 )}
               </div>
@@ -133,68 +140,79 @@ export function ResumenTab() {
                 Tendencia OEE Semanal
               </h3>
               <div className="text-sm text-slate-500">
-                Promedio: {(oeeTrend.reduce((sum, d) => sum + d.value, 0) / oeeTrend.length * 100).toFixed(1)}%
+                {oeePromedio !== null
+                  ? `Promedio: ${oeePromedio.toFixed(1)}%`
+                  : oeeCargando ? 'Cargando…' : 'Sin datos'}
               </div>
             </div>
-            
-            <div className="h-32 relative">
-              {/* Grid */}
-              <div className="absolute inset-0 grid grid-cols-7 grid-rows-4 gap-0.5">
-                {[...Array(3)].map((_, rowIndex) => (
-                  <div key={rowIndex} className="col-span-7 border-b border-slate-200/50" />
-                ))}
-                {[...Array(7)].map((_, colIndex) => (
-                  <div key={colIndex} className="row-span-4 border-r border-slate-200/50" />
-                ))}
+
+            {oeeSerie.length === 0 ? (
+              <div className="h-32 flex items-center justify-center text-sm text-slate-400 text-center px-4">
+                {oeeCargando
+                  ? 'Cargando tendencia…'
+                  : (oeeError ?? 'Sin partes de producción en los últimos 7 días')}
               </div>
-              
-              {/* OEE line */}
-              <div className="absolute inset-0">
-                <svg className="w-full h-full">
-                  <polyline 
-                    points={oeeTrend.map((point, index) => {
-                      const x = (index / (oeeTrend.length - 1)) * 100;
-                      const y = 100 - (point.value * 100);
-                      return `${x},${y}`;
-                    }).join(' ')}
-                    fill="none"
-                    stroke="indigo-500"
-                    stroke-width="2"
-                  />
-                </svg>
-              </div>
-              
-              {/* Target line (85%) */}
-              <div className="absolute left-0 right-0 h-0.5 bg-green-500/50"
-                   style={{ bottom: '15%' }} />
-                   
-              {/* Axis labels */}
-              <div className="absolute left-0 top-0 h-full flex flex-col justify-between items-center w-4">
-                <div className="text-xs text-slate-400">1.00</div>
-                <div className="text-xs text-slate-400">0.85</div>
-                <div className="text-xs text-slate-400">0.70</div>
-                <div className="text-xs text-slate-400">0.50</div>
-                <div className="text-xs text-slate-400">0.00</div>
-              </div>
-              
-              <div className="absolute bottom-0 left-0 right-0 flex justify-between px-2">
-                {oeeTrend.map((point, index) => (
-                  <div key={index} className="text-xs text-slate-500 w-full text-center">
-                    {point.date}
+            ) : (
+              <>
+                <div className="flex gap-2">
+                  <div className="flex flex-col justify-between items-end h-32 text-xs text-slate-400">
+                    <span>100%</span>
+                    <span>75%</span>
+                    <span>50%</span>
+                    <span>25%</span>
+                    <span>0%</span>
                   </div>
-                ))}
-              </div>
-            </div>
-            
-            <div className="flex justify-between text-xs mt-1 text-slate-500">
-              <span>Lun</span>
-              <span>Mar</span>
-              <span>Mié</span>
-              <span>Jue</span>
-              <span>Vie</span>
-              <span>Sáb</span>
-              <span>Dom</span>
-            </div>
+                  <div className="relative flex-1 h-32">
+                    {[0, 25, 50, 75].map((pct) => (
+                      <div
+                        key={pct}
+                        className="absolute left-0 right-0 border-b border-slate-200/50"
+                        style={{ top: `${pct}%` }}
+                      />
+                    ))}
+                    {/* Objetivo de OEE: 85 % (y = 100 - valor) */}
+                    <div className="absolute left-0 right-0 h-0.5 bg-green-500/50" style={{ top: '15%' }} />
+                    <svg
+                      viewBox="0 0 100 100"
+                      preserveAspectRatio="none"
+                      className="absolute inset-0 w-full h-full"
+                    >
+                      {oeeSerie.length > 1 && (
+                        <polyline
+                          points={oeeSerie
+                            .map((p, i) => `${(i / (oeeSerie.length - 1)) * 100},${100 - p.oee}`)
+                            .join(' ')}
+                          fill="none"
+                          stroke="#6366f1"
+                          strokeWidth="2"
+                          vectorEffect="non-scaling-stroke"
+                        />
+                      )}
+                      {oeeSerie.map((p, i) => (
+                        <circle
+                          key={p.date}
+                          cx={oeeSerie.length > 1 ? (i / (oeeSerie.length - 1)) * 100 : 50}
+                          cy={100 - p.oee}
+                          r="1.5"
+                          fill="#6366f1"
+                        />
+                      ))}
+                    </svg>
+                  </div>
+                </div>
+
+                <div className="flex justify-between text-xs mt-1 text-slate-500 pl-10">
+                  {oeeSerie.map((p) => (
+                    <span key={p.date}>
+                      {new Date(`${p.date}T00:00:00`).toLocaleDateString('es-ES', {
+                        weekday: 'short',
+                        day: 'numeric',
+                      })}
+                    </span>
+                  ))}
+                </div>
+              </>
+            )}
           </div>
         </div>
         
@@ -212,8 +230,11 @@ export function ResumenTab() {
             
             {/* Alertas críticas */}
             <div className="space-y-3">
-              {/* Workstation down */}
-              {workstationStatus.some(ws => ws.status === 'down') && (
+              {/* Workstation down: el semáforo que deriva el backend es
+                  state ('running' | 'stopped' | 'idle'); status solo dice si
+                  el puesto está activo de alta, así que con status no había
+                  forma de acertar y la alerta nunca salía. */}
+              {workstationStatus.some(ws => ws.state === 'stopped') && (
                 <div className="p-3 rounded-lg border-l-4 border-red-500 bg-red-50">
                   <div className="flex items-start gap-3">
                     <div className="flex-shrink-0">
@@ -225,7 +246,7 @@ export function ResumenTab() {
                       <p className="font-medium text-red-600">Puesto detenido</p>
                       <p className="text-sm text-red-500">
                         {workstationStatus
-                          .filter(ws => ws.status === 'down')
+                          .filter(ws => ws.state === 'stopped')
                           .map(ws => ws.name)
                           .join(', ')}
                       </p>
@@ -255,27 +276,10 @@ export function ResumenTab() {
                 </div>
               )}
               
-              {/* Maintenance needed */}
-              {workstationStatus.some(ws => ws.status === 'maintenance') && (
-                <div className="p-3 rounded-lg border-l-4 border-blue-500 bg-blue-50">
-                  <div className="flex items-start gap-3">
-                    <div className="flex-shrink-0">
-                      <div className="w-3 h-3 bg-blue-500 rounded-full flex items-center justify-center text-white text-xs">
-                        !
-                      </div>
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <p className="font-medium text-blue-600">Mantenimiento requerido</p>
-                      <p className="text-sm text-blue-500">
-                        {workstationStatus
-                          .filter(ws => ws.status === 'maintenance')
-                          .map(ws => ws.name)
-                          .join(', ')}
-                      </p>
-                    </div>
-                  </div>
-                </div>
-              )}
+              {/* La alerta de "Mantenimiento requerido" existía contra un
+                  estado 'maintenance' que no existe en el modelo de datos
+                  (status es active/inactive, state es running/stopped/idle):
+                  estaba muerta y solo ocupaba sitio. */}
               
               {/* Low stock alert (mock) */}
               <div className="p-3 rounded-lg border-l-4 border-green-500 bg-green-50">

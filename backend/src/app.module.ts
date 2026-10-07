@@ -18,12 +18,13 @@ import { QueueModule } from './queue/queue.module.js';
 import { IncidenciasModule } from './incidencias/incidencias.module.js';
 import { ToolingsModule } from './toolings/toolings.module.js';
 import { MaterialsModule } from './materials/materials.module.js';
+import { AnalyticsModule } from './analytics/analytics.module.js';
 import { OpenApiModule } from './openapi/openapi.module.js';
 
 import { JwtServiceWrapper } from './auth/jwt.service.js';
 
 @Module({
-  imports: [TenantCapabilitiesModule, CoreMesProductionModule, UsersModule, WorkstationsModule, ManufacturingModelsModule, OrdersModule, OeeModule, QualityModule, CostModule, GlobalAdminModule, AuthLoginModule, AiAdvisorModule, QueueModule, IncidenciasModule, ToolingsModule, MaterialsModule, OpenApiModule],
+  imports: [TenantCapabilitiesModule, CoreMesProductionModule, UsersModule, WorkstationsModule, ManufacturingModelsModule, OrdersModule, OeeModule, QualityModule, CostModule, GlobalAdminModule, AuthLoginModule, AiAdvisorModule, QueueModule, IncidenciasModule, ToolingsModule, MaterialsModule, AnalyticsModule, OpenApiModule],
   controllers: [HealthController],
   providers: [JwtServiceWrapper],
 })
@@ -45,6 +46,7 @@ export class AppModule implements NestModule {
       'incidencias',
       'toolings',
       'materials',
+      'analytics',
       'global-admin',
     );
     // Rutas blindadas en la demo: DELETE bloqueado siempre y edición bloqueada
