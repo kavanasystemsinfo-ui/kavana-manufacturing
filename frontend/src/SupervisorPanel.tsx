@@ -17,6 +17,7 @@ import { KanbanBoard } from './components/KanbanBoard.js';
 import { OrdersTable } from './components/supervisor/OrdersTable.js';
 import { OrderFiltersBar, type OrdersView } from './components/supervisor/OrderFiltersBar.js';
 import { BUTTON_SECONDARY, NOTICE_INFO, themed } from './utils/ui-tokens.js';
+import { useTour, TourStep } from './components/Tour.js';
 
 type Tab = 'resumen' | 'live' | 'oee' | 'orders' | 'workstations' | 'incidencias';
 
@@ -43,6 +44,84 @@ export function SupervisorPanel() {
   // El tablero es la vista natural de este tema.
   const [view, setView] = useState<OrdersView>('tablero');
 
+  // Tour steps definition
+  const tourSteps: TourStep[] = [
+    {
+      id: 'header',
+      selector: 'header',
+      title: 'Panel Supervisor',
+      content: 'Cabecera principal: título, botón "+ Nueva Orden" para crear órdenes, "Ayuda" (?) para guías contextuales, y cambio de tema Clásico/Kavana.',
+      position: 'bottom',
+    },
+    {
+      id: 'tabs',
+      selector: '[class*="overflow-x-auto"]',
+      title: '6 Pestañas principales',
+      content: 'RESUMEN: KPIs y alertas. LÍNEA EN VIVO: timeline turno 8h. OEE AVANZADO: métricas OEE y 6 Grandes Pérdidas. ÓRDENES: tabla/Kanban. PUESTOS: grid semáforo. INCIDENCIAS: Kanban 4 columnas.',
+      position: 'bottom',
+    },
+    {
+      id: 'resumen',
+      selector: '[class*="space-y-6"]',
+      title: 'Resumen ejecutivo',
+      content: 'KPIs de órdenes, producción diaria con tooltips, Pareto de paradas, rendimiento del día con barra de progreso, órdenes por estado, tendencia OEE semanal.',
+      position: 'top',
+      action: () => { /* already on resumen tab */ },
+    },
+    {
+      id: 'alerts',
+      selector: '[class*="space-y-3"]',
+      title: 'Alertas reales',
+      content: 'Puesto detenido (rojo), Problemas calidad (ámbar), Mantenimiento (azul), Stock crítico (verde) — todos con datos reales. "Ver todas" abre vista completa. "Revisar pendientes" salta a Incidencias.',
+      position: 'left',
+    },
+    {
+      id: 'actions',
+      selector: '[class*="space-y-2"]',
+      title: 'Acciones rápidas',
+      content: 'Ver reporte (requiere módulo reportes), Programar mantenimiento (requiere CMMS), Revisar pendientes → tab Incidencias. Botones futuros deshabilitados con tooltip honesto.',
+      position: 'left',
+    },
+    {
+      id: 'live',
+      selector: 'button:has-text("LÍNEA EN VIVO")',
+      title: 'Línea en vivo',
+      content: 'Timeline de 8h por puesto. Estados running/stopped/idle con bloques de producción y paradas. Scroll horizontal para turno completo.',
+      position: 'bottom',
+      action: () => { /* will be handled by click */ },
+    },
+    {
+      id: 'oee',
+      selector: 'button:has-text("OEE AVANZADO")',
+      title: 'OEE Avanzado',
+      content: 'Medias de planta, tendencia Día/Semana/Mes (cambia endpoint), ranking puestos, tabla detalle, 6 Grandes Pérdidas (modelado proporcional documentado).',
+      position: 'bottom',
+    },
+    {
+      id: 'orders',
+      selector: 'button:has-text("ÓRDENES")',
+      title: 'Órdenes',
+      content: 'Filtros servidor, paginación, Kanban drag&drop para cambiar estado, tabla alternativa, detalle expandible con actividad.',
+      position: 'bottom',
+    },
+    {
+      id: 'workstations',
+      selector: 'button:has-text("PUESTOS")',
+      title: 'Puestos',
+      content: 'Grid de puestos con semáforo running/stopped/idle, operador asignado, última actividad. Click para ver detalle.',
+      position: 'bottom',
+    },
+    {
+      id: 'incidencias',
+      selector: 'button:has-text("INCIDENCIAS")',
+      title: 'Incidencias',
+      content: 'Kanban 4 columnas (abierto/en_progreso/resuelto/cerrado), drag&drop, tipos: calidad/mantenimiento/seguridad/otros. Filtros y búsqueda.',
+      position: 'bottom',
+    },
+  ];
+
+  const { isOpen: tourOpen, completed: tourCompleted, start: startTour, close: closeTour, complete: completeTour, TourComponent } = useTour(tourSteps);
+
   return (
     <>
       <main className="min-h-screen bg-kavana-dark text-slate-100 p-4 md:p-8">
@@ -54,6 +133,15 @@ export function SupervisorPanel() {
             </div>
             <div className="flex flex-wrap items-center gap-3">
               <HelpModal {...SUPERVISOR_HELP} />
+              {!tourCompleted && (
+                <button
+                  onClick={startTour}
+                  className="min-h-[64px] rounded-2xl bg-kavana-orange/20 px-5 py-3 text-base font-bold text-kavana-orange-light border border-kavana-orange/30 shadow-lg transition hover:bg-kavana-orange/30 active:scale-95"
+                  title="Tour guiado del panel"
+                >
+                  🎯 Tour
+                </button>
+              )}
               <button
                 onClick={() => setShowForm(!showForm)}
                 className="min-h-[64px] rounded-2xl bg-kavana-orange px-5 py-3 text-base font-bold text-white shadow-lg transition hover:bg-kavana-orange-light active:scale-95"
@@ -264,6 +352,11 @@ export function SupervisorPanel() {
         </section>
       </main>
       <AiAdvisorFab />
+      <TourComponent
+        isOpen={tourOpen}
+        onClose={closeTour}
+        onComplete={completeTour}
+      />
     </>
   );
 }
