@@ -219,4 +219,4 @@ export function ManufacturingLanding() {
       </footer>
     </div>
   );
-}
+}// Version: 1791366804
