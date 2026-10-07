@@ -62,7 +62,7 @@ export function SupervisorPanel() {
               </button>
               <ThemeToggle />
             </div>
-          </div>
+          </header>
 
           {error && <ErrorState message={error} />}
 
@@ -109,9 +109,8 @@ export function SupervisorPanel() {
                     {workstations
                       .filter((w: any) => w.status === 'active')
                       .map((w: any) => (
-                        <option key={w.id} value={w.id}>{w.name} ({w.code})
+                        <option key={w.id} value={w.id}>{w.name} ({w.code})</option>
                       ))}
-                    }
                   </select>
                 </div>
                 <div>
