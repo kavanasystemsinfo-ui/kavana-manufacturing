@@ -5,6 +5,7 @@ import type { Incidencia } from '../api/admin-entities.js';
 import { incidenciaMoveNotice } from '../utils/incidencia-notice.js';
 import { DEMO_DELETE_NOTICE, isDemoReadOnlyError } from '../utils/demo-readonly.js';
 import type { OrderFilters } from '../utils/order-filters.js';
+import { fetchCriticalStock, type Material } from '../api/supervisor.js';
 
 export type SupervisorTab = 'resumen' | 'live' | 'orders' | 'workstations' | 'incidencias' | 'oee';
 
@@ -25,6 +26,9 @@ export interface SupervisorPanelState {
   /** Aviso neutro del almacén: movimiento hecho o movimiento que la demo no guarda. */
   orderNotice: string | null;
   clearOrderNotice: () => void;
+  criticalStock: Material[];
+  criticalStockLoading: boolean;
+  criticalStockError: string | null;
   // Estado local
   showForm: boolean;
   setShowForm: (v: boolean) => void;
@@ -79,6 +83,9 @@ export function useSupervisorPanel(): SupervisorPanelState {
   const [incidenciasLoading, setIncidenciasLoading] = useState(false);
   const [incidenciasError, setIncidenciasError] = useState<string | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
+const [criticalStock, setCriticalStock] = useState<Material[]>([]);
+const [criticalStockLoading, setCriticalStockLoading] = useState(false);
+const [criticalStockError, setCriticalStockError] = useState<string | null>(null);
 
   // El aviso se borra solo: es una confirmación de un movimiento, no un estado
   // que el supervisor tenga que cerrar a mano.
@@ -120,6 +127,20 @@ export function useSupervisorPanel(): SupervisorPanelState {
       .finally(() => { if (!cancelled) setIncidenciasLoading(false); });
     return () => { cancelled = true; };
   }, []);
+
+
+  // Fetch critical stock on mount
+  useEffect(() => {
+    let cancelled = false;
+    setCriticalStockLoading(true);
+    setCriticalStockError(null);
+    fetchCriticalStock()
+      .then((data) => { if (!cancelled) setCriticalStock(data); })
+      .catch(() => { if (!cancelled) setCriticalStockError('Error al cargar stock crítico'); })
+      .finally(() => { if (!cancelled) setCriticalStockLoading(false); });
+    return () => { cancelled = true; };
+  }, []);
+
 
   useEffect(() => {
     void store.loadOrders();
@@ -242,6 +263,9 @@ export function useSupervisorPanel(): SupervisorPanelState {
     incidenciasLoading,
     incidenciasError,
     incidenciaNotice: notice,
+    criticalStock,
+    criticalStockLoading,
+    criticalStockError,
     handleSubmit,
     handleToggleExpand,
     changeOrderStatus: store.changeOrderStatus,

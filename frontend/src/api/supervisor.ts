@@ -72,7 +72,22 @@ export interface ActivityBlock {
   produced_quantity: number | null;
   defect_quantity: number | null;
   downtime_reason: string | null;
-  operator_name: string;
+  operator_name: string | null;
+}
+
+export interface Material {
+  id: string;
+  code: string;
+  name: string;
+  description: string | null;
+  unit: string;
+  unit_cost: number;
+  category: string | null;
+  supplier: string | null;
+  min_stock: number;
+  current_stock: number;
+  is_active: boolean;
+  created_at: string;
 }
 
 // Users
@@ -145,4 +160,13 @@ export async function fetchOrderActivity(orderId: string): Promise<ActivityBlock
 // Workstation Status
 export async function fetchWorkstationsStatus(): Promise<Workstation[]> {
   return callApiWithTimeout<Workstation[]>(`${API_BASE}/orders/workstations-status`);
+}
+
+// Materials
+export async function fetchMaterials(): Promise<Material[]> {
+  return callApiWithTimeout<Material[]>(`${API_BASE}/materials`);
+}
+
+export async function fetchCriticalStock(): Promise<Material[]> {
+  return callApiWithTimeout<Material[]>(`${API_BASE}/materials/critical-stock`);
 }

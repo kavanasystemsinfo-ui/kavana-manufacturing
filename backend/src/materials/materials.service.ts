@@ -7,7 +7,13 @@ export class MaterialsService {
   // ─── RAW MATERIALS ───
   async listMaterials(tenantId: bigint) {
     const r = await tenantQuery(postgresPool,
-      'SELECT id, code, name, description, unit, unit_cost, category, supplier, min_stock, is_active, created_at FROM raw_materials WHERE tenant_id = get_current_tenant() ORDER BY category, name');
+      'SELECT id, code, name, description, unit, unit_cost, category, supplier, min_stock, current_stock, is_active, created_at FROM raw_materials WHERE tenant_id = get_current_tenant() ORDER BY category, name');
+    return r.rows;
+  }
+
+  async getCriticalStock(tenantId: bigint) {
+    const r = await tenantQuery(postgresPool,
+      'SELECT id, code, name, description, unit, unit_cost, category, supplier, min_stock, current_stock, is_active, created_at FROM raw_materials WHERE tenant_id = get_current_tenant() AND current_stock < min_stock ORDER BY category, name');
     return r.rows;
   }
 

@@ -14,24 +14,34 @@ const COLOR_NIVEL = {
 } as const;
 
 export function ResumenTab() {
-  const { orders, workstationStatus, incidencias } = useSupervisorPanel();
+  const { 
+    orders, 
+    workstationStatus, 
+    incidencias, 
+    criticalStock, 
+    criticalStockLoading, 
+    criticalStockError,
+    activeTab,
+    setActiveTab,
+  } = useSupervisorPanel();
+  const [showAllAlerts, setShowAllAlerts] = useState(false);
   
   // Calculate some summary stats for the resumen tab
   const totalWo = orders.length;
   const activeWo = orders.filter(o => o.status === 'in_progress').length;
   const completedWo = orders.filter(o => o.status === 'completed').length;
   const pendingWo = orders.filter(o => o.status === 'pending').length;
-  
+
   // Objetivo real frente a lo producido hoy, con los NUMERIC de pg ya
   // convertidos a número (antes salían concatenados: "01827.00001328.0000...").
   const today = new Date();
   const rendimiento = rendimientoDelDia(orders, today);
-  
+
   // Tendencia de OEE de los últimos 7 días, calculada por el backend.
   const [oeeSerie, setOeeSerie] = useState<OeeDia[]>([]);
   const [oeeCargando, setOeeCargando] = useState(true);
   const [oeeError, setOeeError] = useState<string | null>(null);
-  
+
   useEffect(() => {
     let cancelado = false;
     fetchOeeDaily(7)
@@ -40,11 +50,11 @@ export function ResumenTab() {
       .finally(() => { if (!cancelado) setOeeCargando(false); });
     return () => { cancelado = true; };
   }, []);
-  
+
   const oeePromedio = oeeSerie.length > 0
     ? oeeSerie.reduce((sum, d) => sum + d.oee, 0) / oeeSerie.length
     : null;
-  
+
   return (
     <div className="space-y-6">
       {/* KPI Cards Row */}
@@ -223,7 +233,10 @@ export function ResumenTab() {
               <h3 className="text-lg font-semibold text-slate-900">
                 Alertas y Notificaciones
               </h3>
-              <button className="text-sm text-kavana-orange hover:text-kavana-orange-dark">
+              <button 
+                className="text-sm text-kavana-orange hover:text-kavana-orange-dark"
+                onClick={() => setShowAllAlerts(true)}
+              >
                 Ver todas
               </button>
             </div>
@@ -276,15 +289,34 @@ export function ResumenTab() {
                 </div>
               )}
               
-              {/* La alerta de "Mantenimiento requerido" existía contra un
-                  estado 'maintenance' que no existe en el modelo de datos
-                  (status es active/inactive, state es running/stopped/idle):
-                  estaba muerta y solo ocupaba sitio. */}
-              
-              {/* Low stock alert (mock) */}
-              <div className="p-3 rounded-lg border-l-4 border-green-500 bg-green-50">
-                <div className="flex items-start gap-3">
-                  <div className="flex-shrink-0">
+              {/* Low stock alert (real) */}
+              {criticalStockLoading ? (
+                <div className="p-3 rounded-lg border-l-4 border-green-500 bg-green-50">
+                  <div className="flex items-start gap-3">
+                    <div className="w-3 h-3 bg-green-500 rounded-full flex items-center justify-center text-white text-xs">
+                      !
+                    </div>
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="font-medium text-green-600">Stock crítico</p>
+                    <p className="text-sm text-green-500">Cargando...</p>
+                  </div>
+                </div>
+              ) : criticalStockError ? (
+                <div className="p-3 rounded-lg border-l-4 border-green-500 bg-green-50">
+                  <div className="flex items-start gap-3">
+                    <div className="w-3 h-3 bg-green-500 rounded-full flex items-center justify-center text-white text-xs">
+                      !
+                    </div>
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="font-medium text-green-600">Stock crítico</p>
+                    <p className="text-sm text-red-500">Error al cargar stock</p>
+                  </div>
+                </div>
+              ) : (
+                <div className="p-3 rounded-lg border-l-4 border-green-500 bg-green-50">
+                  <div className="flex items-start gap-3">
                     <div className="w-3 h-3 bg-green-500 rounded-full flex items-center justify-center text-white text-xs">
                       !
                     </div>
@@ -292,11 +324,16 @@ export function ResumenTab() {
                   <div className="flex-1 min-w-0">
                     <p className="font-medium text-green-600">Stock crítico</p>
                     <p className="text-sm text-green-500">
-                      Materiales bajo mínimo: 3 referencias
+                      Materiales bajo mínimo: {criticalStock.length} referencias
+                      {criticalStock.length > 0 && (
+                        <span className="block mt-1 text-xs">
+                          {criticalStock.map(m => `${m.code}: ${m.current_stock} ${m.unit}`).join(', ')}
+                        </span>
+                      )}
                     </p>
                   </div>
                 </div>
-              </div>
+              )}
             </div>
             
             {/* Quick actions */}
@@ -305,16 +342,21 @@ export function ResumenTab() {
               <div className="space-y-2">
                 <button
                   className="w-full flex items-center justify-start px-3 py-2 rounded-lg border border-slate-200 bg-slate-50 text-left text-sm hover:bg-slate-100"
+                  disabled
+                  title="Requiere módulo de reportes (pendiente)"
                 >
                   📊 Ver reporte de producción
                 </button>
                 <button
                   className="w-full flex items-center justify-start px-3 py-2 rounded-lg border border-slate-200 bg-slate-50 text-left text-sm hover:bg-slate-100"
+                  disabled
+                  title="Requiere módulo CMMS (pendiente)"
                 >
                   ⏱️ Programar mantenimiento
                 </button>
                 <button
                   className="w-full flex items-center justify-start px-3 py-2 rounded-lg border border-slate-200 bg-slate-50 text-left text-sm hover:bg-slate-100"
+                  onClick={() => setActiveTab('incidencias')}
                 >
                   📋 Revisar pendientes de calidad
                 </button>
