@@ -232,23 +232,30 @@ export function Tour({ steps, isOpen, onClose, onComplete }: TourProps) {
         ))}
       </div>
 
-      <div className="flex items-center justify-between">
-        <div className="flex gap-2">
-          {steps.map((_, i) => (
-            <button
-              key={i}
-              onClick={() => {
-                setCurrentStep(i);
-                setTargetRect(null);
-              }}
-              className={`w-2 h-2 rounded-full transition-colors ${
-                i === currentStep ? 'bg-kavana-orange' : 'bg-slate-300'
-              }`}
-              aria-label={`Ir al paso ${i + 1}`}
-            />
-          ))}
+      <div className="flex items-center justify-between mt-4">
+        <div className="flex-1 text-center">
+          <div className="flex items-center justify-center gap-2">
+            {!isFirst && (
+              <button
+                onClick={goPrev}
+                className="px-3 py-1 text-sm font-medium text-slate-600 hover:text-slate-700 transition-colors"
+              >
+                ←
+              </button>
+            )}
+            <span className="px-2 py-1 bg-slate-200 rounded text-xs font-medium">
+              {currentStep + 1} / {steps.length}
+            </span>
+            {!isLast && (
+              <button
+                onClick={goNext}
+                className="px-3 py-1 text-sm font-medium text-slate-600 hover:text-slate-700 transition-colors"
+              >
+                →
+              </button>
+            )}
+          </div>
         </div>
-
         <div className="flex gap-3">
           {!isFirst && (
             <button
