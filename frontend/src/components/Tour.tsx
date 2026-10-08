@@ -29,11 +29,18 @@ export function Tour({ steps, isOpen, onClose, onComplete }: TourProps) {
     const step = steps[stepIndex];
     if (!step) return null;
 
-    const target = document.querySelector(step.selector);
-    if (target) {
-      return target.getBoundingClientRect();
-    } else if (step.position === 'center' || !step.selector) {
-      // Center of viewport for steps without selector
+    try {
+      const target = document.querySelector(step.selector);
+      if (target) {
+        return target.getBoundingClientRect();
+      }
+    } catch (e) {
+      // Invalid selector (e.g., :has-text) - fall back to centered
+      console.warn(`Tour: invalid selector "${step.selector}" for step ${step.id}`, e);
+    }
+
+    // Fallback: center of viewport for steps without valid selector or element not found
+    if (step.position === 'center' || !step.selector) {
       return {
         top: window.innerHeight / 2,
         left: window.innerWidth / 2,
