@@ -23,18 +23,45 @@ export function Tour({ steps, isOpen, onClose, onComplete }: TourProps) {
   const tooltipRef = useRef<HTMLDivElement>(null);
   const isMountedRef = useRef(true);
 
+  // Calculate target rect synchronously for a given step index
+  const calculateRect = (stepIndex: number): DOMRect | null => {
+    if (stepIndex < 0 || stepIndex >= steps.length) return null;
+    const step = steps[stepIndex];
+    if (!step) return null;
+
+    const target = document.querySelector(step.selector);
+    if (target) {
+      return target.getBoundingClientRect();
+    } else if (step.position === 'center' || !step.selector) {
+      // Center of viewport for steps without selector
+      return {
+        top: window.innerHeight / 2,
+        left: window.innerWidth / 2,
+        bottom: window.innerHeight / 2,
+        right: window.innerWidth / 2,
+        width: 0,
+        height: 0,
+        x: window.innerWidth / 2,
+        y: window.innerHeight / 2,
+      } as DOMRect;
+    }
+    return null;
+  };
+
   // Reset to first step when tour opens
   useEffect(() => {
     if (isOpen) {
       setCurrentStep(0);
-      setTargetRect(null); // Clear previous rect
+      // Calculate initial rect synchronously
+      const rect = calculateRect(0);
+      if (rect) setTargetRect(rect);
     }
     return () => {
       isMountedRef.current = false;
     };
   }, [isOpen]);
 
-  // Find target element and calculate position
+  // Execute action (e.g., switch tab) when step changes
   useEffect(() => {
     if (!isOpen) return;
 
@@ -46,27 +73,12 @@ export function Tour({ steps, isOpen, onClose, onComplete }: TourProps) {
       step.action();
     }
 
-    // Small delay to allow DOM updates from action
+    // Recalculate rect after DOM updates from action
     const timeout = setTimeout(() => {
       if (!isMountedRef.current) return;
-      
-      const target = document.querySelector(step.selector);
-      if (target) {
-        setTargetRect(target.getBoundingClientRect());
-      } else if (step.position === 'center' || !step.selector) {
-        // Center of viewport for steps without selector
-        setTargetRect({
-          top: window.innerHeight / 2,
-          left: window.innerWidth / 2,
-          bottom: window.innerHeight / 2,
-          right: window.innerWidth / 2,
-          width: 0,
-          height: 0,
-          x: window.innerWidth / 2,
-          y: window.innerHeight / 2,
-        } as DOMRect);
-      }
-    }, 100);
+      const rect = calculateRect(currentStep);
+      if (rect) setTargetRect(rect);
+    }, 50);
 
     return () => clearTimeout(timeout);
   }, [currentStep, isOpen, steps]);
@@ -99,8 +111,11 @@ export function Tour({ steps, isOpen, onClose, onComplete }: TourProps) {
 
   const goNext = () => {
     if (currentStep < steps.length - 1) {
-      setCurrentStep(currentStep + 1);
-      setTargetRect(null); // Clear rect for smooth transition
+      const nextStep = currentStep + 1;
+      // Calculate new rect BEFORE changing step to avoid flash
+      const nextRect = calculateRect(nextStep);
+      setCurrentStep(nextStep);
+      if (nextRect) setTargetRect(nextRect);
     } else {
       onComplete();
       onClose();
@@ -109,8 +124,11 @@ export function Tour({ steps, isOpen, onClose, onComplete }: TourProps) {
 
   const goPrev = () => {
     if (currentStep > 0) {
-      setCurrentStep(currentStep - 1);
-      setTargetRect(null); // Clear rect for smooth transition
+      const prevStep = currentStep - 1;
+      // Calculate new rect BEFORE changing step to avoid flash
+      const prevRect = calculateRect(prevStep);
+      setCurrentStep(prevStep);
+      if (prevRect) setTargetRect(prevRect);
     }
   };
 
@@ -119,13 +137,26 @@ export function Tour({ steps, isOpen, onClose, onComplete }: TourProps) {
     onClose();
   };
 
-  if (!isOpen || !steps[currentStep] || !targetRect) {
+  // Only return null if tour is closed - keep last valid rect during transitions
+  if (!isOpen || !steps[currentStep]) {
     return null;
   }
 
   const step = steps[currentStep];
   const isLast = currentStep === steps.length - 1;
   const isFirst = currentStep === 0;
+
+  // If we don't have a rect yet (e.g., selector not found), show centered
+  const rect = targetRect || {
+    top: window.innerHeight / 2,
+    left: window.innerWidth / 2,
+    bottom: window.innerHeight / 2,
+    right: window.innerWidth / 2,
+    width: 0,
+    height: 0,
+    x: window.innerWidth / 2,
+    y: window.innerHeight / 2,
+  } as DOMRect;
 
   // Calculate tooltip position
   const tooltipWidth = 360;
@@ -139,24 +170,24 @@ export function Tour({ steps, isOpen, onClose, onComplete }: TourProps) {
   } else {
     switch (step.position) {
       case 'bottom':
-        top = targetRect.bottom + gap;
-        left = targetRect.left + targetRect.width / 2 - tooltipWidth / 2;
+        top = rect.bottom + gap;
+        left = rect.left + rect.width / 2 - tooltipWidth / 2;
         break;
       case 'top':
-        top = targetRect.top - gap - 300;
-        left = targetRect.left + targetRect.width / 2 - tooltipWidth / 2;
+        top = rect.top - gap - 300;
+        left = rect.left + rect.width / 2 - tooltipWidth / 2;
         break;
       case 'right':
-        top = targetRect.top + targetRect.height / 2 - 150;
-        left = targetRect.right + gap;
+        top = rect.top + rect.height / 2 - 150;
+        left = rect.right + gap;
         break;
       case 'left':
-        top = targetRect.top + targetRect.height / 2 - 150;
-        left = targetRect.left - gap - tooltipWidth;
+        top = rect.top + rect.height / 2 - 150;
+        left = rect.left - gap - tooltipWidth;
         break;
       default:
-        top = targetRect.bottom + gap;
-        left = targetRect.left + targetRect.width / 2 - tooltipWidth / 2;
+        top = rect.bottom + gap;
+        left = rect.left + rect.width / 2 - tooltipWidth / 2;
     }
   }
 
@@ -177,10 +208,10 @@ export function Tour({ steps, isOpen, onClose, onComplete }: TourProps) {
 
   const highlightStyle: React.CSSProperties = step.selector ? {
     position: 'fixed',
-    top: targetRect.top - 4,
-    left: targetRect.left - 4,
-    width: targetRect.width + 8,
-    height: targetRect.height + 8,
+    top: rect.top - 4,
+    left: rect.left - 4,
+    width: rect.width + 8,
+    height: rect.height + 8,
     borderRadius: 8,
     boxShadow: '0 0 0 9999px rgba(0, 0, 0, 0.5), 0 0 0 2px #f97316',
     zIndex: 9999,
