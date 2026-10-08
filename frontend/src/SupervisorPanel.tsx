@@ -69,7 +69,7 @@ export function SupervisorPanel() {
     },
     {
       id: 'header-tour',
-      selector: 'button[title="Tour guiado del panel"]',
+      selector: '[data-tour-step="header-tour"]',
       title: 'Tour guiado',
       content: 'Botón "🎯 Tour": inicia este recorrido guiado. Siempre visible, puedes repetirlo cuando quieras.',
       position: 'bottom',
@@ -133,28 +133,28 @@ export function SupervisorPanel() {
     },
     {
       id: 'alerts-stopped',
-      selector: '[class*="Puesto detenido"]',
+      selector: '[class*="Puesto detenido]',
       title: 'Alerta: Puesto detenido',
       content: 'Puestos en estado "stopped" > 4h sin actividad. Rojo = crítico. "Ver todas" lista completa.',
       position: 'left',
     },
     {
       id: 'alerts-quality',
-      selector: '[class*="Problemas calidad"]',
+      selector: '[class*="Problemas calidad]',
       title: 'Alerta: Problemas calidad',
       content: 'Órdenes con defectos > umbral. Ámbar = atención. "Revisar pendientes" salta a tab INCIDENCIAS filtrado por calidad.',
       position: 'left',
     },
     {
       id: 'alerts-maintenance',
-      selector: '[class*="Mantenimiento"]',
+      selector: '[class*="Mantenimiento]',
       title: 'Alerta: Mantenimiento',
       content: 'Puestos con mantenimiento programado o vencido. Azul = info. Requiere módulo CMMS (pendiente).',
       position: 'left',
     },
     {
       id: 'alerts-stock',
-      selector: '[class*="Stock crítico"]',
+      selector: '[class*="Stock crítico]',
       title: 'Alerta: Stock crítico',
       content: 'Referencias con stock actual < stock mínimo. Verde = dato real desde BD. "Ver todas" abre vista completa de materiales.',
       position: 'left',
@@ -182,35 +182,35 @@ export function SupervisorPanel() {
     },
     {
       id: 'live-tab',
-      selector: 'button[class*="overflow-x-auto"]:nth-child(2)',
+      selector: '[data-tour-step="live-tab"]',
       title: 'Línea en vivo',
       content: 'Timeline de 8h por puesto. Estados running/stopped/idle con bloques de producción y paradas. Scroll horizontal para turno completo.',
       position: 'bottom',
     },
     {
       id: 'oee-tab',
-      selector: 'button[class*="overflow-x-auto"]:nth-child(3)',
+      selector: '[data-tour-step="oee-tab"]',
       title: 'OEE Avanzado',
       content: 'Medias de planta, tendencia Día/Semana/Mes (cambia endpoint), ranking puestos, tabla detalle, 6 Grandes Pérdidas (modelado proporcional documentado).',
       position: 'bottom',
     },
     {
       id: 'orders-tab',
-      selector: 'button[class*="overflow-x-auto"]:nth-child(4)',
+      selector: '[data-tour-step="orders-tab"]',
       title: 'Órdenes',
       content: 'Filtros servidor, paginación, Kanban drag&drop para cambiar estado, tabla alternativa, detalle expandible con actividad.',
       position: 'bottom',
     },
     {
       id: 'workstations-tab',
-      selector: 'button[class*="overflow-x-auto"]:nth-child(5)',
+      selector: '[data-tour-step="workstations-tab"]',
       title: 'Puestos',
       content: 'Grid de puestos con semáforo running/stopped/idle, operador asignado, última actividad. Click para ver detalle.',
       position: 'bottom',
     },
     {
       id: 'incidencias-tab',
-      selector: 'button[class*="overflow-x-auto"]:nth-child(6)',
+      selector: '[data-tour-step="incidencias-tab"]',
       title: 'Incidencias',
       content: 'Kanban 4 columnas (abierto/en_progreso/resuelto/cerrado), drag&drop, tipos: calidad/mantenimiento/seguridad/otros. Filtros y búsqueda.',
       position: 'bottom',
@@ -229,9 +229,13 @@ export function SupervisorPanel() {
               <h1 className="mt-2 text-3xl font-black tracking-tight text-white md:text-5xl">Panel Supervisor</h1>
             </div>
             <div className="flex flex-wrap items-center gap-3">
-              <HelpModal {...SUPERVISOR_HELP} />
+              <HelpModal
+                {...SUPERVISOR_HELP}
+                dataTourStep="header-help"
+              />
               {/* Botón Tour SIEMPRE visible */}
               <button
+                data-tour-step="header-tour"
                 onClick={startTour}
                 className="min-h-[64px] rounded-2xl bg-kavana-orange/20 px-5 py-3 text-base font-bold text-kavana-orange-light border border-kavana-orange/30 shadow-lg transition hover:bg-kavana-orange/30 active:scale-95"
                 title="Tour guiado del panel"
@@ -239,12 +243,15 @@ export function SupervisorPanel() {
                 🎯 Tour
               </button>
               <button
+                data-tour-step="header-new-order"
                 onClick={() => setShowForm(!showForm)}
                 className="min-h-[64px] rounded-2xl bg-kavana-orange px-5 py-3 text-base font-bold text-white shadow-lg transition hover:bg-kavana-orange-light active:scale-95"
               >
                 {showForm ? 'Cancelar' : '+ Nueva Orden'}
               </button>
-              <ThemeToggle />
+              <ThemeToggle
+                data-tour-step="header-theme"
+              />
             </div>
           </header>
 
@@ -294,7 +301,7 @@ export function SupervisorPanel() {
                       .filter((w: any) => w.status === 'active')
                       .map((w: any) => (
                         <option key={w.id} value={w.id}>{w.name} ({w.code})</option>
-                      ))}
+                      ))
                   </select>
                 </div>
                 <div>
@@ -360,19 +367,26 @@ export function SupervisorPanel() {
 
           {/* Tabs */}
           <div className="mb-6 flex gap-2 overflow-x-auto pb-1">
-            {(['resumen', 'live', 'oee', 'orders', 'workstations', 'incidencias'] as Tab[]).map((tab) => (
-              <button
-                key={tab}
-                onClick={() => setActiveTab(tab)}
-                className={`min-h-[64px] whitespace-nowrap rounded-lg px-5 py-2.5 text-sm font-bold transition ${
-                  activeTab === tab
-                    ? 'bg-kavana-orange text-white shadow'
-                    : 'bg-kavana-surface text-slate-300 hover:text-white'
-                }`}
-              >
-                {tab === 'resumen' ? '📊 RESUMEN' : tab === 'live' ? '⏱️ LÍNEA EN VIVO' : tab === 'oee' ? '📊 OEE AVANZADO' : tab === 'orders' ? '📋 ÓRDENES' : tab === 'workstations' ? '🏭 PUESTOS' : '🚨 INCIDENCIAS'}
-              </button>
-            ))}
+            {(['resumen', 'live', 'oee', 'orders', 'workstations', 'incidencias'] as Tab[]).map((tab) => {
+              const tabStepId = {
+                live: 'live-tab',
+                oee: 'oee-tab',
+                orders: 'orders-tab',
+                workstations: 'workstations-tab',
+                incidencias: 'incidencias-tab',
+              }[tab];
+              
+              return (
+                <button
+                  key={tab}
+                  data-tour-step={tabStepId}
+                  onClick={() => setActiveTab(tab)}
+                  className={`min-h-[64px] whitespace-nowrap rounded-lg px-5 py-2.5 text-sm font-bold transition ${activeTab === tab ? 'bg-kavana-orange text-white shadow' : 'bg-kavana-surface text-slate-300 hover:text-white'}`}
+                >
+                  {tab === 'resumen' ? '📊 RESUMEN' : tab === 'live' ? '⏱️ LÍNEA EN VIVO' : tab === 'oee' ? '📊 OEE AVANZADO' : tab === 'orders' ? '📋 ÓRDENES' : tab === 'workstations' ? '🏭 PUESTOS' : '🚨 INCIDENCIAS'}
+                </button>
+              );
+            })}
           </div>
 
           {activeTab === 'resumen' ? (
@@ -416,18 +430,6 @@ export function SupervisorPanel() {
                   onActivity={handleToggleExpand}
                   expandedOrder={expandedOrder}
                 />
-              )}
-
-              {expandedOrder && (
-                <section className="mt-4 rounded-2xl border border-kavana-steel/25 bg-kavana-surface p-4">
-                  <div className="mb-3 flex items-center justify-between gap-3">
-                    <h4 className="text-xs font-bold uppercase tracking-wider text-slate-400">Actividad de la orden</h4>
-                    <button type="button" onClick={() => handleToggleExpand(expandedOrder)} className={themed(BUTTON_SECONDARY)}>
-                      Cerrar
-                    </button>
-                  </div>
-                  <ActivityFeed activity={activity} />
-                </section>
               )}
             </>
           ) : activeTab === 'workstations' ? (

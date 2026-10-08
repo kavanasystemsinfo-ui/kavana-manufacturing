@@ -2,15 +2,17 @@ import { useThemeStore, type Theme } from '../store/theme-store.js';
 
 interface ThemeToggleProps {
   variant?: 'header' | 'floating';
+  dataTourStep?: string;
 }
 
-export function ThemeToggle({ variant = 'header' }: ThemeToggleProps) {
+export function ThemeToggle({ variant = 'header', dataTourStep }: ThemeToggleProps) {
   const { theme, toggleTheme } = useThemeStore();
   const isClassic = theme === 'classic';
 
   if (variant === 'floating') {
     return (
       <button
+        data-tour-step={dataTourStep}
         onClick={toggleTheme}
         className="fixed bottom-4 right-4 z-50 rounded-full border shadow-lg transition-all hover:scale-105 active:scale-95"
         style={{
@@ -31,7 +33,10 @@ export function ThemeToggle({ variant = 'header' }: ThemeToggleProps) {
   // Header variant: compact pill with two buttons
   if (isClassic) {
     return (
-      <div className="flex items-center gap-1 rounded-md border border-gray-200 bg-gray-100 p-0.5">
+      <div
+        data-tour-step={dataTourStep}
+        className="flex items-center gap-1 rounded-md border border-gray-200 bg-gray-100 p-0.5"
+      >
         <button
           onClick={() => useThemeStore.getState().setTheme('classic')}
           className="rounded px-2.5 py-1 min-h-[40px] sm:min-h-0 text-xs font-medium transition bg-white text-blue-700 shadow-sm"
@@ -44,13 +49,16 @@ export function ThemeToggle({ variant = 'header' }: ThemeToggleProps) {
         >
           Kavana
         </button>
-      </div>
+        </div>
     );
   }
 
   // Modern header variant — Kavana naranja
   return (
-    <div className="flex items-center gap-1 rounded-lg bg-kavana-dark p-1 ring-1 ring-kavana-orange/30">
+    <div
+      data-tour-step={dataTourStep}
+      className="flex items-center gap-1 rounded-lg bg-kavana-dark p-1 ring-1 ring-kavana-orange/30"
+    >
       <button
         onClick={() => useThemeStore.getState().setTheme('classic')}
         className="rounded-md px-2.5 py-1 min-h-[40px] sm:min-h-0 text-xs font-medium transition text-slate-400 hover:text-white hover:bg-kavana-steel/30"

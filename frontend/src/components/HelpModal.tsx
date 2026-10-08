@@ -9,9 +9,10 @@ interface HelpSection {
 interface HelpButtonProps {
   onClick: () => void;
   theme?: 'modern' | 'classic';
+  dataTourStep?: string;
 }
 
-export function HelpButton({ onClick, theme = 'modern' }: HelpButtonProps) {
+export function HelpButton({ onClick, theme = 'modern', dataTourStep }: HelpButtonProps) {
   if (theme === 'classic') {
     return (
       <button
@@ -108,14 +109,15 @@ interface HelpModalProps {
   title: string;
   sections: HelpSection[];
   theme?: 'modern' | 'classic';
+  dataTourStep?: string;
 }
 
-export function HelpModal({ title, sections, theme = 'modern' }: HelpModalProps) {
+export function HelpModal({ title, sections, theme = 'modern', dataTourStep }: HelpModalProps) {
   const [open, setOpen] = useState(false);
 
   return (
     <>
-      <HelpButton onClick={() => setOpen(true)} theme={theme} />
+      <HelpButton onClick={() => setOpen(true)} theme={theme} dataTourStep={dataTourStep} />
       <Modal
         isOpen={open}
         onClose={() => setOpen(false)}

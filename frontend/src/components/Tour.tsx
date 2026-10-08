@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useMemo } from 'react';
 import { createPortal } from 'react-dom';
 
 export interface TourStep {
@@ -338,13 +338,9 @@ export function useTour(steps: TourStep[]) {
     setIsOpen(false);
   };
 
-  return {
-    isOpen,
-    completed: false, // Siempre false para que el botón nunca se oculte
-    start,
-    close,
-    complete,
-    TourComponent: ({ isOpen: propIsOpen, onClose, onComplete }: { isOpen: boolean; onClose: () => void; onComplete: () => void }) => (
+  // Memoize TourComponent to prevent remount on parent re-renders
+  const TourComponent = useMemo(
+    () => ({ isOpen: propIsOpen, onClose, onComplete }: { isOpen: boolean; onClose: () => void; onComplete: () => void }) => (
       <Tour
         steps={steps}
         isOpen={propIsOpen}
@@ -352,5 +348,15 @@ export function useTour(steps: TourStep[]) {
         onComplete={onComplete}
       />
     ),
+    [steps, onClose, onComplete]
+  );
+
+  return {
+    isOpen,
+    completed: false, // Siempre false para que el botón nunca se oculte
+    start,
+    close,
+    complete,
+    TourComponent,
   };
 }
