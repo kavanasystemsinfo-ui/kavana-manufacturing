@@ -133,28 +133,28 @@ export function SupervisorPanel() {
     },
     {
       id: 'alerts-stopped',
-      selector: '[class*="Puesto detenido]',
+      selector: '[class*="Puesto detenido"]',
       title: 'Alerta: Puesto detenido',
       content: 'Puestos en estado "stopped" > 4h sin actividad. Rojo = crítico. "Ver todas" lista completa.',
       position: 'left',
     },
     {
       id: 'alerts-quality',
-      selector: '[class*="Problemas calidad]',
+      selector: '[class*="Problemas calidad"]',
       title: 'Alerta: Problemas calidad',
       content: 'Órdenes con defectos > umbral. Ámbar = atención. "Revisar pendientes" salta a tab INCIDENCIAS filtrado por calidad.',
       position: 'left',
     },
     {
       id: 'alerts-maintenance',
-      selector: '[class*="Mantenimiento]',
+      selector: '[class*="Mantenimiento"]',
       title: 'Alerta: Mantenimiento',
       content: 'Puestos con mantenimiento programado o vencido. Azul = info. Requiere módulo CMMS (pendiente).',
       position: 'left',
     },
     {
       id: 'alerts-stock',
-      selector: '[class*="Stock crítico]',
+      selector: '[class*="Stock crítico"]',
       title: 'Alerta: Stock crítico',
       content: 'Referencias con stock actual < stock mínimo. Verde = dato real desde BD. "Ver todas" abre vista completa de materiales.',
       position: 'left',
@@ -299,9 +299,10 @@ export function SupervisorPanel() {
                     <option value="">Seleccionar puesto...</option>
                     {workstations
                       .filter((w: any) => w.status === 'active')
-                      .map((w: any) => (
-                        <option key={w.id} value={w.id}>{w.name} ({w.code})</option>
-                      ))
+                      .map((w: any) => {
+                        const label = `${w.name} (${w.code})`;
+                        return <option key={w.id} value={w.id}>{label}</option>;
+                      })}
                   </select>
                 </div>
                 <div>
