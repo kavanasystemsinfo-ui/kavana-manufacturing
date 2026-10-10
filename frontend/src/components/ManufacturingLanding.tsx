@@ -20,9 +20,7 @@ export function ManufacturingLanding() {
               Ver cómo optimicé el proceso
             </a>
             <a
-              href="https://www.kavanasystems.com/manufacturing/"
-              target="_blank"
-              rel="noopener noreferrer"
+              href="/demo"
               className="rounded-lg bg-gray-800 px-5 py-2 text-sm font-bold text-gray-300 hover:bg-gray-700 transition"
             >
               Probar la solución
@@ -159,9 +157,16 @@ export function ManufacturingLanding() {
           <li><strong>[RESUMEN]</strong> KPIs con datos reales de hoy: 10 órdenes en progreso, OEE planta calculado, incidencias abiertas.</li>
           <li><strong>[LÍNEA EN VIVO]</strong> Timeline de 8h con bloques de producción por puesto (arranque, producción estable, cierre).</li>
           <li><strong>[ÓRDENES]</strong> Lista con estados mixtos (pending/in_progress) y cantidades producidas reales.</li>
-          <li><strong>[Vídeo demo de 60 segundos]</strong> Navega por los tabs mostrando cómo fluye la información de orden → producción → incidencias → supervisión.</li>
-          <li><strong>[Acceso a demo en vivo]</strong> Usuario: <code>demo</code> / Contraseña: <code>kavana</code> (datos de hoy actualizados cada hora).</li>
+          <li><strong>[Acceso a demo en vivo]</strong> Supervisor: usuario <code>047</code> / contraseña <code>kavana</code> · Admin: usuario <code>admin</code> / contraseña <code>admin123</code>. Datos del laboratorio, actualizados en vivo.</li>
         </ul>
+        <div className="mt-6 flex gap-4">
+          <a
+            href="/demo"
+            className="rounded-lg bg-orange-500 px-5 py-2 text-sm font-bold text-white hover:bg-orange-600 transition"
+          >
+            Abrir la demo en vivo
+          </a>
+        </div>
       </section>
 
       {/* Sección 06: Ingeniería (al final – para perfiles técnicos) */}
@@ -212,7 +217,7 @@ export function ManufacturingLanding() {
       <footer className="mx-auto max-w-6xl px-6 py-12 border-t border-gray-800/60 text-center text-sm text-gray-500">
         <p>
           <a href="https://github.com/kavanasystemsinfo-ui/kavana-manufacturing" target="_blank" rel="noopener noreferrer" className="text-orange-400 hover:underline">GitHub</a> |
-          <a href="https://www.kavanasystems.com/manufacturing/" target="_blank" rel="noopener noreferrer" className="text-orange-400 hover:underline">Demo</a> |
+          <a href="/demo" className="text-orange-400 hover:underline">Demo</a> |
           <a href="https://www.linkedin.com/in/jorgeadan" target="_blank" rel="noopener noreferrer" className="text-orange-400 hover:underline">LinkedIn</a>
         </p>
         <p className="mt-2">© {new Date().getFullYear()} Jorge Adán Rodríguez — Kavana Systems</p>
