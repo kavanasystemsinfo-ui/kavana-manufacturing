@@ -37,7 +37,7 @@ SELECT 1,
        v.first_name,
        v.last_name
 FROM (VALUES
-    ('admin', 'admin123', '9f1c0d7a4b2e5386a0d4c1f7b93e2a58', 'tenant_admin', 'Admin',      'Demo'),
+    ('admin', 'admin123', 'scrypt:42ce80695d6e6ee8562cbedc311ec23e:424ce1327ad5345ed11813c575632c46e8805e06731b4ea800aa06cc286a7580e8013d05615a3752ff4a8908de2e9c5b49fd2e665ac8111d0fafb339a35ef4ab', 'tenant_admin', 'Admin',      'Demo'),
     ('047',   'kavana',   '3b7e91c4f0a62d8517ce94b0f3d1a6c2', 'supervisor',   'Supervisor', 'Demo'),
     ('1094',  'kavana',   'c48a1f60d3b952e7a1c0f84d7b26e9a3', 'operario',     'Operario',   'Demo')
 ) AS v(username, password, salt, role, first_name, last_name)
