@@ -6,6 +6,7 @@ import { AppModule } from './app.module.js';
 import { GlobalExceptionFilter } from './common/filters/global-exception.filter.js';
 import { ApiDeprecationWarningMiddleware } from './common/middleware/deprecation.middleware.js';
 import { ApiVersioningMiddleware } from './common/middleware/versioning.middleware.js';
+import { HEALTH_PAYLOAD } from './health/health.controller.js';
 import type { ExceptionFilter, ArgumentsHost } from '@nestjs/common';
 import { HttpException } from '@nestjs/common';
 
@@ -36,6 +37,18 @@ async function bootstrap(): Promise<void> {
   app.use(versionado.use.bind(versionado));
   const avisoDeprecacion = new ApiDeprecationWarningMiddleware();
   app.use(avisoDeprecacion.use.bind(avisoDeprecacion));
+
+  // Salud bare /health, registrada en Express fuera del prefijo api/v1: la
+  // rewritación de Vercel y los checks externos apuntan a /health y antes
+  // devolvían 404. /api/v1/health sigue viva (healthcheck de Render + README).
+  type HealthRes = { json: (body: unknown) => void };
+  type HealthExpress = {
+    get: (path: string, handler: (req: unknown, res: HealthRes) => void) => void;
+  };
+  const expressInstance = app.getHttpAdapter().getInstance() as HealthExpress;
+  expressInstance.get('/health', (_req, res) => {
+    res.json({ ...HEALTH_PAYLOAD });
+  });
 
   const port = Number(process.env.PORT ?? 3001);
   await app.listen(port);
