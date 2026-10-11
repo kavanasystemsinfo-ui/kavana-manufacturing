@@ -369,13 +369,15 @@ export function SupervisorPanel() {
           {/* Tabs */}
           <div className="mb-6 flex gap-2 overflow-x-auto pb-1">
             {(['resumen', 'live', 'oee', 'orders', 'workstations', 'incidencias'] as Tab[]).map((tab) => {
-              const tabStepId = {
+              // 'resumen' no lleva data-tour-step propio: la tab activa se
+              // resalta por sí misma y el paso del tour apunta al contenido.
+              const tabStepId = ({
                 live: 'live-tab',
                 oee: 'oee-tab',
                 orders: 'orders-tab',
                 workstations: 'workstations-tab',
                 incidencias: 'incidencias-tab',
-              }[tab];
+              } as Partial<Record<Tab, string>>)[tab];
               
               return (
                 <button

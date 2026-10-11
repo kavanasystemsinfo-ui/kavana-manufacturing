@@ -124,7 +124,7 @@ export function LandingPage() {
             <div className="flex items-start space-x-4">
               <div className="flex-shrink-0 text-orange-500">✓</div>
               <div>
-                <h3 class="font-bold text-orange-400">Interfaz simplificada para operario</h3>
+                <h3 className="font-bold text-orange-400">Interfaz simplificada para operario</h3>
                 <p className="text-gray-300">
                   Flujo táctil con botones grandes (≥64px), pasos reducidos de 5 a 2, y diseño pensado para manos con guantes.
                 </p>
@@ -133,7 +133,7 @@ export function LandingPage() {
             <div className="flex items-start space-x-4">
               <div className="flex-shrink-0 text-orange-500">✓</div>
               <div>
-                <h3 class="font-bold text-orange-400">Datos centralizados y trazables</h3>
+                <h3 className="font-bold text-orange-400">Datos centralizados y trazables</h3>
                 <p className="text-gray-300">
                   Toda la información se almacena en una única base de datos con trazabilidad completa por lote, operario y máquina.
                 </p>
@@ -142,7 +142,7 @@ export function LandingPage() {
             <div className="flex items-start space-x-4">
               <div className="flex-shrink-0 text-orange-500">✓</div>
               <div>
-                <h3 class="font-bold text-orange-400">Visibilidad en tiempo real</h3>
+                <h3 className="font-bold text-orange-400">Visibilidad en tiempo real</h3>
                 <p className="text-gray-300">
                   Supervisores acceden a dashboards con OEE, costes por orden y alertas inmediatas sin desplazarse.
                 </p>
