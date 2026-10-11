@@ -244,7 +244,7 @@ export function Tour({ steps, isOpen, onClose, onComplete }: TourProps) {
 
   const tooltipContent = (
     <div ref={tooltipRef} style={tooltipStyle} className="tour-tooltip">
-      <style jsx>{`
+      <style>{`
         @keyframes slideIn {
           from { opacity: 0; transform: translateY(-10px); }
           to { opacity: 1; transform: translateY(0); }
