@@ -244,7 +244,7 @@ export function Tour({ steps, isOpen, onClose, onComplete }: TourProps) {
 
   const tooltipContent = (
     <div ref={tooltipRef} style={tooltipStyle} className="tour-tooltip">
-      <style jsx>{`
+      <style>{`
         @keyframes slideIn {
           from { opacity: 0; transform: translateY(-10px); }
           to { opacity: 1; transform: translateY(0); }
@@ -338,7 +338,11 @@ export function useTour(steps: TourStep[]) {
     setIsOpen(false);
   };
 
-  // Memoize TourComponent to prevent remount on parent re-renders
+  // Memoize TourComponent to prevent remount on parent re-renders.
+  // El componente devuelto recibe onClose/onComplete como props en cada
+  // render, así que la única dependencia real del useMemo es steps.
+  // [steps, onClose, onComplete] referencian nombres que NO existen en este
+  // ámbito → ReferenceError: onClose is not defined en producción.
   const TourComponent = useMemo(
     () => ({ isOpen: propIsOpen, onClose, onComplete }: { isOpen: boolean; onClose: () => void; onComplete: () => void }) => (
       <Tour
@@ -348,7 +352,7 @@ export function useTour(steps: TourStep[]) {
         onComplete={onComplete}
       />
     ),
-    [steps, onClose, onComplete]
+    [steps]
   );
 
   return {
