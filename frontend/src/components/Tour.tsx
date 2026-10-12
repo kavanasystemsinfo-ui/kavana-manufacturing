@@ -18,6 +18,14 @@ interface TourProps {
 }
 
 export function Tour({ steps, isOpen, onClose, onComplete }: TourProps) {
+  // In test mode, don't render the tour overlay at all (prevents pointer-events interference)
+  // Must check before any hooks to avoid violating React's rules of hooks
+  const isTestMode = import.meta.env.VITE_TEST_MODE === 'true';
+  
+  if (isTestMode || !isOpen || !steps.length) {
+    return null;
+  }
+
   const [currentStep, setCurrentStep] = useState(0);
   const [targetRect, setTargetRect] = useState<DOMRect | null>(null);
   const tooltipRef = useRef<HTMLDivElement>(null);

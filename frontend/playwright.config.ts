@@ -65,6 +65,10 @@ export default defineConfig({
       url: `http://localhost:${FRONTEND_PORT}`,
       reuseExistingServer: !process.env.CI,
       timeout: 120000,
+      env: {
+        ...process.env,
+        VITE_TEST_MODE: 'true',
+      },
     },
   ],
 });
