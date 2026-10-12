@@ -30,7 +30,13 @@ async function check(conn, label) {
 
 // Puerto configurable: debe coincidir con DB_PORT del docker-compose.
 const DB_PORT = process.env.DB_PORT || 5433;
-const LOCAL = `postgresql://kavana:kavana_v3_password@localhost:${DB_PORT}/kavana_v3`;
+const DB_PASSWORD = process.env.DB_PASSWORD;
+if (!DB_PASSWORD) {
+  console.error('Define DB_PASSWORD (la del docker-compose local; sin credenciales hardcodeadas en el repo).');
+  process.exit(1);
+}
+// Concatenada a propósito: en el repo no debe existir ninguna URI con "user:pass@".
+const LOCAL = 'postgresql://kavana' + ':' + DB_PASSWORD + '@localhost:' + DB_PORT + '/kavana_v3';
 const NEON = requireEnvNEON();
 
 (async () => {

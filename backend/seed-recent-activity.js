@@ -2,9 +2,12 @@ import pg from 'pg';
 import dotenv from 'dotenv';
 dotenv.config({ path: '.env' });
 
-const pool = new pg.Pool({
-  connectionString: process.env.DATABASE_URL || 'postgresql://kavana:kavana_v3_password@db:5432/kavana_v3'
-});
+const connectionString = process.env.DATABASE_URL;
+if (!connectionString) {
+  console.error('DATABASE_URL es requerida (la inyecta docker-compose; sin credenciales hardcodeadas en el repo).');
+  process.exit(1);
+}
+const pool = new pg.Pool({ connectionString });
 
 const TENANT_ID = 1;
 

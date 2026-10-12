@@ -1,9 +1,11 @@
 import pg from 'pg';
 import { randomBytes, createHash } from 'node:crypto';
 
-const client = new pg.Client({
-  connectionString: process.env.DATABASE_URL ?? 'postgresql://kavana:kavana_v3_password@localhost:5433/kavana_v3',
-});
+if (!process.env.DATABASE_URL) {
+  console.error('Define DATABASE_URL (sin credenciales hardcodeadas en el repo).');
+  process.exit(1);
+}
+const client = new pg.Client({ connectionString: process.env.DATABASE_URL });
 
 function hashPassword(password) {
   const salt = randomBytes(16).toString('hex');
