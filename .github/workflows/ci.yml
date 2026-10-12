@@ -139,8 +139,12 @@ jobs:
 
           - name: Test backend
             env:
-              DATABASE_URL: postgresql://kavana:kavana_pass@localhost:5432/kavana_test
-            run: npm run test
+              PGHOST: localhost
+              PGPORT: '5432'
+              PGUSER: kavana
+              PGPASSWORD: kavana_pass
+              PGDATABASE: kavana_test
+            run: DATABASE_URL="postgresql://${PGUSER}:${PGPASSWORD}@${PGHOST}:${PGPORT}/${PGDATABASE}" npm run test
             working-directory: ./backend
 
           - name: Test frontend
@@ -322,3 +326,15 @@ jobs:
           name: playwright-report
           path: ./frontend/test-results
           retention-days: 3
+  secret-scan:
+    name: Secret scan (gitleaks)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Run gitleaks
+        run: |
+          docker run --rm -v "$PWD:/repo" zricethezav/gitleaks:latest \
+            detect --source /repo --redact --no-banner --exit-code 1 --log-opts="-1"

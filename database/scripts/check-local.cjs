@@ -2,7 +2,12 @@ const { Client } = require('pg');
 // Puerto configurable: si el 5433 está ocupado y arrancas el compose con
 // DB_PORT=5434, este script tiene que apuntar al mismo sitio.
 const DB_PORT = process.env.DB_PORT || 5433;
-const c = new Client({ connectionString: `postgresql://kavana:kavana_v3_password@localhost:${DB_PORT}/kavana_v3` });
+const DB_PASSWORD = process.env.DB_PASSWORD;
+if (!DB_PASSWORD) {
+  console.error('Define DB_PASSWORD (la del docker-compose local; sin credenciales hardcodeadas en el repo).');
+  process.exit(1);
+}
+const c = new Client({ host: 'localhost', port: Number(DB_PORT), user: 'kavana', password: DB_PASSWORD, database: 'kavana_v3' });
 
 async function main() {
   await c.connect();
