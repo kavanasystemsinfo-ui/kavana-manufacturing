@@ -4,6 +4,7 @@ import { ProductionChart } from './ProductionChart.js';
 import { DowntimePareto } from './DowntimePareto.js';
 import { useSupervisorPanel } from '../hooks/useSupervisorPanel.js';
 import { rendimientoDelDia } from '../utils/resumen-kpi.js';
+import { conteosDeOrdenes } from '../utils/resumen-conteos.js';
 import { formatNumber } from '../utils/formatNumber.js';
 import { fetchOeeDaily, type OeeDia } from '../api/analytics.js';
 
@@ -16,6 +17,7 @@ const COLOR_NIVEL = {
 export function ResumenTab() {
   const { 
     orders, 
+    statusCounts,
     workstationStatus, 
     incidencias, 
     criticalStock, 
@@ -27,10 +29,11 @@ export function ResumenTab() {
   const [showAllAlerts, setShowAllAlerts] = useState(false);
   
   // Calculate some summary stats for the resumen tab
-  const totalWo = orders.length;
-  const activeWo = orders.filter(o => o.status === 'in_progress').length;
-  const completedWo = orders.filter(o => o.status === 'completed').length;
-  const pendingWo = orders.filter(o => o.status === 'pending').length;
+  const conteos = conteosDeOrdenes(statusCounts, orders);
+  const activeWo = conteos.enProceso;
+  const completedWo = conteos.completadas;
+  const pendingWo = conteos.pendientes;
+  const cancelledWo = conteos.canceladas;
 
   // Objetivo real frente a lo producido hoy, con los NUMERIC de pg ya
   // convertidos a número (antes salían concatenados: "01827.00001328.0000...").
@@ -135,7 +138,7 @@ export function ResumenTab() {
                 </div>
                 <div className="flex items-center gap-2 p-2 rounded-lg bg-slate-50">
                   <div className="w-2 h-2 bg-red-500 rounded" />
-                  <span>Canceladas: {totalWo - completedWo - activeWo - pendingWo}</span>
+                  <span>Canceladas: {cancelledWo}</span>
                 </div>
               </div>
             </div>

@@ -1,6 +1,7 @@
 import { create } from 'zustand';
 import {
   fetchOrders,
+  fetchOrderStatusCounts,
   createOrder,
   updateOrder,
   deleteOrder,
@@ -10,6 +11,7 @@ import {
   fetchWorkstationsStatus,
   type Order,
   type ManufacturingModel,
+  type OrderStatusCounts,
   type Workstation,
   type ActivityBlock,
 } from '../api/supervisor.js';
@@ -28,6 +30,8 @@ import {
 
 interface SupervisorState {
   orders: Order[];
+  /** Órdenes por estado de TODO el histórico (el listado solo trae las abiertas). */
+  statusCounts: OrderStatusCounts | null;
   models: ManufacturingModel[];
   workstations: Workstation[];
   workstationStatus: WorkstationLive[];
@@ -61,6 +65,7 @@ let pollingInterval: ReturnType<typeof setInterval> | null = null;
 
 export const useSupervisorStore = create<SupervisorState>((set, get) => ({
   orders: [],
+  statusCounts: null,
   models: [],
   workstations: [],
   workstationStatus: [],
@@ -79,6 +84,12 @@ export const useSupervisorStore = create<SupervisorState>((set, get) => ({
       set({ orders, hasMore: orders.length >= filters.limit });
     } catch (err) {
       set({ error: err instanceof Error ? err.message : 'Error loading orders' });
+    }
+    // Las tarjetas cuentan sobre todo el histórico; si falla se quedan con el último valor.
+    try {
+      set({ statusCounts: await fetchOrderStatusCounts() });
+    } catch {
+      /* sin recuentos, las tarjetas usan el listado abierto */
     }
   },
 
