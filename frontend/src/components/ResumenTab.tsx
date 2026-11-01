@@ -5,6 +5,9 @@ import { DowntimePareto } from './DowntimePareto.js';
 import { useSupervisorPanel } from '../hooks/useSupervisorPanel.js';
 import { rendimientoDelDia } from '../utils/resumen-kpi.js';
 import { conteosDeOrdenes } from '../utils/resumen-conteos.js';
+import { estadoPlanta, contarIncidencias } from '../utils/estado-planta.js';
+import { usePlantOee } from '../hooks/usePlantOee.js';
+import { EstadoPlanta } from './EstadoPlanta.js';
 import { formatNumber } from '../utils/formatNumber.js';
 import { fetchOeeDaily, type OeeDia } from '../api/analytics.js';
 
@@ -39,6 +42,12 @@ export function ResumenTab() {
   // convertidos a número (antes salían concatenados: "01827.00001328.0000...").
   const today = new Date();
   const rendimiento = rendimientoDelDia(orders, today);
+  const plantOee = usePlantOee();
+  const estado = estadoPlanta({
+    oee: plantOee,
+    cumplimiento: rendimiento.cumplimiento,
+    bloqueantes: contarIncidencias(incidencias).bloqueantes,
+  });
 
   // Tendencia de OEE de los últimos 7 días, calculada por el backend.
   const [oeeSerie, setOeeSerie] = useState<OeeDia[]>([]);
@@ -60,6 +69,9 @@ export function ResumenTab() {
 
   return (
     <div className="space-y-6">
+      {/* Cómo va la planta, en una frase */}
+      <EstadoPlanta estado={estado} />
+
       {/* KPI Cards Row */}
       <KpiCardsRow />
       
@@ -150,7 +162,7 @@ export function ResumenTab() {
           <div className="rounded-lg border border-slate-200 bg-white p-4 shadow-sm">
             <div className="flex justify-between items-start mb-3">
               <h3 className="text-lg font-semibold text-slate-900">
-                Tendencia OEE Semanal
+                Eficiencia de la planta (OEE), última semana
               </h3>
               <div className="text-sm text-slate-500">
                 {oeePromedio !== null
