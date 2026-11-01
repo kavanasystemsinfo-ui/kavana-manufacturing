@@ -55,10 +55,10 @@ export function DowntimePareto() {
     <div className="rounded-lg border border-slate-200 bg-white p-4 shadow-sm">
       <div className="flex justify-between items-start mb-3">
         <h3 className="text-lg font-semibold text-slate-900">
-          Pareto de Paradas (Top 5)
+          Por qué se para la planta
         </h3>
         <div className="text-sm text-slate-500">
-          {filas.length > 0 ? `Cubre ${cubierto}% del tiempo perdido` : 'Sin datos'}
+          {filas.length > 0 ? `Las 5 causas principales suman el ${cubierto}% del tiempo perdido` : 'Sin datos'}
         </div>
       </div>
 
