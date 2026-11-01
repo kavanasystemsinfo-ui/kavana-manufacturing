@@ -34,12 +34,12 @@
     "dotenv": "^16.4.7",
     "ioredis": "^5.4.1",
     "jsonwebtoken": "^9.0.2",
-    "openai": "^4.78.0",
+    "openai": "^7.47.0",
     "pg": "^8.13.1",
     "reflect-metadata": "^0.2.2",
     "rxjs": "^7.8.1",
     "vite": "^8.3.0",
-    "zod": "^3.24.1",
+    "zod": "^4.6.7",
     "zod-to-json-schema": "^3.25.2"
   },
   "overrides": {
