@@ -12,6 +12,7 @@ export type SupervisorTab = 'resumen' | 'live' | 'orders' | 'workstations' | 'in
 export interface SupervisorPanelState {
   // Estado del store (Zustand)
   orders: ReturnType<typeof useSupervisorStore.getState>['orders'];
+  statusCounts: ReturnType<typeof useSupervisorStore.getState>['statusCounts'];
   models: ReturnType<typeof useSupervisorStore.getState>['models'];
   workstations: ReturnType<typeof useSupervisorStore.getState>['workstations'];
   workstationStatus: ReturnType<typeof useSupervisorStore.getState>['workstationStatus'];
@@ -227,6 +228,7 @@ const [criticalStockError, setCriticalStockError] = useState<string | null>(null
 
   return {
     orders: store.orders,
+    statusCounts: store.statusCounts,
     models: store.models,
     workstations: store.workstations,
     workstationStatus: store.workstationStatus,

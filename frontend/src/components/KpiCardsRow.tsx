@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useSupervisorPanel } from '../hooks/useSupervisorPanel.js';
 import { fetchOeeWorkstations } from '../api/analytics.js';
+import { conteosDeOrdenes } from '../utils/resumen-conteos.js';
 
 interface KpiCard {
   label: string;
@@ -15,6 +16,7 @@ interface KpiCard {
 export function KpiCardsRow() {
   const {
     orders,
+    statusCounts,
     incidencias,
     incidenciasLoading,
     incidenciasError,
@@ -23,10 +25,11 @@ export function KpiCardsRow() {
   } = useSupervisorPanel();
 
   // Calculate KPI values
-  const totalWo = orders.length;
-  const activeWo = orders.filter(o => o.status === 'in_progress').length;
-  const completedWo = orders.filter(o => o.status === 'completed').length;
-  const blockedWo = orders.filter(o => o.status === 'cancelled').length; // Using cancelled as blocked for demo
+  const conteos = conteosDeOrdenes(statusCounts, orders);
+  const totalWo = conteos.total;
+  const activeWo = conteos.enProceso;
+  const completedWo = conteos.completadas;
+  const blockedWo = conteos.canceladas;
   
   // Count open issues (incidencias that are not resolved)
   const openIssues = incidencias.filter(i => 
