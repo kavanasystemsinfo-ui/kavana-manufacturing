@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import { fetchDowntimePareto, type DowntimeReason } from '../api/analytics.js';
+import { etiquetaParada } from '../utils/parada-etiqueta.js';
 
 /**
  * Pareto de paradas con los motivos reales de los partes (top 5 + "Otros").
@@ -101,7 +102,7 @@ export function DowntimePareto() {
                     <div
                       key={fila.reason}
                       className="flex-1 h-full flex items-end justify-center"
-                      title={`${fila.reason}: ${fila.hours.toFixed(1)} h (${fila.percentage.toFixed(1)}%)`}
+                      title={`${etiquetaParada(fila.reason)}: ${fila.hours.toFixed(1)} h (${fila.percentage.toFixed(1)}%)`}
                     >
                       <div
                         className="w-3/4 bg-amber-400 rounded-t"
@@ -140,13 +141,13 @@ export function DowntimePareto() {
 
               {/* Motivos y % */}
               <div className="absolute inset-x-0 bottom-0 h-9 flex items-start gap-2 px-1">
-                {filas.map((fila) => (
+                {filas.map((fila, i) => (
                   <div key={fila.reason} className="flex-1 min-w-0 text-center">
                     <div
-                      className="text-[10px] text-slate-500 truncate leading-tight"
-                      title={fila.reason}
+                      className="text-[11px] font-semibold text-slate-600 leading-tight"
+                      title={etiquetaParada(fila.reason)}
                     >
-                      {fila.reason}
+                      {fila.reason === 'Otros' ? '+' : i + 1}
                     </div>
                     <div className="text-[10px] text-slate-800 font-medium leading-tight">
                       {fila.percentage.toFixed(1)}%
@@ -156,6 +157,21 @@ export function DowntimePareto() {
               </div>
             </div>
           </div>
+
+          {/* Qué es cada barra: el número de la barra y su nombre completo */}
+          <ol className="mt-3 space-y-0.5 text-xs text-slate-600">
+            {filas.map((fila, i) => (
+              <li key={fila.reason} className="flex justify-between gap-2">
+                <span>
+                  <span className="font-semibold">{fila.reason === 'Otros' ? '+' : i + 1}</span>{' '}
+                  {etiquetaParada(fila.reason)}
+                </span>
+                <span className="whitespace-nowrap text-slate-500">
+                  {fila.hours.toFixed(1)} h · {fila.percentage.toFixed(1)} %
+                </span>
+              </li>
+            ))}
+          </ol>
 
           {/* Legend */}
           <div className="flex mt-3 gap-4 text-xs text-slate-500">
