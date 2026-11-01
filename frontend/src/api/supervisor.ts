@@ -132,6 +132,18 @@ export async function fetchOrders(filters?: Partial<OrderFilters> & { offset?: n
   return callApiWithTimeout<Order[]>(`${API_BASE}/orders${query}`);
 }
 
+export interface OrderStatusCounts {
+  pending: number;
+  in_progress: number;
+  completed: number;
+  cancelled: number;
+  total: number;
+}
+
+export async function fetchOrderStatusCounts(): Promise<OrderStatusCounts> {
+  return callApiWithTimeout<OrderStatusCounts>(`${API_BASE}/orders/status-counts`);
+}
+
 export async function createOrder(data: { model_id: string; workstation_id: string; quantity: number; custom_fields?: Record<string, any> }): Promise<Order> {
   return callApiWithTimeout<Order>(`${API_BASE}/orders`, {
     method: 'POST',
