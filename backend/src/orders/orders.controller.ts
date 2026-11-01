@@ -26,6 +26,12 @@ export class OrdersController {
     return this.ordersService.listOrders(filters);
   }
 
+  @Get('status-counts')
+  @RequireRole('supervisor', 'tenant_admin')
+  async getStatusCounts() {
+    return this.ordersService.getStatusCounts();
+  }
+
   @Get('available')
   @RequireRole('operario', 'supervisor', 'tenant_admin')
   async listAvailableOrders() {

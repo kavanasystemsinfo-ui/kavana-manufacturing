@@ -6,6 +6,7 @@ import { getTenantContext } from '../auth/tenant-context.storage.js';
 import type { CreateOrderDto, UpdateOrderDto, ListOrdersQuery } from './dto.js';
 import { deriveWorkstationState } from '../workstations/workstation-state.js';
 import { validateOrderTransition, type OrderStatus } from './order-state-machine.js';
+import { summarizeStatusCounts } from './status-counts.js';
 
 // `o.code` es el identificador visible de la orden (el N.º de Orden que teclea
 // el supervisor). Faltaba en la proyección, así que las tarjetas del tablero
@@ -81,6 +82,15 @@ export class OrdersService {
       values,
     );
     return result.rows;
+  }
+
+  async getStatusCounts() {
+    const result = await tenantQuery(
+      postgresPool,
+      `SELECT status, COUNT(*)::int AS n FROM orders WHERE tenant_id = get_current_tenant() GROUP BY status`,
+      [],
+    );
+    return summarizeStatusCounts(result.rows);
   }
 
   async getOrder(orderId: string) {
