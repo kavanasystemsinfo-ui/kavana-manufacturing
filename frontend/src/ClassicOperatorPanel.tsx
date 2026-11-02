@@ -145,7 +145,7 @@ export function ClassicOperatorPanel() {
       {/* Header */}
       <header className="bg-kavana-dark text-white shadow-md">
         <div className="px-4 py-3 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-between">
+          <div className="flex flex-wrap items-center justify-between gap-3">
             <div className="flex items-center gap-3">
               <img src={logo} alt="Logo" className="h-10 w-10 rounded-lg bg-white p-1" />
               <div>
@@ -154,7 +154,7 @@ export function ClassicOperatorPanel() {
                 <p className="text-xs text-gray-400">{dateLabel}</p>
               </div>
             </div>
-            <div className="flex items-center gap-3">
+            <div className="flex flex-wrap items-center gap-3">
               <span className={`inline-flex items-center rounded-full px-2 py-1 text-xs font-medium ${
                 isOnline ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'
               }`}>
