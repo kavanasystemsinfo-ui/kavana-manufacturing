@@ -71,9 +71,9 @@ test.describe('Flujo completo: operario produce y supervisor lo ve', () => {
     // backend. Si el envío se rechaza, el bloque cae a la bandeja de fallos: por
     // eso se comprueba que la bandeja sigue vacía después de darle tiempo al
     // sync, no solo que la cola esté a cero.
-    await expect(page.getByText('Fallos: 0')).toBeVisible({ timeout: 15000 });
+    await expect(page.getByText('Con error: 0')).toBeVisible({ timeout: 15000 });
     await page.waitForTimeout(4000);
-    await expect(page.getByText('Fallos: 0')).toBeVisible();
+    await expect(page.getByText('Con error: 0')).toBeVisible();
 
     // --- 4. El supervisor entra y ve el parte ---
     await logout(page);

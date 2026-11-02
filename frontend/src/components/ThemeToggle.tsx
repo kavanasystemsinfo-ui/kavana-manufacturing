@@ -33,6 +33,8 @@ export function ThemeToggle({ variant = 'header', dataTourStep }: ThemeTogglePro
   // Header variant: compact pill with two buttons
   if (isClassic) {
     return (
+      <div className="flex items-center gap-2" title="Cambia el diseño de la pantalla">
+        <span className="text-xs font-medium text-slate-400">Diseño:</span>
       <div
         data-tour-step={dataTourStep}
         className="flex items-center gap-1 rounded-md border border-gray-200 bg-gray-100 p-0.5"
@@ -47,14 +49,17 @@ export function ThemeToggle({ variant = 'header', dataTourStep }: ThemeTogglePro
           onClick={() => useThemeStore.getState().setTheme('modern')}
           className="rounded px-2.5 py-1 min-h-[40px] sm:min-h-0 text-xs font-medium transition text-gray-500 hover:text-gray-700 hover:bg-gray-200/50"
         >
-          Kavana
+          Moderno
         </button>
-        </div>
+      </div>
+      </div>
     );
   }
 
-  // Modern header variant — Kavana naranja
+  // Modern header variant
   return (
+    <div className="flex items-center gap-2" title="Cambia el diseño de la pantalla">
+      <span className="text-xs font-medium text-slate-400">Diseño:</span>
     <div
       data-tour-step={dataTourStep}
       className="flex items-center gap-1 rounded-lg bg-kavana-dark p-1 ring-1 ring-kavana-orange/30"
@@ -69,8 +74,9 @@ export function ThemeToggle({ variant = 'header', dataTourStep }: ThemeTogglePro
         onClick={() => useThemeStore.getState().setTheme('modern')}
         className="rounded-md px-2.5 py-1 min-h-[40px] sm:min-h-0 text-xs font-medium transition bg-kavana-orange text-kavana-dark shadow-lg"
       >
-        Kavana
+        Moderno
       </button>
+    </div>
     </div>
   );
 }
