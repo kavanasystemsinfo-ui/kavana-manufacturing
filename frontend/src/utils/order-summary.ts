@@ -30,6 +30,8 @@ export interface OrderSummaryData {
   defectRate: number;
   stopped: boolean;
   stopReason: string | null;
+  /** Inicio de la parada en curso, para el cronómetro; null si no está parada. */
+  stoppedSince: string | null;
   stopsCount: number;
   stopMinutes: number;
   /** Los últimos bloques, del más reciente al más antiguo. */
@@ -76,6 +78,7 @@ export function summarizeOrder(order: SummaryOrder, logs: SummaryLog[]): OrderSu
     defectRate: made > 0 ? Math.round((defects / made) * 1000) / 10 : 0,
     stopped: last?.type === 'parada',
     stopReason: last?.type === 'parada' ? humanizeReason(last.downtime_reason) : null,
+    stoppedSince: last?.type === 'parada' ? last.start_time : null,
     stopsCount: paradas.length,
     stopMinutes: Math.round(stopMinutes),
     recent: sorted.slice(0, RECENT_LIMIT),
@@ -110,4 +113,11 @@ export function describeBlock(log: SummaryLog): string {
   const bad = num(log.defect_quantity);
   const base = `${hhmm(log.start_time)}–${hhmm(log.end_time)} · ${good} buenas`;
   return bad > 0 ? `${base} · ${thousands(bad)} defectos` : base;
+}
+
+/** Minutos enteros desde `since` hasta `now`; 0 si la fecha no es válida o es futura. */
+export function minutesSince(since: string | null, now: Date = new Date()): number {
+  if (!since) return 0;
+  const ms = now.getTime() - Date.parse(since);
+  return Number.isFinite(ms) && ms > 0 ? Math.floor(ms / 60000) : 0;
 }

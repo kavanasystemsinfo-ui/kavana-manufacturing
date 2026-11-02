@@ -272,18 +272,6 @@ export function OperatorPanel() {
               >
                 ⚠ Incidencia
               </button>
-              <button
-                onClick={() => setIsPauseModalOpen(true)}
-                className="rounded-full bg-kavana-surface px-4 py-3 text-sm font-bold text-rose-500 ring-1 ring-rose-500/40 transition hover:bg-rose-500/30 hover:text-white"
-              >
-                Pausar
-              </button>
-              <button
-                onClick={handleResume}
-                className="rounded-full bg-kavana-surface px-4 py-3 text-sm font-bold text-emerald-500 ring-1 ring-emerald-500/40 transition hover:bg-emerald-500/30 hover:text-white"
-              >
-                Reanudar
-              </button>
               <HelpModal {...OPERATOR_HELP} />
               <ThemeToggle />
             </div>
