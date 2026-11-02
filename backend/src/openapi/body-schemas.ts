@@ -6,6 +6,7 @@ import { CreateManufacturingModelDtoSchema, UpdateManufacturingModelDtoSchema } 
 import { CreateOrderDtoSchema, UpdateOrderDtoSchema } from '../orders/dto.js';
 import { createToolingSchema, updateToolingSchema } from '../toolings/dto.js';
 import {
+  createCalculatorSchema,
   createProductionOrderSchema,
   transitionProductionOrderSchema,
   syncWorkBlockSchema,
@@ -40,6 +41,7 @@ const ENTRIES: ReadonlyArray<readonly [string, ZodSchema]> = [
     ['POST /production/orders/:id/transition', transitionProductionOrderSchema],
     ['POST /production/time-logs/sync', syncWorkBlockSchema],
     ['PATCH /production/orders/:id/custom-fields', updateCustomFieldsSchema],
+    ['POST /production/calculators', createCalculatorSchema],
     ['POST /incidencias', createIncidenciaSchema],
     ['PUT /incidencias/:id', updateIncidenciaSchema],
     ['POST /ai-advisor/ask', askAdvisorSchema],

@@ -213,6 +213,17 @@
   "updated_at": "timestamp with time zone",
   "username": "text"
  },
+ "workstation_calculators": {
+  "created_at": "timestamp with time zone",
+  "created_by": "uuid",
+  "id": "uuid",
+  "name": "text",
+  "packs_per_row": "integer",
+  "pieces_per_pack": "integer",
+  "rows_per_pallet": "integer",
+  "tenant_id": "bigint",
+  "workstation_id": "uuid"
+ },
  "workstations": {
   "code": "text",
   "created_at": "timestamp with time zone",
