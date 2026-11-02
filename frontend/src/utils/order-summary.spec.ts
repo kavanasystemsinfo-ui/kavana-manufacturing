@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { describeBlock, formatMinutes, summarizeOrder, type SummaryLog } from './order-summary.js';
+import { describeBlock, formatMinutes, humanizeReason, summarizeOrder, type SummaryLog } from './order-summary.js';
 
 const log = (id: string, type: SummaryLog['type'], start: string, end: string, extra: Partial<SummaryLog> = {}): SummaryLog => ({
   id,
@@ -78,6 +78,8 @@ describe('describeBlock', () => {
   it('describe una parada con su motivo', () => {
     const text = describeBlock(log('p', 'parada', '2026-11-02T10:20:00', '2026-11-02T10:20:00', { downtime_reason: ' Faltan piezas ' }));
     expect(text).toBe('10:20 · Parada: Faltan piezas');
+    const clave = describeBlock(log('q', 'parada', '2026-11-02T07:07:00', '2026-11-02T07:07:00', { downtime_reason: 'mantenimiento_menor' }));
+    expect(clave).toBe('07:07 · Parada: Mantenimiento menor');
   });
 
   it('describe producción con punto de miles y defectos solo si hay', () => {
@@ -85,5 +87,14 @@ describe('describeBlock', () => {
     expect(a).toBe('10:00–12:00 · 12.000 buenas · 40 defectos');
     const b = describeBlock(log('y', 'produccion', '2026-11-02T10:00:00', '2026-11-02T12:00:00', { produced_quantity: '800', defect_quantity: 0 }));
     expect(b).toBe('10:00–12:00 · 800 buenas');
+  });
+});
+
+describe('humanizeReason', () => {
+  it('convierte la clave en texto legible y respeta lo que ya lo es', () => {
+    expect(humanizeReason('mantenimiento_menor')).toBe('Mantenimiento menor');
+    expect(humanizeReason('Faltan piezas')).toBe('Faltan piezas');
+    expect(humanizeReason('  ')).toBeNull();
+    expect(humanizeReason(null)).toBeNull();
   });
 });
