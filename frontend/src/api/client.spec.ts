@@ -30,6 +30,21 @@ describe('API Client (callApiWithTimeout)', () => {
     expect(controllerSignal.aborted).toBe(true);
   });
 
+  it('al cortar por tiempo dice que el servidor tarda, no «signal is aborted»', async () => {
+    const fetchMock = vi.fn().mockImplementation(
+      (_url: string, init: RequestInit) =>
+        new Promise((_resolve, reject) => {
+          init.signal?.addEventListener('abort', () => reject(new DOMException('signal is aborted without reason', 'AbortError')));
+        }),
+    );
+    vi.stubGlobal('fetch', fetchMock);
+
+    const pending = callApiWithTimeout('/api/test');
+    const assertion = expect(pending).rejects.toThrow('El servidor tarda en responder');
+    vi.advanceTimersByTime(15000);
+    await assertion;
+  });
+
   it('debería devolver undefined en respuestas 204 No Content', async () => {
     const fetchMock = vi.fn().mockResolvedValue({
       ok: true,
