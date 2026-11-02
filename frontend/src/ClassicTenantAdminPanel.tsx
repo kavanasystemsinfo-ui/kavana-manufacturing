@@ -38,7 +38,7 @@ export function ClassicTenantAdminPanel() {
               <img src={logo} alt="Logo" className="h-8 w-8 rounded" />
               <div>
                 <h1 className="text-lg font-semibold text-slate-900">Panel Admin</h1>
-                <p className="text-xs text-slate-500">Gobernanza Tenant</p>
+                <p className="text-xs text-slate-500">Datos de la empresa</p>
               </div>
             </div>
             <div className="flex items-center gap-2">
@@ -73,7 +73,7 @@ export function ClassicTenantAdminPanel() {
             <div className="rounded-lg border border-slate-200 bg-white p-4 shadow-sm">
               <div className="flex items-center gap-6">
                 <div>
-                  <p className="text-xs font-medium text-slate-500">Tenant ID</p>
+                  <p className="text-xs font-medium text-slate-500">Código de la empresa</p>
                   <p className="text-lg font-semibold text-slate-900">{capabilities.tenantId}</p>
                 </div>
                 <div className="h-8 w-px bg-slate-200"></div>

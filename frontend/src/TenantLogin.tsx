@@ -89,7 +89,7 @@ export function TenantLogin({ subdomain, onLogin }: TenantLoginProps) {
     return (
       <div className={`min-h-screen flex items-center justify-center ${isClassic ? 'bg-gray-50' : 'bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900'}`}>
         <div className={`text-center ${isClassic ? 'text-gray-800' : 'text-white'}`}>
-          <h1 className="text-2xl font-bold mb-2">Tenant no encontrado</h1>
+          <h1 className="text-2xl font-bold mb-2">Empresa no encontrada</h1>
           <p className={isClassic ? 'text-gray-500' : 'text-gray-400'}>El subdominio <strong>{subdomain}</strong> no está registrado.</p>
         </div>
       </div>

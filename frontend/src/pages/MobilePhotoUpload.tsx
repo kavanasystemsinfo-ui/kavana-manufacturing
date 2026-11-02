@@ -79,7 +79,7 @@ export function MobilePhotoUpload({ sessionId }: Props) {
   return (
     <main className="flex min-h-screen flex-col bg-kavana-dark text-slate-100">
       <div className="p-6 pb-2">
-        <p className="text-[10px] font-black uppercase tracking-[0.3em] text-kavana-orange">Kavana Manufacturing</p>
+        <p className="text-[10px] font-black uppercase tracking-[0.3em] text-kavana-orange">Manufacturing</p>
         <h1 className="mt-1 text-2xl font-black uppercase tracking-tight text-white">Adjuntar Evidencia</h1>
         <p className="mt-2 text-[10px] font-bold uppercase tracking-widest text-slate-500">
           Sesión: <span className="rounded bg-kavana-surface px-2 py-0.5 font-mono text-slate-300">{sessionId.slice(0, 8)}</span>
@@ -153,7 +153,7 @@ export function MobilePhotoUpload({ sessionId }: Props) {
       </div>
 
       <div className="p-8 text-center">
-        <p className="text-[10px] font-black tracking-[0.3em] text-slate-700 uppercase">Kavana Systems · Industrial MES</p>
+        <p className="text-[10px] font-black tracking-[0.3em] text-slate-700 uppercase">Kavana Systems</p>
       </div>
     </main>
   );
