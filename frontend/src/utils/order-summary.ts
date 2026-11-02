@@ -1,0 +1,106 @@
+/**
+ * Resumen de una orden para el operario: cuánto lleva hecho, si está parada y
+ * qué bloques ha registrado. Todo sale de la orden y de sus bloques; nada se
+ * recalcula en el servidor.
+ */
+export interface SummaryOrder {
+  quantity?: number | string | null;
+  produced_quantity?: number | string | null;
+  defect_quantity?: number | string | null;
+}
+
+export interface SummaryLog {
+  id: string;
+  type: 'produccion' | 'parada';
+  downtime_reason: string | null;
+  start_time: string;
+  end_time: string;
+  produced_quantity?: number | string | null;
+  defect_quantity?: number | string | null;
+}
+
+export interface OrderSummaryData {
+  planned: number;
+  produced: number;
+  defects: number;
+  remaining: number;
+  /** 0-100, nunca pasa de 100. */
+  pct: number;
+  /** Defectos sobre el total fabricado (buenas + defectos), con un decimal. */
+  defectRate: number;
+  stopped: boolean;
+  stopReason: string | null;
+  stopsCount: number;
+  stopMinutes: number;
+  /** Los últimos bloques, del más reciente al más antiguo. */
+  recent: SummaryLog[];
+}
+
+export const RECENT_LIMIT = 5;
+
+function num(value: number | string | null | undefined): number {
+  const n = Number(value ?? 0);
+  return Number.isFinite(n) ? n : 0;
+}
+
+function byStartDesc(a: SummaryLog, b: SummaryLog): number {
+  const d = Date.parse(b.start_time) - Date.parse(a.start_time);
+  return d !== 0 ? d : Date.parse(b.end_time) - Date.parse(a.end_time);
+}
+
+export function summarizeOrder(order: SummaryOrder, logs: SummaryLog[]): OrderSummaryData {
+  const planned = num(order.quantity);
+  const produced = num(order.produced_quantity);
+  const defects = num(order.defect_quantity);
+  const sorted = [...logs].sort(byStartDesc);
+  const paradas = logs.filter((l) => l.type === 'parada');
+  const stopMinutes = paradas.reduce((sum, l) => {
+    const ms = Date.parse(l.end_time) - Date.parse(l.start_time);
+    return sum + (Number.isFinite(ms) && ms > 0 ? ms / 60000 : 0);
+  }, 0);
+  const last = sorted[0];
+  const made = produced + defects;
+  return {
+    planned,
+    produced,
+    defects,
+    remaining: Math.max(0, planned - produced),
+    pct: planned > 0 ? Math.min(100, Math.round((produced / planned) * 100)) : 0,
+    defectRate: made > 0 ? Math.round((defects / made) * 1000) / 10 : 0,
+    stopped: last?.type === 'parada',
+    stopReason: last?.type === 'parada' ? last.downtime_reason : null,
+    stopsCount: paradas.length,
+    stopMinutes: Math.round(stopMinutes),
+    recent: sorted.slice(0, RECENT_LIMIT),
+  };
+}
+
+/** 45 → «45 min»; 65 → «1 h 05 min»; 120 → «2 h». */
+export function formatMinutes(minutes: number): string {
+  const m = Math.max(0, Math.round(minutes));
+  if (m < 60) return `${m} min`;
+  const h = Math.floor(m / 60);
+  const rest = m % 60;
+  return rest === 0 ? `${h} h` : `${h} h ${String(rest).padStart(2, '0')} min`;
+}
+
+function hhmm(iso: string): string {
+  const d = new Date(iso);
+  return `${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`;
+}
+
+function thousands(n: number): string {
+  return String(Math.round(n)).replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+}
+
+/** Una línea legible por bloque: «10:00–12:00 · 12.000 buenas · 40 defectos» o «10:20 · Parada: Faltan piezas». */
+export function describeBlock(log: SummaryLog): string {
+  if (log.type === 'parada') {
+    const reason = log.downtime_reason?.trim() || 'sin motivo';
+    return `${hhmm(log.start_time)} · Parada: ${reason}`;
+  }
+  const good = thousands(num(log.produced_quantity));
+  const bad = num(log.defect_quantity);
+  const base = `${hhmm(log.start_time)}–${hhmm(log.end_time)} · ${good} buenas`;
+  return bad > 0 ? `${base} · ${thousands(bad)} defectos` : base;
+}
