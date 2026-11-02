@@ -210,12 +210,15 @@ export function OperatorPanel() {
     return (
       <main className="min-h-screen bg-kavana-dark text-slate-100 p-4 md:p-8">
         <section className="mx-auto w-[90%] rounded-[2rem] border-2 border-kavana-orange bg-kavana-panel/90 p-6 md:p-8">
-          <header className="mb-6 flex items-center gap-4 border-b border-kavana-orange/30 pb-6">
-            <img src={logo} alt="Logo Kavana" className="h-14 w-14 rounded-2xl bg-kavana-surface object-cover p-2 ring-1 ring-kavana-orange/40" />
-            <div>
-              <p className="text-sm font-bold uppercase tracking-[0.32em] text-kavana-orange-light">Kavana Manufacturing HMI</p>
-              <h1 className="mt-1 text-2xl font-black tracking-tight text-white md:text-3xl">Seleccionar Orden</h1>
+          <header className="mb-6 flex flex-wrap items-center justify-between gap-4 border-b border-kavana-orange/30 pb-6">
+            <div className="flex items-center gap-4">
+              <img src={logo} alt="Logo Kavana" className="h-14 w-14 rounded-2xl bg-kavana-surface object-cover p-2 ring-1 ring-kavana-orange/40" />
+              <div>
+                <p className="text-sm font-bold uppercase tracking-[0.32em] text-kavana-orange-light">Kavana Manufacturing</p>
+                <h1 className="mt-1 text-2xl font-black tracking-tight text-white md:text-3xl">Seleccionar Orden</h1>
+              </div>
             </div>
+            <ThemeToggle />
           </header>
 
           <div className="mb-6 flex items-center gap-3">
@@ -249,7 +252,6 @@ export function OperatorPanel() {
             <button type="button" onClick={() => setShowShift(true)} className="rounded-xl border border-kavana-steel/40 bg-kavana-surface px-5 py-3 text-sm font-bold text-slate-100 hover:bg-kavana-steel/30">
               Cerrar turno
             </button>
-            <ThemeToggle />
           </div>
         </section>
       </main>
@@ -268,7 +270,7 @@ export function OperatorPanel() {
                 className="h-16 w-16 rounded-2xl bg-kavana-surface object-cover p-2 ring-1 ring-kavana-orange/40"
               />
               <div>
-                <p className="text-sm font-bold uppercase tracking-[0.32em] text-kavana-orange-light">Kavana Manufacturing HMI</p>
+                <p className="text-sm font-bold uppercase tracking-[0.32em] text-kavana-orange-light">Kavana Manufacturing</p>
                 <h1 className="mt-2 text-3xl font-black tracking-tight text-white md:text-5xl">Panel de Operario</h1>
               </div>
             </div>
@@ -278,7 +280,7 @@ export function OperatorPanel() {
                 {isOnline ? 'Online' : 'Offline'}
               </span>
               <span className="rounded-full bg-kavana-surface px-4 py-3 text-sm font-bold text-slate-100 ring-1 ring-kavana-steel/40">
-                Cola pendiente: {pendingCount}
+                Por enviar: {pendingCount}
               </span>
               <button
                 onClick={() => setIsFailedLogsModalOpen(true)}
@@ -287,7 +289,7 @@ export function OperatorPanel() {
                   : 'bg-kavana-surface text-slate-100 ring-kavana-steel/40 hover:bg-kavana-steel/20'
                 }`}
               >
-                Fallos: {failedCount}
+                Con error: {failedCount}
               </button>
               <button
                 onClick={() => setIsIncidenciaModalOpen(true)}

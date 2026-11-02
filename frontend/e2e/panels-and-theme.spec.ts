@@ -29,7 +29,7 @@ test.describe('Tema y rol de administración', () => {
     // El panel moderno se reconoce por el texto alternativo de su logo («Logo
     // Kavana»; el clásico usa «Logo»), así que esto comprueba que ha repintado de
     // verdad y no se ha quedado el clásico.
-    await page.getByRole('button', { name: 'Kavana', exact: true }).click();
+    await page.getByRole('button', { name: 'Moderno', exact: true }).click();
     await expect(page.getByRole('img', { name: 'Logo Kavana' })).toBeVisible({ timeout: 15000 });
     await expect(page.getByRole('heading', { name: 'Seleccionar Orden' })).toBeVisible();
 
