@@ -376,7 +376,7 @@ export function LiveLineTab() {
         <div className="rounded-lg border border-slate-200 bg-white p-4 shadow-sm">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm text-slate-500">OEE Promedio</p>
+              <p className="text-sm text-slate-500">Rendimiento medio (OEE)</p>
               <p className="text-2xl font-bold text-indigo-600">
                 {liveData.size > 0 ? 
                   (Array.from(liveData.values()).reduce((sum, ws) => sum + (ws.oee || 0), 0) / liveData.size * 100).toFixed(1) + '%' : 

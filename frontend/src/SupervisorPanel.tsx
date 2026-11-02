@@ -225,7 +225,7 @@ export function SupervisorPanel() {
         <section className="mx-auto w-full max-w-[1700px] rounded-[2rem] border-2 border-kavana-orange bg-kavana-panel/90 p-4 md:p-8">
           <header className="mb-8 flex flex-col gap-5 border-b border-kavana-orange/30 pb-6 md:flex-row md:items-center md:justify-between">
             <div>
-              <p className="text-sm font-bold uppercase tracking-[0.32em] text-kavana-orange-light">Kavana Manufacturing</p>
+              <p className="text-sm font-bold uppercase tracking-[0.32em] text-kavana-orange-light">Manufacturing</p>
               <h1 className="mt-2 text-3xl font-black tracking-tight text-white md:text-5xl">Panel Supervisor</h1>
             </div>
             <div className="flex flex-wrap items-center gap-3">
