@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { describeBlock, formatMinutes, humanizeReason, summarizeOrder, type SummaryLog } from './order-summary.js';
+import { describeBlock, formatMinutes, humanizeReason, minutesSince, summarizeOrder, type SummaryLog } from './order-summary.js';
 
 const log = (id: string, type: SummaryLog['type'], start: string, end: string, extra: Partial<SummaryLog> = {}): SummaryLog => ({
   id,
@@ -35,6 +35,7 @@ describe('summarizeOrder', () => {
     ]);
     expect(s.stopped).toBe(true);
     expect(s.stopReason).toBe('Faltan piezas');
+    expect(s.stoppedSince).toBe('2026-11-02T10:20:00Z');
   });
 
   it('deja de estar parada cuando después hay un bloque de producción', () => {
@@ -44,6 +45,7 @@ describe('summarizeOrder', () => {
     ]);
     expect(s.stopped).toBe(false);
     expect(s.stopReason).toBeNull();
+    expect(s.stoppedSince).toBeNull();
     expect(s.stopsCount).toBe(1);
   });
 
@@ -96,5 +98,15 @@ describe('humanizeReason', () => {
     expect(humanizeReason('Faltan piezas')).toBe('Faltan piezas');
     expect(humanizeReason('  ')).toBeNull();
     expect(humanizeReason(null)).toBeNull();
+  });
+});
+
+describe('minutesSince', () => {
+  it('cuenta minutos enteros desde el inicio de la parada', () => {
+    const now = new Date('2026-11-02T10:30:30Z');
+    expect(minutesSince('2026-11-02T10:20:00Z', now)).toBe(10);
+    expect(minutesSince('2026-11-02T10:30:00Z', now)).toBe(0);
+    expect(minutesSince('2026-11-02T11:00:00Z', now)).toBe(0);
+    expect(minutesSince(null, now)).toBe(0);
   });
 });
