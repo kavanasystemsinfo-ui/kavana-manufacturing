@@ -39,6 +39,7 @@ describe('buildOrderQueue', () => {
 
 describe('orderLabel', () => {
   it('usa el código y, sin él, el principio del id', () => {
+    expect(orderLabel({ id: '9c7db592-5134', code: '4283' })).toBe('Orden 4283');
     expect(orderLabel({ id: '9c7db592-5134', code: 'SIM-261102-01' })).toBe('SIM-261102-01');
     expect(orderLabel({ id: '9c7db592-5134', code: null })).toBe('#9c7db592');
   });
@@ -47,7 +48,9 @@ describe('orderLabel', () => {
 describe('formatQuantity', () => {
   it('pone separador de miles y unidad', () => {
     expect(formatQuantity(357120)).toBe('357.120 uds');
-    expect(formatQuantity('4000')).toBe('4000 uds');
+    expect(formatQuantity('4000')).toBe('4.000 uds');
+    expect(formatQuantity(999)).toBe('999 uds');
+    expect(formatQuantity(1234567)).toBe('1.234.567 uds');
     expect(formatQuantity(null)).toBe('0 uds');
   });
 });
