@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { formatThousands, stepQuantity, toHHMM } from '../../utils/quick-block.js';
 import { CalculatorButtons } from './CalculatorButtons.js';
 
@@ -36,6 +36,7 @@ const styles = {
     step: 'rounded-md border border-slate-300 bg-slate-100 text-xl font-bold text-slate-700 hover:bg-slate-200',
     chip: 'rounded-full border border-slate-300 bg-white px-3 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-100',
     link: 'text-sm font-medium text-kavana-orange hover:underline',
+    hint: 'text-xs text-slate-500',
     submit: 'w-full rounded-md bg-kavana-orange px-6 py-5 text-lg font-semibold text-white shadow-sm hover:bg-kavana-orange-light disabled:opacity-50',
     repeat: 'rounded-md border border-slate-300 px-3 py-2 text-xs font-semibold text-slate-600 hover:bg-slate-100',
     textarea: 'mt-1 block w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm shadow-sm focus:border-kavana-orange focus:ring-1 focus:ring-kavana-orange resize-none',
@@ -50,6 +51,7 @@ const styles = {
     step: 'rounded-xl border border-kavana-steel/30 bg-kavana-surface text-2xl font-black text-slate-200 hover:bg-kavana-steel/30',
     chip: 'rounded-full border border-kavana-steel/40 bg-kavana-surface px-3 py-2 text-sm font-bold text-slate-200 hover:bg-kavana-steel/30',
     link: 'text-sm font-bold text-kavana-orange hover:underline',
+    hint: 'text-xs text-slate-400',
     submit: 'w-full rounded-xl bg-[#A84A1A] px-6 py-5 text-lg font-black uppercase tracking-wider text-white transition hover:bg-[#BC5B2F] disabled:opacity-50',
     repeat: 'rounded-lg border border-kavana-orange/50 px-3 py-2 text-xs font-bold uppercase tracking-wider text-kavana-orange transition hover:bg-kavana-orange/10',
     textarea: 'w-full rounded-xl border border-kavana-steel/30 bg-kavana-surface px-4 py-3 text-sm font-medium text-white placeholder-slate-500 focus:border-kavana-orange focus:outline-none resize-none',
@@ -110,9 +112,15 @@ export function QuickBlockForm(props: Props) {
   const { startTime, suggestedStart, onStartTime } = props;
   const [showNotes, setShowNotes] = useState(false);
 
+  // La sugerencia se pone una vez por valor: si el operario borra la hora, no se le vuelve a imponer.
+  const applied = useRef<string | null>(null);
   useEffect(() => {
-    if (!startTime && suggestedStart) onStartTime(suggestedStart);
+    if (!startTime && suggestedStart && suggestedStart !== applied.current) {
+      applied.current = suggestedStart;
+      onStartTime(suggestedStart);
+    }
   }, [startTime, suggestedStart, onStartTime]);
+  const startIsSuggested = !!suggestedStart && startTime === suggestedStart;
 
   return (
     <div className={s.card}>
@@ -140,6 +148,10 @@ export function QuickBlockForm(props: Props) {
               required
               className={s.input}
             />
+            <button type="button" className={`mt-2 ${s.link}`} onClick={() => props.onStartTime(toHHMM(new Date()))}>
+              Poner la hora actual
+            </button>
+            {startIsSuggested && <p className={s.hint}>Fin del bloque anterior</p>}
           </div>
           <div>
             <label className={s.label}>Hasta</label>
@@ -150,8 +162,9 @@ export function QuickBlockForm(props: Props) {
               className={s.input}
             />
             <button type="button" className={`mt-2 ${s.link}`} onClick={() => props.onEndTime(toHHMM(new Date()))}>
-              {props.endTime ? 'Poner la hora actual' : 'Vacío = ahora'}
+              Poner la hora actual
             </button>
+            {!props.endTime && <p className={s.hint}>Vacío = ahora</p>}
           </div>
         </div>
 
