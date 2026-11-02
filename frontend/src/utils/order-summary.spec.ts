@@ -55,8 +55,24 @@ describe('summarizeOrder', () => {
       log('b', 'parada', '2026-11-02T09:00:00Z', '2026-11-02T09:25:00Z'),
       log('c', 'produccion', '2026-11-02T10:00:00Z', '2026-11-02T11:00:00Z'),
     ]);
-    expect(s.stopMinutes).toBe(45);
+    expect(s.stopMinutes).toBe(120);
     expect(s.recent.map((l) => l.id)).toEqual(['c', 'b', 'a']);
+  });
+
+  it('una parada con inicio igual a fin dura hasta el bloque siguiente', () => {
+    const s = summarizeOrder({ quantity: 100 }, [
+      log('p1', 'parada', '2026-11-02T10:20:00Z', '2026-11-02T10:20:00Z', { downtime_reason: 'Falta material' }),
+      log('r1', 'produccion', '2026-11-02T10:50:00Z', '2026-11-02T10:51:00Z'),
+    ], new Date('2026-11-02T12:00:00Z'));
+    expect(s.stopMinutes).toBe(30);
+    expect(s.stopsCount).toBe(1);
+  });
+
+  it('la parada en curso cuenta hasta ahora', () => {
+    const s = summarizeOrder({ quantity: 100 }, [
+      log('p1', 'parada', '2026-11-02T10:20:00Z', '2026-11-02T10:20:00Z'),
+    ], new Date('2026-11-02T10:35:00Z'));
+    expect(s.stopMinutes).toBe(15);
   });
 
   it('enseña como mucho 5 bloques recientes', () => {
