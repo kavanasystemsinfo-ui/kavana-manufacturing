@@ -113,6 +113,8 @@ const RESUMENES: Readonly<Record<string, string>> = {
   'core-mes-production.syncWorkBlock': 'Sincroniza un bloque de trabajo (offline-first)',
   'core-mes-production.listMyTimeLogs': 'Bloques del operario en un rango (tope 31 días)',
   'core-mes-production.listOrderLogs': 'Registros de una orden',
+  'core-mes-production.listCalculators': 'Calculadoras de embalaje de un puesto',
+  'core-mes-production.createCalculator': 'Crea una calculadora de embalaje en un puesto',
   'core-mes-production.updateCustomFields': 'Actualiza los custom fields de una orden',
   // toolings
   'toolings.list': 'Lista el utillaje del tenant',

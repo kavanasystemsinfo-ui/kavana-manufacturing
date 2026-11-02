@@ -372,6 +372,7 @@ export function OperatorPanel() {
                 defectQuantity={defectQuantity}
                 observations={observations}
                 suggestedStart={suggestBlockStart(orderLogs)}
+                workstationId={workstationId ?? null}
                 busy={isMutating || isSyncing}
                 onStartTime={setStartTime}
                 onEndTime={setEndTime}

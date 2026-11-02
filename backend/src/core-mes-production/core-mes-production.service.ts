@@ -6,7 +6,7 @@ import { getTenantContext } from '../auth/tenant-context.storage.js';
 import { postgresPool } from '../db/postgres.provider.js';
 import { withTenantTransaction } from '../db/withTenantTransaction.js';
 import { tenantQuery } from '../db/tenant-query.js';
-import type { CreateProductionOrderDto, SyncWorkBlockDto, TransitionProductionOrderDto, UpdateCustomFieldsDto, ListMyTimeLogsDto } from './dto.js';
+import type { CreateProductionOrderDto, SyncWorkBlockDto, TransitionProductionOrderDto, UpdateCustomFieldsDto, ListMyTimeLogsDto, ListCalculatorsDto, CreateCalculatorDto } from './dto.js';
 import { TenantCapabilitiesService } from '../tenant-capabilities/tenant-capabilities.service.js';
 import { buildCustomFieldsZodSchema, type CustomFieldDefinition } from '../common/custom-fields.js';
 import { validateOrderTransition, type OrderStatus } from '../orders/order-state-machine.js';
@@ -248,6 +248,45 @@ WHERE tenant_id = $1::bigint AND id = $2::uuid
       const message = error instanceof Error ? error.message : String(error);
       throw new BadRequestException(`Sync operation failed: ${message}`);
     });
+  }
+
+  /** Calculadoras de embalaje de un puesto; las ve cualquiera que trabaje en él. */
+  async listCalculators(dto: ListCalculatorsDto) {
+    const context = getTenantContext();
+    const result = await tenantQuery(
+      postgresPool,
+      `SELECT id, workstation_id, name, pieces_per_pack, packs_per_row, rows_per_pallet,
+              pieces_per_pack * packs_per_row AS pieces_per_row,
+              pieces_per_pack * packs_per_row * rows_per_pallet AS pieces_per_pallet
+       FROM workstation_calculators
+       WHERE tenant_id = $1::bigint AND workstation_id = $2::uuid
+       ORDER BY created_at ASC`,
+      [String(context.tenantId), dto.workstation_id],
+    );
+    return result.rows;
+  }
+
+  /** Crea una calculadora en un puesto. El autor sale del token, nunca del cuerpo. */
+  async createCalculator(dto: CreateCalculatorDto) {
+    const context = getTenantContext();
+    try {
+      const result = await tenantQuery(
+        postgresPool,
+        `INSERT INTO workstation_calculators
+           (tenant_id, workstation_id, name, pieces_per_pack, packs_per_row, rows_per_pallet, created_by)
+         VALUES ($1::bigint, $2::uuid, $3, $4::int, $5::int, $6::int, $7::uuid)
+         RETURNING id, workstation_id, name, pieces_per_pack, packs_per_row, rows_per_pallet,
+                   pieces_per_pack * packs_per_row AS pieces_per_row,
+                   pieces_per_pack * packs_per_row * rows_per_pallet AS pieces_per_pallet`,
+        [String(context.tenantId), dto.workstation_id, dto.name, dto.pieces_per_pack, dto.packs_per_row, dto.rows_per_pallet, context.userId],
+      );
+      return result.rows[0];
+    } catch (error) {
+      const code = (error as { code?: string }).code;
+      if (code === '23505') throw new BadRequestException('Ya existe una calculadora con ese nombre en este puesto.');
+      if (code === '23503') throw new BadRequestException('El puesto indicado no existe.');
+      throw error;
+    }
   }
 
   async listOrderLogs(orderId: string) {
