@@ -14,6 +14,9 @@ export interface ProductionOrder {
 
 export interface AvailableOrder {
   id: string;
+  code?: string | null;
+  produced_quantity?: number | string | null;
+  defect_quantity?: number | string | null;
   model_id: string;
   workstation_id: string;
   quantity: number;
@@ -49,6 +52,8 @@ interface HmiState {
   
   // Available orders for selection
   availableOrders: AvailableOrder[];
+  /** La orden elegida en la cola: de ella salen producto y puesto, que la orden suelta no trae. */
+  selectedOrder: AvailableOrder | null;
   isLoadingOrders: boolean;
   /** Petición más reciente cuya respuesta del servidor ya está aplicada; la copia local no puede pisarla. */
   ordersFreshSeq: number;
@@ -78,6 +83,8 @@ interface HmiState {
   loadOperatorContext: () => Promise<void>;
   loadAvailableOrders: () => Promise<void>;
   selectOrder: (order: AvailableOrder) => void;
+  /** Vuelve a la cola de órdenes sin tocar nada de lo ya registrado. */
+  leaveOrder: () => void;
   registerWorkBlock: (
     type: 'produccion' | 'parada',
     startTime: string,
@@ -193,6 +200,7 @@ export const useHmiStore = create<HmiState>()((set, get) => ({
   operatorName: null,
   availableOrders: [],
   isLoadingOrders: false,
+  selectedOrder: null,
   ordersFreshSeq: 0,
   selectedOrderCustomFields: null,
   capabilities: null,
@@ -327,10 +335,15 @@ export const useHmiStore = create<HmiState>()((set, get) => ({
   selectOrder: (order: AvailableOrder) => {
     set({
       orderId: order.id,
+      selectedOrder: order,
       workstationId: order.workstation_id,
       workstationName: order.workstation_name ?? get().workstationName,
       selectedOrderCustomFields: order.custom_fields ?? {},
     });
+  },
+
+  leaveOrder: () => {
+    set({ orderId: null, activeOrder: null, selectedOrder: null, selectedOrderCustomFields: null });
   },
 
   loadOrder: async (orderId: string) => {

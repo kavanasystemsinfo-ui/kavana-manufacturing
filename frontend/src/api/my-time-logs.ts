@@ -32,3 +32,8 @@ export async function fetchMyTimeLogs(range: { from: string; to: string }): Prom
   const params = new URLSearchParams({ from: range.from, to: range.to });
   return callApiWithTimeout<MyTimeLog[]>(`/api/v1/production/time-logs/mine?${params.toString()}`);
 }
+
+/** Bloques ya registrados de una orden, del más antiguo al más nuevo. */
+export async function fetchOrderLogs(orderId: string): Promise<MyTimeLog[]> {
+  return callApiWithTimeout<MyTimeLog[]>(`/api/v1/production/orders/${orderId}/logs`);
+}

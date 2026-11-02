@@ -45,6 +45,9 @@ import { HelpModal } from './components/HelpModal.js';
 import { AiAdvisorFab } from './components/AiAdvisorFab.js';
 import { PauseModal } from './components/operator/PauseModal.js';
 import { OrderQueue } from './components/operator/OrderQueue.js';
+import { OrderSummary } from './components/operator/OrderSummary.js';
+import { useOrderLogs } from './hooks/useOrderLogs.js';
+import { summarizeOrder, type SummaryOrder } from './utils/order-summary.js';
 import { OPERATOR_HELP } from './help-content.js';
 import { useState } from 'react';
 import { mapCustomFieldsToUI, type CustomFieldUI } from './utils/customFieldsMapper.js';
@@ -140,6 +143,9 @@ export function OperatorPanel() {
   // Qué decir cuando no hay órdenes: si el problema es que no tiene puesto, el
   // mensaje tiene que decírselo a quien pueda arreglarlo.
   const emptyState = ordersEmptyState(orderSearch, assignedWorkstationName);
+  const selectedOrder = useHmiStore((s) => s.selectedOrder);
+  const { logs: orderLogs } = useOrderLogs(orderId ?? null);
+  const summary = summarizeOrder((activeOrder ?? selectedOrder ?? {}) as SummaryOrder, orderLogs);
 
   const { kpi: shiftKpi, isLoading: isShiftKpiLoading, error: shiftKpiError, refresh: refreshShiftKpi } = useMyShiftKPI();
 
@@ -281,19 +287,22 @@ export function OperatorPanel() {
             </div>
           </header>
 
+          <OrderSummary
+            variant="kavana"
+            order={{ id: orderId, code: activeOrder?.code ?? selectedOrder?.code }}
+            productName={selectedOrder?.model_name ?? null}
+            workstationName={workstationName || null}
+            operatorName={operatorName || null}
+            summary={summary}
+            busy={isMutating || isSyncing}
+            onBack={() => useHmiStore.getState().leaveOrder()}
+            onPause={() => setIsPauseModalOpen(true)}
+            onResume={() => void handleResume()}
+          />
+
           <section className="grid gap-6 lg:grid-cols-[1.1fr_0.9fr]">
             <div className="rounded-2xl border-2 border-kavana-orange/40 bg-kavana-dark/70 p-5 shadow-inner flex flex-col justify-between">
               <div>
-                <p className="text-sm font-bold uppercase tracking-[0.24em] text-slate-400">Orden actual</p>
-                <h2 className="mt-3 text-2xl font-black text-white md:text-4xl">
-                  {activeOrder?.code || (orderId ? `OF-${orderId.slice(0, 8)}` : 'Sin orden asignada')}
-                </h2>
-                <p className="mt-3 text-slate-300">
-                  {workstationName || (workstationId ? `Puesto: ${workstationId.slice(0, 8)}` : 'Puesto: No asignado')}
-                  {' · '}
-                  {operatorName || (operatorId ? `Operario: ${operatorId.slice(0, 8)}` : 'Operario: No asignado')}
-                </p>
-
                 {activeOrderCustomFields && Object.keys(activeOrderCustomFields).length > 0 && (
                   <div className="mt-4 rounded-xl border border-kavana-steel/20 bg-kavana-surface/50 p-4">
                     <p className="text-xs font-bold uppercase tracking-wider text-slate-400 mb-3">Datos de la orden</p>
