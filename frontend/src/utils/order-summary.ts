@@ -43,6 +43,13 @@ function num(value: number | string | null | undefined): number {
   return Number.isFinite(n) ? n : 0;
 }
 
+/** «mantenimiento_menor» → «Mantenimiento menor»: los motivos de parada llegan como clave. */
+export function humanizeReason(reason: string | null | undefined): string | null {
+  const text = reason?.replace(/_/g, ' ').replace(/\s+/g, ' ').trim();
+  if (!text) return null;
+  return text.charAt(0).toUpperCase() + text.slice(1);
+}
+
 function byStartDesc(a: SummaryLog, b: SummaryLog): number {
   const d = Date.parse(b.start_time) - Date.parse(a.start_time);
   return d !== 0 ? d : Date.parse(b.end_time) - Date.parse(a.end_time);
@@ -68,7 +75,7 @@ export function summarizeOrder(order: SummaryOrder, logs: SummaryLog[]): OrderSu
     pct: planned > 0 ? Math.min(100, Math.round((produced / planned) * 100)) : 0,
     defectRate: made > 0 ? Math.round((defects / made) * 1000) / 10 : 0,
     stopped: last?.type === 'parada',
-    stopReason: last?.type === 'parada' ? last.downtime_reason : null,
+    stopReason: last?.type === 'parada' ? humanizeReason(last.downtime_reason) : null,
     stopsCount: paradas.length,
     stopMinutes: Math.round(stopMinutes),
     recent: sorted.slice(0, RECENT_LIMIT),
@@ -96,7 +103,7 @@ function thousands(n: number): string {
 /** Una línea legible por bloque: «10:00–12:00 · 12.000 buenas · 40 defectos» o «10:20 · Parada: Faltan piezas». */
 export function describeBlock(log: SummaryLog): string {
   if (log.type === 'parada') {
-    const reason = log.downtime_reason?.trim() || 'sin motivo';
+    const reason = humanizeReason(log.downtime_reason) ?? 'sin motivo';
     return `${hhmm(log.start_time)} · Parada: ${reason}`;
   }
   const good = thousands(num(log.produced_quantity));
