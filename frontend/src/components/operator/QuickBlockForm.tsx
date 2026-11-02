@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { formatThousands, stepQuantity, toHHMM } from '../../utils/quick-block.js';
+import { CalculatorButtons } from './CalculatorButtons.js';
 
 type Variant = 'classic' | 'kavana';
 
@@ -12,6 +13,8 @@ interface Props {
   observations: string;
   /** Final del último bloque de hoy: se pone solo como hora de inicio si está vacía. */
   suggestedStart: string | null;
+  /** Puesto del operario; con él se cargan sus calculadoras de embalaje. */
+  workstationId: string | null;
   busy: boolean;
   onStartTime: (v: string) => void;
   onEndTime: (v: string) => void;
@@ -151,6 +154,12 @@ export function QuickBlockForm(props: Props) {
             </button>
           </div>
         </div>
+
+        <CalculatorButtons
+          variant={props.variant}
+          workstationId={props.workstationId}
+          onAdd={(pieces) => props.onProduced(stepQuantity(props.producedQuantity, pieces))}
+        />
 
         <Stepper label="Producción buena" value={props.producedQuantity} step={1} chips={PRODUCED_CHIPS} onChange={props.onProduced} s={s} />
         <Stepper label="Defectos" value={props.defectQuantity} step={1} chips={[]} onChange={props.onDefects} s={s} />
