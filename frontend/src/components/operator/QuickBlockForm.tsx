@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { stepQuantity, toHHMM } from '../../utils/quick-block.js';
+import { formatThousands, stepQuantity, toHHMM } from '../../utils/quick-block.js';
 
 type Variant = 'classic' | 'kavana';
 
@@ -89,7 +89,7 @@ function Stepper({ label, value, step, chips, onChange, s }: StepperProps) {
         <div className="mt-2 flex flex-wrap gap-2">
           {chips.map((c) => (
             <button key={c} type="button" className={s.chip} onClick={() => onChange(stepQuantity(value, c))}>
-              +{c.toLocaleString('es-ES')}
+              +{formatThousands(c)}
             </button>
           ))}
         </div>
