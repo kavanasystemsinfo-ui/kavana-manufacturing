@@ -150,7 +150,7 @@ test.describe('Offline-first: el HMI en planta sin red', () => {
 
     // Vuelve la red: el parte tiene que subir solo, sin perderlo.
     await page.context().setOffline(false);
-    await expect(page.getByText('Fallos: 0')).toBeVisible({ timeout: 20000 });
+    await expect(page.getByText('Con error: 0')).toBeVisible({ timeout: 20000 });
 
     await expect
       .poll(async () => producidoEnServidor(page), { timeout: 40000, intervals: [2000] })

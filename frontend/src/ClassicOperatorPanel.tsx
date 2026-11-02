@@ -112,15 +112,16 @@ export function ClassicOperatorPanel() {
     return (
       <div className="min-h-screen bg-gray-50 text-gray-900">
         <header className="bg-kavana-dark text-white shadow-md">
-          <div className="px-4 py-3 sm:px-6 lg:px-8">
+          <div className="flex flex-wrap items-center justify-between gap-3 px-4 py-3 sm:px-6 lg:px-8">
             <div className="flex items-center gap-3">
               <img src={logo} alt="Logo" className="h-10 w-10 rounded-lg bg-white p-1" />
               <div>
-                <p className="text-xs font-bold uppercase tracking-wider text-kavana-orange-light">Kavana Manufacturing HMI</p>
+                <p className="text-xs font-bold uppercase tracking-wider text-kavana-orange-light">Kavana Manufacturing</p>
                 <h1 className="text-lg font-semibold text-white">Seleccionar Orden</h1>
                 <p className="text-xs text-gray-400">{operatorName} {workstationName ? `· ${workstationName}` : ''}</p>
               </div>
             </div>
+            <ThemeToggle />
           </div>
         </header>
 
@@ -156,7 +157,6 @@ export function ClassicOperatorPanel() {
             <button type="button" onClick={() => setShowShift(true)} className="rounded-lg border border-slate-300 bg-white px-5 py-3 text-sm font-semibold text-slate-700 hover:bg-slate-100">
               Cerrar turno
             </button>
-            <ThemeToggle />
           </div>
         </main>
       </div>
@@ -172,7 +172,7 @@ export function ClassicOperatorPanel() {
             <div className="flex items-center gap-3">
               <img src={logo} alt="Logo" className="h-10 w-10 rounded-lg bg-white p-1" />
               <div>
-                <p className="text-xs font-bold uppercase tracking-wider text-kavana-orange-light">Kavana Manufacturing HMI</p>
+                <p className="text-xs font-bold uppercase tracking-wider text-kavana-orange-light">Kavana Manufacturing</p>
                 <h1 className="text-lg font-semibold text-white">Panel de Operario</h1>
                 <p className="text-xs text-gray-400">{dateLabel}</p>
               </div>
@@ -183,12 +183,12 @@ export function ClassicOperatorPanel() {
               }`}>
                 {isOnline ? 'Online' : 'Offline'}
               </span>
-              <span className="text-xs text-gray-400">Cola: {pendingCount}</span>
+              <span className="text-xs text-gray-400">Por enviar: {pendingCount}</span>
               <button
                 onClick={() => setIsFailedLogsModalOpen(true)}
                 className="px-4 py-2 text-sm font-medium text-gray-400 bg-kavana-surface/10 rounded hover:bg-kavana-surface/20"
               >
-                Fallos: {failedCount}
+                Con error: {failedCount}
               </button>
               <button
                 onClick={handleOpenIncidenciaModal}

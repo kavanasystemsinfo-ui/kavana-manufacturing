@@ -46,7 +46,7 @@ export function ShiftKpiCard({ kpi, isLoading, error, onRetry }: ShiftKpiCardPro
     <div className="rounded-2xl border border-kavana-steel/20 bg-kavana-dark/70 p-4">
       <div className="mb-3 flex items-baseline justify-between">
         <p className="text-sm font-bold uppercase tracking-[0.24em] text-slate-400">Mi turno hoy</p>
-        <p className="text-xs text-slate-400">OEE personal {kpi.oeePersonal}%</p>
+        <p className="text-xs text-slate-400">Eficiencia {kpi.oeePersonal}%</p>
       </div>
       <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
         <Metric label="Horas netas" value={`${formatNumber(kpi.horasNetas)} h`} hint={`${formatNumber(kpi.horasProduccion)} h producción`} />
