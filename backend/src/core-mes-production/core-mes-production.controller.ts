@@ -1,7 +1,9 @@
 import { Body, Controller, Get, NotFoundException, Param, Patch, Post, Query, Inject, UseGuards} from '@nestjs/common';
 import { CoreMesProductionService } from './core-mes-production.service.js';
 import {
+  createCalculatorSchema,
   createProductionOrderSchema,
+  listCalculatorsQuerySchema,
   listMyTimeLogsQuerySchema,
   syncWorkBlockSchema,
   transitionProductionOrderSchema,
@@ -95,6 +97,20 @@ export class CoreMesProductionController {
   @RequireRole('operario', 'supervisor', 'tenant_admin')
   listOrderLogs(@Param('id') id: string) {
     return this.service.listOrderLogs(id);
+  }
+
+  @Get('calculators')
+  @RequireRole('operario', 'supervisor', 'tenant_admin')
+  listCalculators(@Query() query: unknown) {
+    const dto = listCalculatorsQuerySchema.parse(query);
+    return this.service.listCalculators(dto);
+  }
+
+  @Post('calculators')
+  @RequireRole('operario', 'supervisor', 'tenant_admin')
+  createCalculator(@Body() body: unknown) {
+    const dto = createCalculatorSchema.parse(body);
+    return this.service.createCalculator(dto);
   }
 
   @Patch('orders/:id/custom-fields')

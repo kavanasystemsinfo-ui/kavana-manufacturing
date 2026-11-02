@@ -17,6 +17,8 @@ describe('CoreMesProductionController', () => {
       listOrderLogs: vi.fn(),
       listMyTimeLogs: vi.fn(),
       updateCustomFields: vi.fn(),
+      listCalculators: vi.fn(),
+      createCalculator: vi.fn(),
     };
 
     controller = new CoreMesProductionController(

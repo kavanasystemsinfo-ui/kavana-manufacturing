@@ -79,3 +79,18 @@ export type TransitionProductionOrderDto = z.infer<typeof transitionProductionOr
 export type SyncWorkBlockDto = z.infer<typeof syncWorkBlockSchema>;
 export type UpdateCustomFieldsDto = z.infer<typeof updateCustomFieldsSchema>;
 export type ListMyTimeLogsDto = z.infer<typeof listMyTimeLogsQuerySchema>;
+
+export const listCalculatorsQuerySchema = z.object({
+  workstation_id: z.string().uuid(),
+});
+
+export const createCalculatorSchema = z.object({
+  workstation_id: z.string().uuid(),
+  name: z.string().trim().min(1).max(120),
+  pieces_per_pack: z.number().int().min(1).max(100000),
+  packs_per_row: z.number().int().min(1).max(100000),
+  rows_per_pallet: z.number().int().min(1).max(100000),
+});
+
+export type ListCalculatorsDto = z.infer<typeof listCalculatorsQuerySchema>;
+export type CreateCalculatorDto = z.infer<typeof createCalculatorSchema>;
