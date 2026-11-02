@@ -168,22 +168,10 @@ export function ClassicOperatorPanel() {
                 Fallos: {failedCount}
               </button>
               <button
-                onClick={() => setIsPauseModalOpen(true)}
-                className="px-4 py-2 text-sm font-medium text-rose-700 bg-rose-500/10 rounded hover:bg-rose-500/20"
-              >
-                Pausar
-              </button>
-              <button
                 onClick={handleOpenIncidenciaModal}
                 className="px-4 py-2 text-sm font-medium text-gray-400 bg-kavana-surface/10 rounded hover:bg-kavana-surface/20"
               >
                 ⚠ Incidencia
-              </button>
-              <button
-                onClick={handleResume}
-                className="px-4 py-2 text-sm font-medium text-emerald-700 bg-emerald-500/10 rounded hover:bg-emerald-500/20"
-              >
-                Reanudar
               </button>
               <HelpModal {...OPERATOR_HELP} theme="classic" />
               <ThemeToggle />
