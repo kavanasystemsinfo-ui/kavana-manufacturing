@@ -1,4 +1,5 @@
-import { describeBlock, formatMinutes, type OrderSummaryData } from '../../utils/order-summary.js';
+import { useEffect, useState } from 'react';
+import { describeBlock, formatMinutes, minutesSince, type OrderSummaryData } from '../../utils/order-summary.js';
 import { orderLabel } from '../../utils/order-queue.js';
 import { formatPercent } from '../../utils/quick-block.js';
 
@@ -62,8 +63,20 @@ function uds(n: number): string {
   return `${String(Math.round(n)).replace(/\B(?=(\d{3})+(?!\d))/g, '.')} uds`;
 }
 
+/** Minutos que lleva la parada en curso; se refresca cada 30 s. */
+function useStoppedMinutes(since: string | null): number {
+  const [, tick] = useState(0);
+  useEffect(() => {
+    if (!since) return;
+    const id = setInterval(() => tick((n) => n + 1), 30000);
+    return () => clearInterval(id);
+  }, [since]);
+  return minutesSince(since);
+}
+
 export function OrderSummary({ variant, order, productName, workstationName, operatorName, summary, busy, onBack, onPause, onResume }: Props) {
   const s = styles[variant];
+  const stoppedMinutes = useStoppedMinutes(summary.stoppedSince);
   const meta = [workstationName, operatorName].filter(Boolean).join(' · ');
   return (
     <section className={s.card} aria-label="Resumen de la orden">
@@ -78,7 +91,9 @@ export function OrderSummary({ variant, order, productName, workstationName, ope
           {meta && <p className={s.meta}>{meta}</p>}
         </div>
         <span className={`rounded-full px-4 py-2 text-sm font-bold ${summary.stopped ? s.stopped : s.running}`}>
-          {summary.stopped ? `En parada${summary.stopReason ? `: ${summary.stopReason}` : ''}` : 'Produciendo'}
+          {summary.stopped
+            ? `En parada${summary.stopReason ? `: ${summary.stopReason}` : ''} · ${formatMinutes(stoppedMinutes)}`
+            : 'Produciendo'}
         </span>
       </div>
 
