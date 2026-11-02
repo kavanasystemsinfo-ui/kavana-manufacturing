@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { formatPercent, stepQuantity, suggestBlockStart, toHHMM } from './quick-block.js';
+import { formatPercent, formatThousands, stepQuantity, suggestBlockStart, toHHMM } from './quick-block.js';
 import type { SummaryLog } from './order-summary.js';
 
 const log = (end: string): SummaryLog => ({
@@ -44,5 +44,13 @@ describe('formatPercent / toHHMM', () => {
   });
   it('rellena con ceros', () => {
     expect(toHHMM(new Date('2026-11-02T07:05:00'))).toBe('07:05');
+  });
+});
+
+describe('formatThousands', () => {
+  it('pone punto de miles desde 4 cifras', () => {
+    expect(formatThousands(10)).toBe('10');
+    expect(formatThousands(1000)).toBe('1.000');
+    expect(formatThousands(1234567)).toBe('1.234.567');
   });
 });

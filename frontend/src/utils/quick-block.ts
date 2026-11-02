@@ -40,3 +40,8 @@ export function stepQuantity(current: string, delta: number): string {
 export function formatPercent(value: number): string {
   return `${String(value).replace('.', ',')} %`;
 }
+
+/** Cantidad con punto de miles también en 4 cifras (es-ES lo omite): 1000 → «1.000». */
+export function formatThousands(n: number): string {
+  return String(Math.round(n)).replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+}

@@ -121,3 +121,10 @@ export function minutesSince(since: string | null, now: Date = new Date()): numb
   const ms = now.getTime() - Date.parse(since);
   return Number.isFinite(ms) && ms > 0 ? Math.floor(ms / 60000) : 0;
 }
+
+/** Etiqueta de estado de la orden: «Produciendo» o «En parada: motivo · 12 min». */
+export function statusLabel(summary: Pick<OrderSummaryData, 'stopped' | 'stopReason'>, stoppedMinutes: number): string {
+  if (!summary.stopped) return 'Produciendo';
+  const reason = summary.stopReason ? `: ${summary.stopReason}` : '';
+  return `En parada${reason} · ${formatMinutes(stoppedMinutes)}`;
+}
