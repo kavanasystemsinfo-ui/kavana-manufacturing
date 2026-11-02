@@ -50,6 +50,8 @@ interface HmiState {
   // Available orders for selection
   availableOrders: AvailableOrder[];
   isLoadingOrders: boolean;
+  /** Petición más reciente cuya respuesta del servidor ya está aplicada; la copia local no puede pisarla. */
+  ordersFreshSeq: number;
   selectedOrderCustomFields: Record<string, any> | null;
   
   // Current tenant governance capabilities (cached offline in Dexie)
@@ -144,6 +146,8 @@ async function loadQueueCounters() {
 // el operario necesita para empezar el turno (su lista de órdenes y la orden que
 // tenía abierta) se guarda aquí y se lee cuando el servidor no está.
 const CLAVE_ORDENES = 'ordenes-disponibles';
+const ORDERS_TIMEOUT_MS = 45000;
+let ordersSeq = 0;
 
 async function guardarCopia(id: string, payload: unknown): Promise<void> {
   try {
@@ -189,6 +193,7 @@ export const useHmiStore = create<HmiState>()((set, get) => ({
   operatorName: null,
   availableOrders: [],
   isLoadingOrders: false,
+  ordersFreshSeq: 0,
   selectedOrderCustomFields: null,
   capabilities: null,
 
@@ -295,16 +300,23 @@ export const useHmiStore = create<HmiState>()((set, get) => ({
     // no responde) la lista sale del dispositivo: en una nave sin cobertura el
     // operario tiene que poder elegir orden igual.
     if (get().isOnline) {
+      const seq = ++ordersSeq;
       set({ isLoadingOrders: true });
       try {
-        const orders = await callApiWithTimeout<AvailableOrder[]>('/api/v1/orders/available');
-        set({ availableOrders: orders ?? [] });
-        await guardarCopia(CLAVE_ORDENES, orders ?? []);
+        // Con el servidor arrancando en frío la primera respuesta tarda más de 15 s.
+        const orders = await callApiWithTimeout<AvailableOrder[]>('/api/v1/orders/available', {}, ORDERS_TIMEOUT_MS);
+        if (seq > get().ordersFreshSeq) {
+          set({ availableOrders: orders ?? [], ordersFreshSeq: seq });
+          await guardarCopia(CLAVE_ORDENES, orders ?? []);
+        }
       } catch (error) {
         console.warn('Failed to load available orders:', error);
-        set({ availableOrders: (await leerCopia<AvailableOrder[]>(CLAVE_ORDENES)) ?? [] });
+        // Si otra petición ya trajo datos del servidor, la copia local sería más vieja.
+        if (get().ordersFreshSeq === 0) {
+          set({ availableOrders: (await leerCopia<AvailableOrder[]>(CLAVE_ORDENES)) ?? [] });
+        }
       } finally {
-        set({ isLoadingOrders: false });
+        if (seq === ordersSeq) set({ isLoadingOrders: false });
       }
       return;
     }
