@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { formatThousands, stepQuantity, toHHMM } from '../../utils/quick-block.js';
+import { formatThousands, roundUpToFive, stepQuantity, toHHMM } from '../../utils/quick-block.js';
 import { CalculatorButtons } from './CalculatorButtons.js';
 
 type Variant = 'classic' | 'kavana';
@@ -148,8 +148,8 @@ export function QuickBlockForm(props: Props) {
               required
               className={s.input}
             />
-            <button type="button" className={`mt-2 ${s.link}`} onClick={() => props.onStartTime(toHHMM(new Date()))}>
-              Poner la hora actual
+            <button type="button" className={`mt-2 ${s.link}`} onClick={() => props.onStartTime(toHHMM(roundUpToFive(new Date())))}>
+              Poner la hora (redondeada)
             </button>
             {startIsSuggested && <p className={s.hint}>Fin del bloque anterior</p>}
           </div>
@@ -161,8 +161,8 @@ export function QuickBlockForm(props: Props) {
               onChange={(e) => props.onEndTime(e.target.value)}
               className={s.input}
             />
-            <button type="button" className={`mt-2 ${s.link}`} onClick={() => props.onEndTime(toHHMM(new Date()))}>
-              Poner la hora actual
+            <button type="button" className={`mt-2 ${s.link}`} onClick={() => props.onEndTime(toHHMM(roundUpToFive(new Date())))}>
+              Poner la hora (redondeada)
             </button>
             {!props.endTime && <p className={s.hint}>Vacío = ahora</p>}
           </div>
