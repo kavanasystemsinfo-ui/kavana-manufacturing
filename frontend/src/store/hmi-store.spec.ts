@@ -225,6 +225,18 @@ describe('HmiStore - copia local de las órdenes', () => {
     expect(useHmiStore.getState().isLoadingOrders).toBe(false);
   });
 
+  it('al elegir una orden se guarda con su producto y al salir se vuelve a la cola', () => {
+    const orden = { ...ORDENES[0], model_name: 'Curls Maíz BBQ 40g', custom_fields: {} };
+    useHmiStore.getState().selectOrder(orden as never);
+    expect(useHmiStore.getState().orderId).toBe('ord-cache');
+    expect(useHmiStore.getState().selectedOrder?.model_name).toBe('Curls Maíz BBQ 40g');
+
+    useHmiStore.getState().leaveOrder();
+    expect(useHmiStore.getState().orderId).toBeNull();
+    expect(useHmiStore.getState().selectedOrder).toBeNull();
+    expect(useHmiStore.getState().activeOrder).toBeNull();
+  });
+
   it('sin red y sin copia, la lista queda vacía sin errores', async () => {
     vi.mocked(localDb.snapshots.get).mockResolvedValue(undefined as never);
     useHmiStore.setState({ isOnline: false });
