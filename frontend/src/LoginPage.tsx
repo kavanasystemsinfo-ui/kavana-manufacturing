@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useThemeStore } from './store/theme-store.js';
 import { ThemeToggle } from './components/ThemeToggle.js';
+import { DemoWakeNotice } from './components/DemoWakeNotice.js';
 import { AiAdvisorFab } from './components/AiAdvisorFab.js';
 
 interface LoginPageProps {
@@ -91,6 +92,7 @@ export function LoginPage({ onLogin }: LoginPageProps) {
           </div>
 
           <form onSubmit={(e) => void handleSubmit(e)} className="space-y-5">
+            <DemoWakeNotice isClassic={isClassic} />
             {error && (
               <div className={`rounded-sm px-4 py-3 text-sm ${isClassic ? 'bg-red-50 border border-red-200 text-red-700' : 'bg-red-900/50 border border-red-500/50 text-red-200'}`}>
                 {error}

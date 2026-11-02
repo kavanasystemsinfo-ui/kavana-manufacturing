@@ -101,7 +101,7 @@ describe('Contrato de rutas /api/v1 en todo el frontend', () => {
   it('el store HMI y el asistente usan rutas versionadas, no legacy', () => {
     const hmi = readSrc('store/hmi-store.ts');
     // Antes de la migración llamaba /production/... y /api/orders/available.
-    expect(hmi).toContain("callApiWithTimeout<AvailableOrder[]>('/api/v1/orders/available')");
+    expect(hmi).toContain("callApiWithTimeout<AvailableOrder[]>('/api/v1/orders/available'");
     expect(hmi).toContain("callApiWithTimeout('/api/v1/production/time-logs/sync'");
     const advisor = readSrc('components/AiAdvisorChat.tsx');
     expect(advisor).toContain("isTech ? '/api/v1/ai-advisor/ask-tech' : '/api/v1/ai-advisor/ask'");
