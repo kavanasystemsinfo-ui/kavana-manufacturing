@@ -48,6 +48,8 @@ import { OrderQueue } from './components/operator/OrderQueue.js';
 import { OrderSummary } from './components/operator/OrderSummary.js';
 import { QuickBlockForm } from './components/operator/QuickBlockForm.js';
 import { suggestBlockStart } from './utils/quick-block.js';
+import { ShiftClose } from './components/operator/ShiftClose.js';
+import { orderLabel } from './utils/order-queue.js';
 import { useOrderLogs } from './hooks/useOrderLogs.js';
 import { summarizeOrder, type SummaryOrder } from './utils/order-summary.js';
 import { OPERATOR_HELP } from './help-content.js';
@@ -153,6 +155,7 @@ export function OperatorPanel() {
 
   const [isEditingFields, setIsEditingFields] = useState(false);
   const [isPauseModalOpen, setIsPauseModalOpen] = useState(false);
+  const [showShift, setShowShift] = useState(false);
 
   const handleConfirmPause = async (reason: string) => {
     const now = new Date().toISOString();
@@ -185,6 +188,23 @@ export function OperatorPanel() {
   // Note: We are using both selectors and hook. This may cause duplication but ensures we have both.
   // For simplicity, we could rely solely on the hook, but the goal was to demonstrate selectors.
   // We'll keep the selectors for state and the hook for actions and derived data.
+
+  if (showShift) {
+    const labelOf = (id: string) => {
+      const o = availableOrders.find((x: { id: string }) => x.id === id);
+      return orderLabel({ id, code: o?.code ?? null });
+    };
+    return (
+      <ShiftClose
+        variant="kavana"
+        operatorName={operatorName ?? null}
+        workstationName={workstationName ?? null}
+        dateLabel={new Date().toLocaleDateString('es-ES', { weekday: 'long', day: '2-digit', month: 'short' })}
+        labelOf={labelOf}
+        onBack={() => setShowShift(false)}
+      />
+    );
+  }
 
   if (!orderId) {
     return (
@@ -225,7 +245,10 @@ export function OperatorPanel() {
             <OrderQueue orders={filteredOrders} searching={orderSearch !== ''} variant="kavana" onSelect={selectOrder} />
           )}
 
-          <div className="mt-6 flex justify-end">
+          <div className="mt-6 flex items-center justify-between gap-3">
+            <button type="button" onClick={() => setShowShift(true)} className="rounded-xl border border-kavana-steel/40 bg-kavana-surface px-5 py-3 text-sm font-bold text-slate-100 hover:bg-kavana-steel/30">
+              Cerrar turno
+            </button>
             <ThemeToggle />
           </div>
         </section>
