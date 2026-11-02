@@ -39,6 +39,12 @@ export async function callApiWithTimeout<T>(url: string, options: RequestInit = 
     }
 
     return (await response.json()) as T;
+  } catch (error) {
+    // Cortar por tiempo no es un fallo del usuario: se dice en claro en vez de «signal is aborted».
+    if (controller.signal.aborted) {
+      throw new Error('El servidor tarda en responder. Inténtalo de nuevo en unos segundos.');
+    }
+    throw error;
   } finally {
     window.clearTimeout(timeout);
   }
