@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { describeBlock, formatMinutes, humanizeReason, minutesSince, summarizeOrder, type SummaryLog } from './order-summary.js';
+import { describeBlock, formatMinutes, humanizeReason, minutesSince, statusLabel, summarizeOrder, type SummaryLog } from './order-summary.js';
 
 const log = (id: string, type: SummaryLog['type'], start: string, end: string, extra: Partial<SummaryLog> = {}): SummaryLog => ({
   id,
@@ -108,5 +108,15 @@ describe('minutesSince', () => {
     expect(minutesSince('2026-11-02T10:30:00Z', now)).toBe(0);
     expect(minutesSince('2026-11-02T11:00:00Z', now)).toBe(0);
     expect(minutesSince(null, now)).toBe(0);
+  });
+});
+
+describe('statusLabel', () => {
+  it('muestra el cronómetro de la parada en curso', () => {
+    expect(statusLabel({ stopped: true, stopReason: 'Falta material' }, 12)).toBe('En parada: Falta material · 12 min');
+    expect(statusLabel({ stopped: true, stopReason: null }, 75)).toBe('En parada · 1 h 15 min');
+  });
+  it('sin parada dice Produciendo', () => {
+    expect(statusLabel({ stopped: false, stopReason: null }, 0)).toBe('Produciendo');
   });
 });
