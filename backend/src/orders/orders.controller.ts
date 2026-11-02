@@ -37,7 +37,7 @@ export class OrdersController {
   async listAvailableOrders() {
     const ctx = getTenantContext();
     const result = await postgresPool.query(
-      `SELECT o.id, o.model_id, o.workstation_id, o.quantity, o.status, o.created_by,
+      `SELECT o.id, o.code, o.model_id, o.workstation_id, o.quantity, o.status, o.created_by,
               o.custom_fields, o.produced_quantity, o.defect_quantity,
               o.created_at, o.updated_at,
               mm.name as model_name,

@@ -44,6 +44,7 @@ import { ThemeToggle } from './components/ThemeToggle.js';
 import { HelpModal } from './components/HelpModal.js';
 import { AiAdvisorFab } from './components/AiAdvisorFab.js';
 import { PauseModal } from './components/operator/PauseModal.js';
+import { OrderQueue } from './components/operator/OrderQueue.js';
 import { OPERATOR_HELP } from './help-content.js';
 import { useState } from 'react';
 import { mapCustomFieldsToUI, type CustomFieldUI } from './utils/customFieldsMapper.js';
@@ -51,16 +52,6 @@ import { buildDraftValues } from './utils/custom-field-values.js';
 import { CustomFieldsEditor } from './components/operator/CustomFieldsEditor.js';
 import { Loading } from './components/ui/Loading.js';
 import { EmptyState } from './components/ui/EmptyState.js';
-
-const statusLabel: Record<string, string> = {
-  pending: 'Pendiente',
-  in_progress: 'En Progreso',
-  completed: 'Completada',
-  cancelled: 'Cancelada',
-  pendiente: 'Pendiente',
-  en_produccion: 'En Producción',
-  completada: 'Completada',
-};
 
 export function OperatorPanel() {
   // Use selectors for state
@@ -223,31 +214,7 @@ export function OperatorPanel() {
           ) : filteredOrders.length === 0 ? (
             <EmptyState title={emptyState.title} description={emptyState.description} />
           ) : (
-            <div className="space-y-3">
-              {filteredOrders.map((order) => (
-                <button
-                  key={order.id}
-                  onClick={() => selectOrder(order)}
-                  className="w-full rounded-xl border border-kavana-steel/20 bg-kavana-surface/60 p-5 text-left transition hover:border-kavana-orange/40 hover:bg-kavana-surface hover:shadow-lg"
-                >
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="text-lg font-bold text-white">{order.model_name ?? 'Sin modelo'}</p>
-                      <p className="mt-1 text-sm text-slate-400">
-                        {order.workstation_name ?? 'Sin puesto'} · Cant: {order.quantity}
-                      </p>
-                    </div>
-                    <span className={`rounded-full px-3 py-1 text-xs font-bold ${
-                      order.status === 'pending'
-                        ? 'bg-amber-500/20 text-amber-300 ring-1 ring-amber-500/40'
-                        : 'bg-blue-500/20 text-blue-300 ring-1 ring-blue-500/40'
-                    }`}>
-                      {statusLabel[order.status] ?? order.status}
-                    </span>
-                  </div>
-                </button>
-              ))}
-            </div>
+            <OrderQueue orders={filteredOrders} searching={orderSearch !== ''} variant="kavana" onSelect={selectOrder} />
           )}
 
           <div className="mt-6 flex justify-end">
