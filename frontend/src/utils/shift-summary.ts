@@ -3,7 +3,7 @@
  * de parada, listo para leer o pasar al compañero del turno siguiente.
  */
 import { calculateShiftKPI, type ShiftKPI } from './shift-kpi.js';
-import { formatMinutes, humanizeReason } from './order-summary.js';
+import { formatMinutes, humanizeReason, nextStartMs, stopMinutesOf } from './order-summary.js';
 import { formatThousands } from './quick-block.js';
 
 export interface ShiftLog {
@@ -43,21 +43,6 @@ function num(value: number | string | null | undefined): number {
   return Number.isFinite(n) ? n : 0;
 }
 
-function minutesBetween(startMs: number, endMs: number): number {
-  return Number.isFinite(startMs) && Number.isFinite(endMs) && endMs > startMs ? (endMs - startMs) / 60000 : 0;
-}
-
-/**
- * Una parada se registra con inicio = fin (el instante en que se pulsa), así que
- * dura hasta que empieza el bloque siguiente; la última, hasta `now`.
- */
-function stopMinutesOf(log: ShiftLog, nextStartMs: number | null, nowMs: number): number {
-  const start = Date.parse(log.start_time);
-  const declared = minutesBetween(start, Date.parse(log.end_time));
-  const untilNext = minutesBetween(start, nextStartMs ?? nowMs);
-  return Math.max(declared, untilNext);
-}
-
 export function summarizeShift(logs: ShiftLog[], labelOf: (orderId: string) => string, now: Date = new Date()): ShiftSummary {
   const sorted = [...logs].sort((a, b) => Date.parse(a.start_time) - Date.parse(b.start_time));
   const orders = new Map<string, ShiftOrderRow>();
@@ -80,8 +65,7 @@ export function summarizeShift(logs: ShiftLog[], labelOf: (orderId: string) => s
       r.defects += num(log.defect_quantity);
       return;
     }
-    const next = sorted.slice(i + 1).find((l) => Date.parse(l.start_time) > Date.parse(log.start_time));
-    const minutes = stopMinutesOf(log, next ? Date.parse(next.start_time) : null, now.getTime());
+    const minutes = stopMinutesOf(log, nextStartMs(sorted, i), now.getTime());
     r.stops += 1;
     r.stopMinutes += minutes;
     stopMinutes += minutes;
