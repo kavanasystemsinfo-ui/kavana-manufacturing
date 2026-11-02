@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useThemeStore } from './store/theme-store.js';
 import { ThemeToggle } from './components/ThemeToggle.js';
+import { DemoWakeNotice } from './components/DemoWakeNotice.js';
 import { AiAdvisorFab } from './components/AiAdvisorFab.js';
 
 interface TenantLoginProps {
@@ -118,6 +119,7 @@ export function TenantLogin({ subdomain, onLogin }: TenantLoginProps) {
         )}
 
         <form onSubmit={(e) => void handleLogin(e)} className="space-y-4">
+          <DemoWakeNotice isClassic={isClassic} />
           <div>
             <label className={`block text-sm font-medium mb-1 ${isClassic ? 'text-gray-700' : 'text-gray-300'}`}>Usuario</label>
             <input
