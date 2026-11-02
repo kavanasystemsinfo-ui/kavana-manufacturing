@@ -42,14 +42,17 @@ export function buildOrderQueue<T extends QueueOrder>(orders: T[], limit: number
   return { inProgress, next: pending.slice(0, limit), backlog: pending.slice(limit) };
 }
 
-/** Código legible; si la orden no lo tiene, los 8 primeros caracteres del id. */
+/** Etiqueta de la orden: «Orden 4283» si el código es numérico; si no, el código tal cual; sin código, #id corto. */
 export function orderLabel(order: Pick<QueueOrder, 'id' | 'code'>): string {
-  return order.code?.trim() || `#${order.id.slice(0, 8)}`;
+  const code = order.code?.trim();
+  if (!code) return `#${order.id.slice(0, 8)}`;
+  return /^\d+$/.test(code) ? `Orden ${code}` : code;
 }
 
-/** Cantidad con separador de miles y unidad: 357.120 uds. */
+/** Cantidad con punto de miles también en 4 cifras (es-ES lo omite) y unidad: 8.108 uds. */
 export function formatQuantity(value: number | string | null | undefined): string {
-  return `${Math.round(toNumber(value)).toLocaleString('es-ES')} uds`;
+  const n = String(Math.round(toNumber(value))).replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+  return `${n} uds`;
 }
 
 /** Avance 0-100 de lo producido sobre lo previsto; nunca pasa de 100. */
