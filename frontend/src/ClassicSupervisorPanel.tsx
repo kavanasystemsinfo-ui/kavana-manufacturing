@@ -248,7 +248,7 @@ export function ClassicSupervisorPanel() {
               <div className="flex items-center gap-3">
                 <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-white text-kavana-dark font-bold text-sm">KV</div>
                 <div>
-                  <p className="text-xs font-bold uppercase tracking-wider text-kavana-orange-light">Kavana Manufacturing</p>
+                  <p className="text-xs font-bold uppercase tracking-wider text-kavana-orange-light">Manufacturing</p>
                   <h1 className="text-lg font-semibold text-white">Panel de Supervisión</h1>
                   <p className="text-xs text-gray-300">{new Date().toLocaleDateString('es-ES', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}</p>
                 </div>

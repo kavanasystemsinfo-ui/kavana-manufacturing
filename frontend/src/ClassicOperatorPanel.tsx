@@ -91,7 +91,7 @@ export function ClassicOperatorPanel() {
             <div className="flex items-center gap-3">
               <img src={logo} alt="Logo" className="h-10 w-10 rounded-lg bg-white p-1" />
               <div>
-                <p className="text-xs font-bold uppercase tracking-wider text-kavana-orange-light">Kavana Manufacturing</p>
+                <p className="text-xs font-bold uppercase tracking-wider text-kavana-orange-light">Manufacturing</p>
                 <h1 className="text-lg font-semibold text-white">Seleccionar Orden</h1>
                 <p className="text-xs text-gray-400">{operatorName} {workstationName ? `· ${workstationName}` : ''}</p>
               </div>
@@ -147,7 +147,7 @@ export function ClassicOperatorPanel() {
             <div className="flex items-center gap-3">
               <img src={logo} alt="Logo" className="h-10 w-10 rounded-lg bg-white p-1" />
               <div>
-                <p className="text-xs font-bold uppercase tracking-wider text-kavana-orange-light">Kavana Manufacturing</p>
+                <p className="text-xs font-bold uppercase tracking-wider text-kavana-orange-light">Manufacturing</p>
                 <h1 className="text-lg font-semibold text-white">Panel de Operario</h1>
                 <p className="text-xs text-gray-400">{dateLabel}</p>
               </div>

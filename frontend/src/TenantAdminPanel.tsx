@@ -34,7 +34,7 @@ export function TenantAdminPanel() {
             />
             <div>
               <p className="text-sm font-bold uppercase tracking-[0.32em] text-emerald-400">Panel Admin</p>
-              <h1 className="mt-2 text-3xl font-black tracking-tight text-white md:text-5xl">Gobernanza Tenant</h1>
+              <h1 className="mt-2 text-3xl font-black tracking-tight text-white md:text-5xl">Datos de la empresa</h1>
             </div>
           </div>
           <div className="flex gap-3">
@@ -67,7 +67,7 @@ export function TenantAdminPanel() {
           <div className="grid gap-8">
             <div className="flex flex-wrap gap-4 rounded-2xl bg-kavana-dark/70 p-5 ring-1 ring-kavana-steel/30">
               <div>
-                <p className="text-xs font-bold uppercase tracking-widest text-slate-400">Tenant ID</p>
+                <p className="text-xs font-bold uppercase tracking-widest text-slate-400">Código de la empresa</p>
                 <p className="text-xl font-black text-white">{capabilities.tenantId}</p>
               </div>
               <div className="h-10 w-px bg-kavana-steel/30"></div>
