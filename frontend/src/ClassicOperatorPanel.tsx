@@ -7,6 +7,7 @@ import { ThemeToggle } from './components/ThemeToggle.js';
 import { HelpModal } from './components/HelpModal.js';
 import { IncidenciaModal } from './components/operator/IncidenciaModal.js';
 import { PauseModal } from './components/operator/PauseModal.js';
+import { OrderQueue } from './components/operator/OrderQueue.js';
 import { OPERATOR_HELP } from './help-content.js';
 import { mapCustomFieldsToUI, type CustomFieldUI } from './utils/customFieldsMapper.js';
 import { ordersEmptyState } from './utils/orders-empty-state.js';
@@ -119,31 +120,7 @@ export function ClassicOperatorPanel() {
               <p className="mt-1 text-sm text-slate-500">{emptyState.description}</p>
             </div>
           ) : (
-            <div className="space-y-3">
-              {filteredOrders.map((order) => (
-                <button
-                  key={order.id}
-                  onClick={() => selectOrder(order)}
-                  className="w-full rounded-lg border border-slate-200 bg-white p-5 text-left shadow-sm transition hover:border-kavana-orange hover:shadow-md"
-                >
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="font-medium text-slate-900">{order.model_name ?? 'Sin modelo'}</p>
-                      <p className="mt-1 text-sm text-slate-500">
-                        {order.workstation_name ?? 'Sin puesto'} · Cant: {order.quantity}
-                      </p>
-                    </div>
-                    <span className={`rounded-full px-2 py-1 text-xs font-medium ${
-                      order.status === 'pending'
-                        ? 'bg-amber-100 text-amber-700'
-                        : 'bg-orange-100 text-orange-700'
-                    }`}>
-                      {statusLabels[order.status] ?? order.status}
-                    </span>
-                  </div>
-                </button>
-              ))}
-            </div>
+            <OrderQueue orders={filteredOrders} searching={orderSearch !== ''} variant="classic" onSelect={selectOrder} />
           )}
 
           <div className="mt-6 flex justify-end">
