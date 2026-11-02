@@ -1,8 +1,9 @@
 const API_TIMEOUT_MS = 15000;
 
-export async function callApiWithTimeout<T>(url: string, options: RequestInit = {}): Promise<T> {
+/** `timeoutMs` permite esperar más en las cargas de pantalla, donde el servidor puede estar arrancando en frío. */
+export async function callApiWithTimeout<T>(url: string, options: RequestInit = {}, timeoutMs: number = API_TIMEOUT_MS): Promise<T> {
   const controller = new AbortController();
-  const timeout = window.setTimeout(() => controller.abort(), API_TIMEOUT_MS);
+  const timeout = window.setTimeout(() => controller.abort(), timeoutMs);
 
   const token = typeof localStorage !== 'undefined' ? (localStorage.getItem('kavana_dev_token') || 'mock-token') : 'mock-token';
   const authHeader: Record<string, string> = token ? { Authorization: `Bearer ${token}` } : {};
