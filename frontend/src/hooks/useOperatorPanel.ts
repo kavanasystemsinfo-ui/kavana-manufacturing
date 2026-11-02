@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useHmiStore, triggerSyncEngine } from '../store/hmi-store.js';
 import { mapCustomFieldsToUI } from '../utils/customFieldsMapper.js';
+import { toHHMM } from '../utils/quick-block.js';
 import { buildPayload } from '../utils/custom-field-values.js';
 import {
   useStartTime,
@@ -106,7 +107,7 @@ export function useOperatorPanel(): OperatorPanelState {
   // New store selectors
   const startTime = useStartTime();
   const setStartTime = useSetStartTime();
-  const endTime = useEndTime();
+  const endTimeInput = useEndTime();
   const setEndTime = useSetEndTime();
   const producedQuantity = useProducedQuantity();
   const setProducedQuantity = useSetProducedQuantity();
@@ -158,13 +159,15 @@ export function useOperatorPanel(): OperatorPanelState {
   const handleRegisterBlock = async (e: React.FormEvent) => {
     e.preventDefault();
     setErrorMsg('');
+    // Sin hora de fin escrita, el bloque acaba ahora.
+    const endTime = endTimeInput || toHHMM(new Date());
     const timeError = validateWorkBlockTimes(startTime, endTime);
     if (timeError) { setErrorMsg(timeError); return; }
     const startD = parseTimeStr(startTime);
     const endD = parseTimeStr(endTime);
     if (endD < startD) endD.setDate(endD.getDate() + 1);
     if (endD <= startD) { setErrorMsg('La hora de fin debe ser posterior a la de inicio.'); return; }
-    if (!producedQuantity || Number(producedQuantity) < 0) { setErrorMsg('Debes introducir la cantidad producida.'); return; }
+    if (!producedQuantity || Number(producedQuantity) < 0) { setErrorMsg('Indica cuántas piezas buenas has hecho en este bloque.'); return; }
     await hmi.registerWorkBlock('produccion', startD.toISOString(), endD.toISOString(), null, Number(producedQuantity), Number(defectQuantity), observations.trim() || null);
     
     // Guardar último bloque para "Repetir"
@@ -235,7 +238,7 @@ export function useOperatorPanel(): OperatorPanelState {
     isFailedLogsModalOpen, setIsFailedLogsModalOpen,
     isIncidenciaModalOpen, setIsIncidenciaModalOpen,
     orderSearch, setOrderSearch,
-    startTime, setStartTime, endTime, setEndTime,
+    startTime, setStartTime, endTime: endTimeInput, setEndTime,
     producedQuantity, setProducedQuantity,
     defectQuantity, setDefectQuantity,
     observations, setObservations,

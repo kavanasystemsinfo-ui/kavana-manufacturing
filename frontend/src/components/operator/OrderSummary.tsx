@@ -1,5 +1,6 @@
 import { describeBlock, formatMinutes, type OrderSummaryData } from '../../utils/order-summary.js';
 import { orderLabel } from '../../utils/order-queue.js';
+import { formatPercent } from '../../utils/quick-block.js';
 
 type Variant = 'classic' | 'kavana';
 
@@ -96,7 +97,7 @@ export function OrderSummary({ variant, order, productName, workstationName, ope
         <div className={s.stat}>
           <p className={s.label}>Defectos</p>
           <p className={`text-lg font-semibold ${s.big}`}>
-            {uds(summary.defects)} <span className="text-sm font-normal opacity-70">({summary.defectRate} %)</span>
+            {uds(summary.defects)} <span className="text-sm font-normal opacity-70">({formatPercent(summary.defectRate)})</span>
           </p>
         </div>
         <div className={s.stat}>

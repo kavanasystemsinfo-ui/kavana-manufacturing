@@ -9,6 +9,8 @@ import { IncidenciaModal } from './components/operator/IncidenciaModal.js';
 import { PauseModal } from './components/operator/PauseModal.js';
 import { OrderQueue } from './components/operator/OrderQueue.js';
 import { OrderSummary } from './components/operator/OrderSummary.js';
+import { QuickBlockForm } from './components/operator/QuickBlockForm.js';
+import { suggestBlockStart } from './utils/quick-block.js';
 import { useOrderLogs } from './hooks/useOrderLogs.js';
 import { summarizeOrder } from './utils/order-summary.js';
 import { OPERATOR_HELP } from './help-content.js';
@@ -224,74 +226,23 @@ export function ClassicOperatorPanel() {
           </div>
         )}
 
-        {/* Formulario de registro */}
-        <div className="rounded-lg border border-slate-200 bg-white shadow-sm">
-          <div className="border-b border-slate-200 bg-slate-50 px-4 py-3">
-            <h2 className="text-sm font-semibold text-slate-900">Registrar Bloque de Tiempo</h2>
-          </div>
-          <form onSubmit={handleRegisterBlock} className="p-4">
-            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-              <div>
-                <label className="block text-sm font-medium text-slate-700">Hora Inicio</label>
-                <input
-                  type="time"
-                  value={startTime}
-                  onChange={(e) => setStartTime(e.target.value)}
-                  required
-                  className="mt-1 block w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm shadow-sm focus:border-kavana-orange focus:ring-1 focus:ring-kavana-orange"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-slate-700">Hora Fin</label>
-                <input
-                  type="time"
-                  value={endTime}
-                  onChange={(e) => setEndTime(e.target.value)}
-                  required
-                  className="mt-1 block w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm shadow-sm focus:border-kavana-orange focus:ring-1 focus:ring-kavana-orange"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-slate-700">Producción Buena</label>
-                <input
-                  type="number"
-                  value={producedQuantity}
-                  onChange={(e) => setProducedQuantity(e.target.value)}
-                  min="0"
-                  className="mt-1 block w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm shadow-sm focus:border-kavana-orange focus:ring-1 focus:ring-kavana-orange"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-slate-700">Defectos</label>
-                <input
-                  type="number"
-                  value={defectQuantity}
-                  onChange={(e) => setDefectQuantity(e.target.value)}
-                  min="0"
-                  className="mt-1 block w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm shadow-sm focus:border-kavana-orange focus:ring-1 focus:ring-kavana-orange"
-                />
-              </div>
-            </div>
-            <div className="mt-4">
-              <label className="block text-sm font-medium text-slate-700">Observaciones</label>
-              <textarea
-                value={observations}
-                onChange={(e) => setObservations(e.target.value)}
-                rows={4}
-                className="mt-1 block w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm shadow-sm focus:border-kavana-orange focus:ring-1 focus:ring-kavana-orange resize-none"
-              />
-            </div>
-            <div className="mt-4">
-              <button
-                type="submit"
-                disabled={isMutating || isSyncing}
-                className="inline-flex items-center gap-2 rounded-md bg-kavana-orange px-6 py-5 text-base font-medium text-white shadow-sm hover:bg-kavana-orange-light focus:outline-none focus:ring-2 focus:ring-kavana-orange focus:ring-offset-2 disabled:opacity-50"
-              >
-                {isMutating ? 'Guardando...' : 'Registrar Producción'}
-              </button>
-            </div>
-          </form>
-        </div>
+        {/* Registro rápido */}
+        <QuickBlockForm
+          variant="classic"
+          startTime={startTime}
+          endTime={endTime}
+          producedQuantity={producedQuantity}
+          defectQuantity={defectQuantity}
+          observations={observations}
+          suggestedStart={suggestBlockStart(orderLogs)}
+          busy={isMutating || isSyncing}
+          onStartTime={setStartTime}
+          onEndTime={setEndTime}
+          onProduced={setProducedQuantity}
+          onDefects={setDefectQuantity}
+          onObservations={setObservations}
+          onSubmit={handleRegisterBlock}
+          />
 
       {isFailedLogsModalOpen && (
         <FailedEventsModal

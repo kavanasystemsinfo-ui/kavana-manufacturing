@@ -46,6 +46,8 @@ import { AiAdvisorFab } from './components/AiAdvisorFab.js';
 import { PauseModal } from './components/operator/PauseModal.js';
 import { OrderQueue } from './components/operator/OrderQueue.js';
 import { OrderSummary } from './components/operator/OrderSummary.js';
+import { QuickBlockForm } from './components/operator/QuickBlockForm.js';
+import { suggestBlockStart } from './utils/quick-block.js';
 import { useOrderLogs } from './hooks/useOrderLogs.js';
 import { summarizeOrder, type SummaryOrder } from './utils/order-summary.js';
 import { OPERATOR_HELP } from './help-content.js';
@@ -374,86 +376,23 @@ export function OperatorPanel() {
                   {errorMsg}
                 </div>
               )}
-              <div className="rounded-2xl border-2 border-kavana-orange/40 bg-kavana-dark/70 p-5 shadow-inner">
-                <div className="mb-4 flex items-center justify-between gap-3">
-                  <p className="text-sm font-bold uppercase tracking-[0.24em] text-slate-400">Registrar Bloque de Tiempo</p>
-                  {lastBlock && (
-                    <button
-                      type="button"
-                      onClick={repeatLastBlock}
-                      title="Rellena el formulario con el último bloque declarado y pone la hora de fin a ahora"
-                      className="rounded-lg border border-kavana-orange/50 px-3 py-2 text-xs font-bold uppercase tracking-wider text-kavana-orange transition hover:bg-kavana-orange/10"
-                    >
-                      Repetir último bloque
-                    </button>
-                  )}
-                </div>
-                <form onSubmit={handleRegisterBlock} className="flex flex-col gap-4">
-                  <div className="grid grid-cols-2 gap-4">
-                    <div>
-                      <label className="block text-xs font-bold uppercase tracking-wider text-slate-400 mb-1">Hora Inicio</label>
-                      <input
-                        type="time"
-                        value={startTime}
-                        onChange={(e) => setStartTime(e.target.value)}
-                        required
-                        className="w-full rounded-xl border border-kavana-steel/30 bg-kavana-surface px-4 py-3 text-sm font-medium text-white placeholder-slate-500 focus:border-kavana-orange focus:outline-none"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-xs font-bold uppercase tracking-wider text-slate-400 mb-1">Hora Fin</label>
-                      <input
-                        type="time"
-                        value={endTime}
-                        onChange={(e) => setEndTime(e.target.value)}
-                        required
-                        className="w-full rounded-xl border border-kavana-steel/30 bg-kavana-surface px-4 py-3 text-sm font-medium text-white placeholder-slate-500 focus:border-kavana-orange focus:outline-none"
-                      />
-                    </div>
-                  </div>
-
-                  <div className="grid grid-cols-2 gap-4">
-                    <div>
-                      <label className="block text-xs font-bold uppercase tracking-wider text-slate-400 mb-1">Producción Buena</label>
-                      <input
-                        type="number"
-                        value={producedQuantity}
-                        onChange={(e) => setProducedQuantity(e.target.value)}
-                        min="0"
-                        className="w-full rounded-xl border border-kavana-steel/30 bg-kavana-surface px-4 py-3 text-sm font-medium text-white focus:border-kavana-orange focus:outline-none"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-xs font-bold uppercase tracking-wider text-slate-400 mb-1">Defectos</label>
-                      <input
-                        type="number"
-                        value={defectQuantity}
-                        onChange={(e) => setDefectQuantity(e.target.value)}
-                        min="0"
-                        className="w-full rounded-xl border border-kavana-steel/30 bg-kavana-surface px-4 py-3 text-sm font-medium text-white focus:border-kavana-orange focus:outline-none"
-                      />
-                    </div>
-                  </div>
-
-                  <div>
-                    <label className="block text-xs font-bold uppercase tracking-wider text-slate-400 mb-1">Observaciones</label>
-                    <textarea
-                      value={observations}
-                      onChange={(e) => setObservations(e.target.value)}
-                      rows={4}
-                      className="w-full rounded-xl border border-kavana-steel/30 bg-kavana-surface px-4 py-3 text-sm font-medium text-white placeholder-slate-500 focus:border-kavana-orange focus:outline-none resize-none"
-                    />
-                  </div>
-
-                  <button
-                    type="submit"
-                    disabled={isMutating || isSyncing}
-                    className="mt-2 w-full rounded-xl bg-[#A84A1A] px-6 py-4 text-base font-black uppercase tracking-wider text-white transition hover:bg-[#BC5B2F] disabled:opacity-50"
-                  >
-                    {isMutating ? 'Guardando...' : 'Registrar Producción'}
-                  </button>
-                </form>
-              </div>
+              <QuickBlockForm
+                variant="kavana"
+                startTime={startTime}
+                endTime={endTime}
+                producedQuantity={producedQuantity}
+                defectQuantity={defectQuantity}
+                observations={observations}
+                suggestedStart={suggestBlockStart(orderLogs)}
+                busy={isMutating || isSyncing}
+                onStartTime={setStartTime}
+                onEndTime={setEndTime}
+                onProduced={setProducedQuantity}
+                onDefects={setDefectQuantity}
+                onObservations={setObservations}
+                onSubmit={handleRegisterBlock}
+                onRepeat={lastBlock ? repeatLastBlock : null}
+                />
             </div>
           </section>
 
