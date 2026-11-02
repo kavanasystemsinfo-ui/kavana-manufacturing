@@ -13,9 +13,18 @@ export function toHHMM(date: Date): string {
   return `${pad(date.getHours())}:${pad(date.getMinutes())}`;
 }
 
+/** Minutos a los que se redondean las horas que pone el botón «hora actual». */
+export const ROUND_MINUTES = 5;
+
+/** Redondea al alza al siguiente múltiplo de 5 minutos: 19:51 → 19:55, 19:56 → 20:00; 19:50 se queda. */
+export function roundUpToFive(date: Date): Date {
+  const ms = ROUND_MINUTES * 60000;
+  return new Date(Math.ceil(date.getTime() / ms) * ms);
+}
+
 /**
  * Hora de inicio sugerida: el final del último bloque de hoy (producción o
- * parada con duración), siempre que no sea posterior a «ahora». Sin bloques de
+ * parada con duración), siempre que no sea posterior a «ahora» más el redondeo. Sin bloques de
  * hoy no hay sugerencia y el operario la escribe.
  */
 export function suggestBlockStart(logs: SummaryLog[], now: Date = new Date()): string | null {
@@ -23,7 +32,7 @@ export function suggestBlockStart(logs: SummaryLog[], now: Date = new Date()): s
   let best: Date | null = null;
   for (const log of logs) {
     const end = new Date(log.end_time);
-    if (Number.isNaN(end.getTime()) || end.toDateString() !== today || end > now) continue;
+    if (Number.isNaN(end.getTime()) || end.toDateString() !== today || end.getTime() > now.getTime() + ROUND_MINUTES * 60000) continue;
     if (!best || end > best) best = end;
   }
   return best ? toHHMM(best) : null;
