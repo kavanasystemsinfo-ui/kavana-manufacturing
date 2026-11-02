@@ -57,16 +57,40 @@ function byStartDesc(a: SummaryLog, b: SummaryLog): number {
   return d !== 0 ? d : Date.parse(b.end_time) - Date.parse(a.end_time);
 }
 
-export function summarizeOrder(order: SummaryOrder, logs: SummaryLog[]): OrderSummaryData {
+function minutesBetween(startMs: number, endMs: number): number {
+  return Number.isFinite(startMs) && Number.isFinite(endMs) && endMs > startMs ? (endMs - startMs) / 60000 : 0;
+}
+
+/**
+ * Una parada se registra con inicio = fin (el instante en que se pulsa), así que
+ * dura hasta que empieza el bloque siguiente; la última, hasta `nowMs`. Si el
+ * bloque declara una duración mayor, vale esa.
+ */
+export function stopMinutesOf(log: { start_time: string; end_time: string }, nextStartMs: number | null, nowMs: number): number {
+  const start = Date.parse(log.start_time);
+  const declared = minutesBetween(start, Date.parse(log.end_time));
+  const untilNext = minutesBetween(start, nextStartMs ?? nowMs);
+  return Math.max(declared, untilNext);
+}
+
+/** Inicio del primer bloque posterior al dado, o null si es el último. */
+export function nextStartMs(sortedAsc: Array<{ start_time: string }>, index: number): number | null {
+  const from = Date.parse(sortedAsc[index].start_time);
+  const next = sortedAsc.slice(index + 1).find((l) => Date.parse(l.start_time) > from);
+  return next ? Date.parse(next.start_time) : null;
+}
+
+export function summarizeOrder(order: SummaryOrder, logs: SummaryLog[], now: Date = new Date()): OrderSummaryData {
   const planned = num(order.quantity);
   const produced = num(order.produced_quantity);
   const defects = num(order.defect_quantity);
   const sorted = [...logs].sort(byStartDesc);
   const paradas = logs.filter((l) => l.type === 'parada');
-  const stopMinutes = paradas.reduce((sum, l) => {
-    const ms = Date.parse(l.end_time) - Date.parse(l.start_time);
-    return sum + (Number.isFinite(ms) && ms > 0 ? ms / 60000 : 0);
-  }, 0);
+  const asc = [...logs].sort((a, b) => Date.parse(a.start_time) - Date.parse(b.start_time));
+  const stopMinutes = asc.reduce(
+    (sum, l, i) => (l.type === 'parada' ? sum + stopMinutesOf(l, nextStartMs(asc, i), now.getTime()) : sum),
+    0,
+  );
   const last = sorted[0];
   const made = produced + defects;
   return {
