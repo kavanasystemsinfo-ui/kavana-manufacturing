@@ -49,7 +49,7 @@ import { OrderSummary } from './components/operator/OrderSummary.js';
 import { QuickBlockForm } from './components/operator/QuickBlockForm.js';
 import { suggestBlockStart } from './utils/quick-block.js';
 import { ShiftClose } from './components/operator/ShiftClose.js';
-import { orderLabel } from './utils/order-queue.js';
+import { useOperatorActions } from './hooks/useOperatorActions.js';
 import { useOrderLogs } from './hooks/useOrderLogs.js';
 import { summarizeOrder, type SummaryOrder } from './utils/order-summary.js';
 import { OPERATOR_HELP } from './help-content.js';
@@ -139,7 +139,6 @@ export function OperatorPanel() {
     assignedWorkstationName,
     loadAvailableOrders,
     selectOrder,
-    registerWorkBlock,
     lastBlock,
     repeatLastBlock,
   } = useOperatorPanel();
@@ -154,52 +153,28 @@ export function OperatorPanel() {
   const { kpi: shiftKpi, isLoading: isShiftKpiLoading, error: shiftKpiError, refresh: refreshShiftKpi } = useMyShiftKPI();
 
   const [isEditingFields, setIsEditingFields] = useState(false);
-  const [isPauseModalOpen, setIsPauseModalOpen] = useState(false);
-  const [showShift, setShowShift] = useState(false);
-
-  const handleConfirmPause = async (reason: string) => {
-    const now = new Date().toISOString();
-    await registerWorkBlock(
-      'parada',
-      now,
-      now,
-      reason,
-      0,
-      0,
-      null
-    );
-    setIsPauseModalOpen(false);
-  };
-
-  const handleResume = async () => {
-    const now = new Date().toISOString();
-    const oneMinuteLater = new Date(Date.now() + 60 * 1000).toISOString();
-    await registerWorkBlock(
-      'produccion',
-      now,
-      oneMinuteLater,
-      null,
-      0,
-      0,
-      null
-    );
-  };
+  const {
+    isPauseModalOpen,
+    setIsPauseModalOpen,
+    showShift,
+    setShowShift,
+    handleConfirmPause,
+    handleResume,
+    labelOf,
+    dateLabel,
+  } = useOperatorActions(availableOrders);
 
   // Note: We are using both selectors and hook. This may cause duplication but ensures we have both.
   // For simplicity, we could rely solely on the hook, but the goal was to demonstrate selectors.
   // We'll keep the selectors for state and the hook for actions and derived data.
 
   if (showShift) {
-    const labelOf = (id: string) => {
-      const o = availableOrders.find((x: { id: string }) => x.id === id);
-      return orderLabel({ id, code: o?.code ?? null });
-    };
     return (
       <ShiftClose
         variant="kavana"
         operatorName={operatorName ?? null}
         workstationName={workstationName ?? null}
-        dateLabel={new Date().toLocaleDateString('es-ES', { weekday: 'long', day: '2-digit', month: 'short' })}
+        dateLabel={dateLabel}
         labelOf={labelOf}
         onBack={() => setShowShift(false)}
       />
