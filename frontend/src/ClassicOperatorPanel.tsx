@@ -11,6 +11,8 @@ import { OrderQueue } from './components/operator/OrderQueue.js';
 import { OrderSummary } from './components/operator/OrderSummary.js';
 import { QuickBlockForm } from './components/operator/QuickBlockForm.js';
 import { suggestBlockStart } from './utils/quick-block.js';
+import { ShiftClose } from './components/operator/ShiftClose.js';
+import { orderLabel } from './utils/order-queue.js';
 import { useOrderLogs } from './hooks/useOrderLogs.js';
 import { summarizeOrder } from './utils/order-summary.js';
 import { OPERATOR_HELP } from './help-content.js';
@@ -49,6 +51,7 @@ export function ClassicOperatorPanel() {
   } = useOperatorPanel();
   const [isPauseModalOpen, setIsPauseModalOpen] = useState(false);
   const [isIncidenciaModalOpen, setIsIncidenciaModalOpen] = useState(false);
+  const [showShift, setShowShift] = useState(false);
 
   const selectedOrder = useHmiStore((s) => s.selectedOrder);
   const { logs: orderLogs } = useOrderLogs(orderId ?? null);
@@ -87,6 +90,23 @@ export function ClassicOperatorPanel() {
 
   const handleOpenIncidenciaModal = () => setIsIncidenciaModalOpen(true);
   const handleCloseIncidenciaModal = () => setIsIncidenciaModalOpen(false);
+
+  if (showShift) {
+    const labelOf = (id: string) => {
+      const o = availableOrders.find((x: { id: string }) => x.id === id);
+      return orderLabel({ id, code: o?.code ?? null });
+    };
+    return (
+      <ShiftClose
+        variant="classic"
+        operatorName={operatorName ?? null}
+        workstationName={workstationName ?? null}
+        dateLabel={new Date().toLocaleDateString('es-ES', { weekday: 'long', day: '2-digit', month: 'short' })}
+        labelOf={labelOf}
+        onBack={() => setShowShift(false)}
+      />
+    );
+  }
 
   if (!orderId) {
     return (
@@ -132,7 +152,10 @@ export function ClassicOperatorPanel() {
             <OrderQueue orders={filteredOrders} searching={orderSearch !== ''} variant="classic" onSelect={selectOrder} />
           )}
 
-          <div className="mt-6 flex justify-end">
+          <div className="mt-6 flex items-center justify-between gap-3">
+            <button type="button" onClick={() => setShowShift(true)} className="rounded-lg border border-slate-300 bg-white px-5 py-3 text-sm font-semibold text-slate-700 hover:bg-slate-100">
+              Cerrar turno
+            </button>
             <ThemeToggle />
           </div>
         </main>
