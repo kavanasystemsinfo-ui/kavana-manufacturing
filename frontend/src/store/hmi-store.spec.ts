@@ -167,7 +167,7 @@ describe('HmiStore - copia local de las órdenes', () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
-    useHmiStore.setState({ isOnline: true, availableOrders: [], isLoadingOrders: false, tenantId: '1' });
+    useHmiStore.setState({ isOnline: true, availableOrders: [], isLoadingOrders: false, ordersFreshSeq: 0, tenantId: '1' });
   });
 
   it('con red, guarda la lista para cuando no haya red', async () => {
@@ -203,6 +203,25 @@ describe('HmiStore - copia local de las órdenes', () => {
     await useHmiStore.getState().loadAvailableOrders();
 
     expect(useHmiStore.getState().availableOrders).toEqual(ORDENES);
+    expect(useHmiStore.getState().isLoadingOrders).toBe(false);
+  });
+
+  it('una petición lenta que falla no pisa con la copia vieja lo que otra ya trajo del servidor', async () => {
+    const NUEVAS = [{ ...ORDENES[0], id: 'ord-nueva', code: '4469' }];
+    let rechazarLenta!: (e: Error) => void;
+    vi.mocked(callApiWithTimeout)
+      .mockImplementationOnce(() => new Promise((_, reject) => { rechazarLenta = reject; }) as never)
+      .mockResolvedValueOnce(NUEVAS as never);
+    vi.mocked(localDb.snapshots.get).mockResolvedValue({ id: 'ordenes-disponibles', payload: ORDENES } as never);
+
+    const lenta = useHmiStore.getState().loadAvailableOrders();
+    await useHmiStore.getState().loadAvailableOrders();
+    expect(useHmiStore.getState().availableOrders).toEqual(NUEVAS);
+
+    rechazarLenta(new Error('timeout'));
+    await lenta;
+
+    expect(useHmiStore.getState().availableOrders).toEqual(NUEVAS);
     expect(useHmiStore.getState().isLoadingOrders).toBe(false);
   });
 
