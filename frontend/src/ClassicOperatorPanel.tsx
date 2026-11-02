@@ -8,6 +8,9 @@ import { HelpModal } from './components/HelpModal.js';
 import { IncidenciaModal } from './components/operator/IncidenciaModal.js';
 import { PauseModal } from './components/operator/PauseModal.js';
 import { OrderQueue } from './components/operator/OrderQueue.js';
+import { OrderSummary } from './components/operator/OrderSummary.js';
+import { useOrderLogs } from './hooks/useOrderLogs.js';
+import { summarizeOrder } from './utils/order-summary.js';
 import { OPERATOR_HELP } from './help-content.js';
 import { mapCustomFieldsToUI, type CustomFieldUI } from './utils/customFieldsMapper.js';
 import { ordersEmptyState } from './utils/orders-empty-state.js';
@@ -44,6 +47,10 @@ export function ClassicOperatorPanel() {
   } = useOperatorPanel();
   const [isPauseModalOpen, setIsPauseModalOpen] = useState(false);
   const [isIncidenciaModalOpen, setIsIncidenciaModalOpen] = useState(false);
+
+  const selectedOrder = useHmiStore((s) => s.selectedOrder);
+  const { logs: orderLogs } = useOrderLogs(orderId ?? null);
+  const summary = summarizeOrder(activeOrder ?? selectedOrder ?? { quantity: 0 }, orderLogs);
 
   const emptyState = ordersEmptyState(orderSearch, assignedWorkstationName);
   const dateLabel = new Date().toLocaleDateString('es-ES', { weekday: 'long', day: '2-digit', month: 'short' });
@@ -184,25 +191,18 @@ export function ClassicOperatorPanel() {
       </header>
 
       <main className="mx-auto w-[90%] px-4 py-6 sm:px-6 lg:px-8">
-        {/* Estado actual */}
-        <div className="mb-6 grid grid-cols-1 gap-4 sm:grid-cols-4">
-          <div className="rounded-lg border border-slate-200 bg-white p-4 shadow-sm">
-            <p className="text-xs font-medium text-slate-500">Estado</p>
-            <p className="mt-1 text-lg font-semibold text-slate-900">{statusLabels[currentStatus] ?? currentStatus}</p>
-          </div>
-          <div className="rounded-lg border border-slate-200 bg-white p-4 shadow-sm">
-            <p className="text-xs font-medium text-slate-500">Orden</p>
-            <p className="mt-1 text-lg font-semibold text-slate-900">{orderId ?? 'N/A'}</p>
-          </div>
-          <div className="rounded-lg border border-slate-200 bg-white p-4 shadow-sm">
-            <p className="text-xs font-medium text-slate-500">Puesto</p>
-            <p className="mt-1 text-lg font-semibold text-slate-900">{workstationName || workstationId || 'N/A'}</p>
-          </div>
-          <div className="rounded-lg border border-slate-200 bg-white p-4 shadow-sm">
-            <p className="text-xs font-medium text-slate-500">Operario</p>
-            <p className="mt-1 text-lg font-semibold text-slate-900">{operatorName || operatorId || 'N/A'}</p>
-          </div>
-        </div>
+        <OrderSummary
+          variant="classic"
+          order={{ id: orderId, code: activeOrder?.code ?? selectedOrder?.code }}
+          productName={selectedOrder?.model_name ?? null}
+          workstationName={workstationName || null}
+          operatorName={operatorName || null}
+          summary={summary}
+          busy={isMutating || isSyncing}
+          onBack={() => useHmiStore.getState().leaveOrder()}
+          onPause={() => setIsPauseModalOpen(true)}
+          onResume={() => void handleResume()}
+        />
 
         {activeOrderCustomFields && Object.keys(activeOrderCustomFields).length > 0 && (
           <div className="mb-6 rounded-lg border border-slate-200 bg-white p-4 shadow-sm">
