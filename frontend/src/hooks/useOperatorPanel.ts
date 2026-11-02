@@ -203,7 +203,7 @@ export function useOperatorPanel(): OperatorPanelState {
   const customFields = mapCustomFieldsToUI(activeOrderCustomFields, schemaFields);
   const filteredOrders = hmi.availableOrders.filter((o: any) => {
     const q = orderSearch.toLowerCase();
-    return !q || o.model_name?.toLowerCase().includes(q) || o.workstation_name?.toLowerCase().includes(q) || o.id.toLowerCase().includes(q);
+    return !q || o.model_name?.toLowerCase().includes(q) || o.workstation_name?.toLowerCase().includes(q) || o.code?.toLowerCase().includes(q) || o.id.toLowerCase().includes(q);
   });
 
   return {
