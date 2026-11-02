@@ -12,7 +12,7 @@ import { OrderSummary } from './components/operator/OrderSummary.js';
 import { QuickBlockForm } from './components/operator/QuickBlockForm.js';
 import { suggestBlockStart } from './utils/quick-block.js';
 import { ShiftClose } from './components/operator/ShiftClose.js';
-import { orderLabel } from './utils/order-queue.js';
+import { useOperatorActions } from './hooks/useOperatorActions.js';
 import { useOrderLogs } from './hooks/useOrderLogs.js';
 import { summarizeOrder } from './utils/order-summary.js';
 import { OPERATOR_HELP } from './help-content.js';
@@ -49,59 +49,34 @@ export function ClassicOperatorPanel() {
     handleRegisterBlock, handleSaveCustomFields,
     schemaFields, customFields, filteredOrders,
   } = useOperatorPanel();
-  const [isPauseModalOpen, setIsPauseModalOpen] = useState(false);
   const [isIncidenciaModalOpen, setIsIncidenciaModalOpen] = useState(false);
-  const [showShift, setShowShift] = useState(false);
 
   const selectedOrder = useHmiStore((s) => s.selectedOrder);
   const { logs: orderLogs } = useOrderLogs(orderId ?? null);
   const summary = summarizeOrder(activeOrder ?? selectedOrder ?? { quantity: 0 }, orderLogs);
 
   const emptyState = ordersEmptyState(orderSearch, assignedWorkstationName);
-  const dateLabel = new Date().toLocaleDateString('es-ES', { weekday: 'long', day: '2-digit', month: 'short' });
-
-  const handleConfirmPause = async (reason: string) => {
-    const now = new Date().toISOString();
-    await useHmiStore.getState().registerWorkBlock(
-      'parada',
-      now,
-      now,
-      reason,
-      0,
-      0,
-      null
-    );
-    setIsPauseModalOpen(false);
-  };
-
-  const handleResume = async () => {
-    const now = new Date().toISOString();
-    const oneMinuteLater = new Date(Date.now() + 60 * 1000).toISOString();
-    await useHmiStore.getState().registerWorkBlock(
-      'produccion',
-      now,
-      oneMinuteLater,
-      null,
-      0,
-      0,
-      null
-    );
-  };
+  const {
+    isPauseModalOpen,
+    setIsPauseModalOpen,
+    showShift,
+    setShowShift,
+    handleConfirmPause,
+    handleResume,
+    labelOf,
+    dateLabel,
+  } = useOperatorActions(availableOrders);
 
   const handleOpenIncidenciaModal = () => setIsIncidenciaModalOpen(true);
   const handleCloseIncidenciaModal = () => setIsIncidenciaModalOpen(false);
 
   if (showShift) {
-    const labelOf = (id: string) => {
-      const o = availableOrders.find((x: { id: string }) => x.id === id);
-      return orderLabel({ id, code: o?.code ?? null });
-    };
     return (
       <ShiftClose
         variant="classic"
         operatorName={operatorName ?? null}
         workstationName={workstationName ?? null}
-        dateLabel={new Date().toLocaleDateString('es-ES', { weekday: 'long', day: '2-digit', month: 'short' })}
+        dateLabel={dateLabel}
         labelOf={labelOf}
         onBack={() => setShowShift(false)}
       />
