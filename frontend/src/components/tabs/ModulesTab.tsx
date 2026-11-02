@@ -24,7 +24,7 @@ export function ModulesTab({ isClassic }: Props) {
 
   return (
     <div className={isClassic ? '' : 'space-y-4'}>
-      <h2 className={label}>Módulos del Tenant</h2>
+      <h2 className={label}>Módulos de la empresa</h2>
       {loading ? <div className={isClassic ? 'text-sm text-gray-400 py-4' : 'text-center py-8 text-gray-400'}>Cargando...</div>
       : err ? <div className={isClassic ? 'bg-red-50 border border-red-200 rounded px-3 py-2 text-red-700 text-sm' : 'bg-red-900/50 border border-red-700 rounded-lg p-3 text-red-300 text-sm'}>{err}</div>
       : (

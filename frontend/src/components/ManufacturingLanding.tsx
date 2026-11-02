@@ -88,8 +88,8 @@ export function ManufacturingLanding() {
               </tr>
               <tr>
                 <td className="px-4 py-3 text-gray-400">Dependencia de conexión constante</td>
-                <td className="px-4 py-3 text-gray-400">Funcionamiento offline-first (sincronización cuando hay red)</td>
-                <td className="px-4 py-3 text-gray-400">No detener el proceso por caídas de red</td>
+                <td className="px-4 py-3 text-gray-400">El operario sigue registrando aunque se caiga la red; lo registrado llega a la oficina solo cuando vuelve la conexión</td>
+                <td className="px-4 py-3 text-gray-400">Nadie transcribe nada al final del turno ni al día siguiente</td>
               </tr>
               <tr>
                 <td className="px-4 py-3 text-gray-400">Demasiados pasos para registrar producción</td>
@@ -154,7 +154,7 @@ export function ManufacturingLanding() {
           Como dice el dicho en operaciones: “Si no se puede medir, no se puede mejorar.” Aquí puedes ver cómo los cambios de proceso se traducen en una experiencia de uso real:
         </p>
         <ul className="list-disc list-inside space-y-2 text-gray-400">
-          <li><strong>[RESUMEN]</strong> KPIs con datos reales de hoy: 10 órdenes en progreso, OEE planta calculado, incidencias abiertas.</li>
+          <li><strong>[RESUMEN]</strong> Indicadores con datos reales de hoy: 10 órdenes en progreso, rendimiento de planta (OEE) calculado, incidencias abiertas.</li>
           <li><strong>[LÍNEA EN VIVO]</strong> Timeline de 8h con bloques de producción por puesto (arranque, producción estable, cierre).</li>
           <li><strong>[ÓRDENES]</strong> Lista con estados mixtos (pending/in_progress) y cantidades producidas reales.</li>
           <li><strong>[Acceso a demo en vivo]</strong> Supervisor: usuario <code>047</code> / contraseña <code>kavana</code> · Admin: usuario <code>admin</code> / contraseña <code>admin123</code>. Datos del laboratorio, actualizados en vivo.</li>
@@ -177,7 +177,7 @@ export function ManufacturingLanding() {
         </p>
         <ul className="list-disc list-inside space-y-2 text-gray-400">
           <li>Arquitectura multi-tenant con RLS (Row Level Security) para aislar datos de empresas distintas en la misma instancia.</li>
-          <li>Offline-first con Dexie.js + outbox pattern para que el operario nunca se detenga por falta de conexión.</li>
+          <li>Arquitectura offline-first (Dexie.js + cola de envío): el registro no se pierde aunque se corte la red, y la oficina lo recibe en cuanto vuelve la conexión.</li>
           <li>Event-driven con BullMQ y Redis para sincronización confiable y manejo de picos de carga.</li>
           <li>Monitoreo con OpenTelemetry + Prometheus + Grafana para trazabilidad de ejecuciones y detección de anomalías.</li>
           <li>Decisiones arquitectónicas documentadas (ADRs) que explican trade-offs como consistencia vs disponibilidad.</li>

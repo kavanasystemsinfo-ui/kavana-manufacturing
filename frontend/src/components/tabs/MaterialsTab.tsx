@@ -151,7 +151,7 @@ export function MaterialsTab({ isClassic }: Props) {
 
       {/* BOM */}
       <div className="mt-8 rounded-xl border border-gray-700 bg-gray-800/60 p-4">
-        <h2 className="mb-4 text-lg font-bold text-white">BOM — Materiales por Modelo</h2>
+        <h2 className="mb-4 text-lg font-bold text-white">Materiales de cada modelo</h2>
         <div className="mb-4">
           <select value={bomModel} onChange={e => setBomModel(e.target.value)}
             className="w-full rounded border border-gray-700 bg-gray-900 p-2 text-sm text-white">

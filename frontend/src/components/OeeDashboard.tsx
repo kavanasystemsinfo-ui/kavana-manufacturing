@@ -102,7 +102,7 @@ export function OeeDashboard() {
       <div className={`p-6 ${isClassic ? 'bg-slate-50' : 'bg-kavana-dark'}`}>
         <div className="flex items-center gap-3">
           <div className={`h-4 w-4 animate-spin rounded-full border-2 ${isClassic ? 'border-slate-300 border-t-blue-600' : 'border-kavana-steel border-t-kavana-orange'}`}></div>
-          <p className={`text-sm ${isClassic ? 'text-slate-500' : 'text-slate-400'}`}>Cargando dashboard OEE...</p>
+          <p className={`text-sm ${isClassic ? 'text-slate-500' : 'text-slate-400'}`}>Cargando el rendimiento de planta...</p>
         </div>
       </div>
     );

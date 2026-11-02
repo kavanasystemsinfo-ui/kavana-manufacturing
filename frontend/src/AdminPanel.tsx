@@ -72,10 +72,10 @@ const TAB_GROUPS: TabGroup[] = [
   },
   {
     key: 'analytics',
-    label: 'Analytics',
+    label: 'Análisis',
     icon: '📊',
     tabs: [
-      { key: 'oee', label: 'OEE', module: 'oee_monitoring' },
+      { key: 'oee', label: 'Rendimiento (OEE)', module: 'oee_monitoring' },
       { key: 'cost', label: 'Costes', module: 'cost_management' },
     ],
   },
