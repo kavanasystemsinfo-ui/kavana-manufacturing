@@ -1,5 +1,8 @@
 import { callApiWithTimeout } from './client.js';
 
+/** Estas cargas son de pantalla y el servidor puede estar despertando: se espera más que en una acción. */
+const LOGS_TIMEOUT_MS = 45000;
+
 export interface MyTimeLog {
   id: string;
   order_id: string;
@@ -30,10 +33,10 @@ export function localDayRange(now: Date = new Date()): { from: string; to: strin
 
 export async function fetchMyTimeLogs(range: { from: string; to: string }): Promise<MyTimeLog[]> {
   const params = new URLSearchParams({ from: range.from, to: range.to });
-  return callApiWithTimeout<MyTimeLog[]>(`/api/v1/production/time-logs/mine?${params.toString()}`);
+  return callApiWithTimeout<MyTimeLog[]>(`/api/v1/production/time-logs/mine?${params.toString()}`, {}, LOGS_TIMEOUT_MS);
 }
 
 /** Bloques ya registrados de una orden, del más antiguo al más nuevo. */
 export async function fetchOrderLogs(orderId: string): Promise<MyTimeLog[]> {
-  return callApiWithTimeout<MyTimeLog[]>(`/api/v1/production/orders/${orderId}/logs`);
+  return callApiWithTimeout<MyTimeLog[]>(`/api/v1/production/orders/${orderId}/logs`, {}, LOGS_TIMEOUT_MS);
 }
