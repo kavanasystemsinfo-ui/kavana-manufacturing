@@ -52,7 +52,6 @@ const TAB_GROUPS: TabGroup[] = [
     label: 'Configuración',
     icon: '🔧',
     tabs: [
-      { key: 'modules', label: 'Módulos' },
       { key: 'custom-fields', label: 'Campos' },
       { key: 'auditoria', label: 'Auditoría' },
     ],

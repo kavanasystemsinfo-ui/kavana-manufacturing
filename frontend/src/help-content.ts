@@ -262,34 +262,6 @@ export const ORDERS_HELP = {
   ],
 };
 
-export const MODULES_HELP = {
-  title: 'Guía: Módulos del Sistema',
-  sections: [
-    {
-      title: '¿Qué es esta sección?',
-      content: 'Kavana funciona por módulos. Cada módulo es un conjunto de funcionalidades que se pueden activar o desactivar según lo que necesites.',
-    },
-    {
-      title: 'Módulos disponibles',
-      content: `• core_mes — El módulo base. Siempre activo. Incluye producción básica, órdenes y reportes.
-• oee_monitoring — Monitoreo de Eficiencia de Equipos (OEE). Mide disponibilidad, rendimiento y calidad.
-• cost_management — Gestión de costos de producción, monedas e integración con ERP.
-• quality_assurance — Control de calidad, muestreo automatizado y cumplimiento ISO.`,
-    },
-    {
-      title: 'Activar / Desactivar un módulo',
-      content: `1. Busca el módulo que quieres cambiar
-2. Usa el interruptor (toggle) a la derecha
-3. El cambio se aplica inmediatamente
-4. Nota: core_mes no se puede desactivar`,
-    },
-    {
-      title: '¿Qué pasa si desactivo un módulo?',
-      content: 'Las funcionalidades de ese módulo desaparecen de la interfaz. Los datos no se eliminan, solo se ocultan. Si lo vuelves a activar, todo vuelve a aparecer.',
-    },
-  ],
-};
-
 export const CUSTOM_FIELDS_HELP = {
   title: 'Guía: Campos Personalizados',
   sections: [
