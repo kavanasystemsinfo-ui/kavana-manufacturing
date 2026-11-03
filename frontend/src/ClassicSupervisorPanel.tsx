@@ -37,7 +37,7 @@ function IncidenciasTablero({ incidencias, loading, error, onStatusChange, onDel
         No hay incidencias. Cuando alguien registre una, aparecerá aquí.
       </div>
     );
-  return <IncidenciasKanban incidencias={incidencias} onStatusChange={onStatusChange} onDelete={onDelete} />;
+  return <IncidenciasKanban incidencias={incidencias} onStatusChange={onStatusChange} onDelete={onDelete} isClassic />;
 }
 
 /**
@@ -105,7 +105,7 @@ export function ClassicSupervisorPanel() {
       id: 'tabs',
       selector: '[class*="overflow-x-auto"]',
       title: '6 Pestañas principales',
-      content: 'RESUMEN: KPIs y alertas. LÍNEA EN VIVO: timeline turno 8h. RENDIMIENTO (OEE): detalle por puesto y pérdidas. ÓRDENES: tabla/Kanban. PUESTOS: grid semáforo. INCIDENCIAS: Kanban 4 columnas.',
+      content: 'RESUMEN: KPIs y alertas. LÍNEA EN VIVO: timeline turno 8h. RENDIMIENTO (OEE): detalle por puesto. ÓRDENES: tabla/Kanban. PUESTOS: grid semáforo. INCIDENCIAS: Kanban 4 columnas.',
       position: 'bottom',
     },
     {
@@ -211,7 +211,7 @@ export function ClassicSupervisorPanel() {
       id: 'oee-tab',
       selector: 'button[class*="overflow-x-auto"]:nth-child(3)',
       title: 'Rendimiento detallado (OEE)',
-      content: 'Medias de planta, tendencia Día/Semana/Mes (cambia endpoint), ranking puestos, tabla detalle, 6 Grandes Pérdidas (modelado proporcional documentado).',
+      content: 'Medias de planta, tendencia Día/Semana/Mes (cambia endpoint), ranking puestos y tabla detalle.',
       position: 'bottom',
     },
     {
@@ -429,7 +429,7 @@ export function ClassicSupervisorPanel() {
               )}
             </>
           ) : activeTab === 'workstations' ? (
-            <WorkstationBoard workstations={workstationStatus} />
+            <WorkstationBoard workstations={workstationStatus} isClassic />
           ) : (
             <IncidenciasTablero
               incidencias={incidencias}
