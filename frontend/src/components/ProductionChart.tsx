@@ -75,7 +75,7 @@ export function ProductionChart() {
           Producción Diaria (Últimos 30 días)
         </h3>
         <div className="flex items-baseline gap-2 text-sm">
-          <span className="text-green-600 font-medium">
+          <span className="text-green-700 font-medium">
             Promedio semanal: {formatNumber(Math.round(promedioSemanal))} unidades/día
           </span>
           <span className="text-slate-500">
