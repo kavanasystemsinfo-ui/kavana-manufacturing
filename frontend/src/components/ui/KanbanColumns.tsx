@@ -136,7 +136,7 @@ function KanbanColumnView<T extends KanbanItem>({
         <div className="flex-1 space-y-2" role="list" aria-label={column.title}>
           {items.length === 0 && (
             <div className="flex h-16 items-center justify-center rounded-lg border-2 border-dashed border-kavana-steel/30">
-              <p className="text-xs text-slate-500">{emptyLabel}</p>
+              <p className="text-xs text-slate-400">{emptyLabel}</p>
             </div>
           )}
           {items.map((item) => (

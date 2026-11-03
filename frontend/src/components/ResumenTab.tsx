@@ -12,9 +12,9 @@ import { formatNumber } from '../utils/formatNumber.js';
 import { fetchOeeDaily, type OeeDia } from '../api/analytics.js';
 
 const COLOR_NIVEL = {
-  verde: { texto: 'text-green-600', barra: 'bg-green-500' },
-  ambar: { texto: 'text-amber-600', barra: 'bg-amber-500' },
-  rojo: { texto: 'text-red-600', barra: 'bg-red-500' },
+  verde: { texto: 'text-green-700', barra: 'bg-green-500' },
+  ambar: { texto: 'text-amber-700', barra: 'bg-amber-500' },
+  rojo: { texto: 'text-red-700', barra: 'bg-red-500' },
 } as const;
 
 export function ResumenTab() {
@@ -172,7 +172,7 @@ export function ResumenTab() {
             </div>
 
             {oeeSerie.length === 0 ? (
-              <div className="h-32 flex items-center justify-center text-sm text-slate-400 text-center px-4">
+              <div className="h-32 flex items-center justify-center text-sm text-slate-500 text-center px-4">
                 {oeeCargando
                   ? 'Cargando tendencia…'
                   : (oeeError ?? 'Sin partes de producción en los últimos 7 días')}
@@ -180,7 +180,7 @@ export function ResumenTab() {
             ) : (
               <>
                 <div className="flex gap-2">
-                  <div className="flex flex-col justify-between items-end h-32 text-xs text-slate-400">
+                  <div className="flex flex-col justify-between items-end h-32 text-xs text-slate-500">
                     <span>100%</span>
                     <span>75%</span>
                     <span>50%</span>
@@ -271,8 +271,8 @@ export function ResumenTab() {
                       </div>
                     </div>
                     <div className="flex-1 min-w-0">
-                      <p className="font-medium text-red-600">Puesto detenido</p>
-                      <p className="text-sm text-red-500">
+                      <p className="font-medium text-red-700">Puesto detenido</p>
+                      <p className="text-sm text-red-700">
                         {workstationStatus
                           .filter(ws => ws.state === 'stopped')
                           .map(ws => ws.name)
@@ -288,13 +288,13 @@ export function ResumenTab() {
                 <div className="p-3 rounded-lg border-l-4 border-amber-500 bg-amber-50">
                   <div className="flex items-start gap-3">
                     <div className="flex-shrink-0">
-                      <div className="w-3 h-3 bg-amber-500 rounded-full flex items-center justify-center text-white text-xs">
+                      <div className="w-3 h-3 bg-amber-700 rounded-full flex items-center justify-center text-white text-xs">
                         !
                       </div>
                     </div>
                     <div className="flex-1 min-w-0">
-                      <p className="font-medium text-amber-600">Problemas de calidad</p>
-                      <p className="text-sm text-amber-500">
+                      <p className="font-medium text-amber-700">Problemas de calidad</p>
+                      <p className="text-sm text-amber-700">
                         {incidencias
                           .filter(inc => inc.type === 'calidad' && inc.status === 'abierto')
                           .length} incidencias de calidad abiertas
@@ -308,37 +308,37 @@ export function ResumenTab() {
               {criticalStockLoading ? (
                 <div className="p-3 rounded-lg border-l-4 border-green-500 bg-green-50">
                   <div className="flex items-start gap-3">
-                    <div className="w-3 h-3 bg-green-500 rounded-full flex items-center justify-center text-white text-xs">
+                    <div className="w-3 h-3 bg-green-700 rounded-full flex items-center justify-center text-white text-xs">
                       !
                     </div>
                   </div>
                   <div className="flex-1 min-w-0">
-                    <p className="font-medium text-green-600">Stock crítico</p>
-                    <p className="text-sm text-green-500">Cargando...</p>
+                    <p className="font-medium text-green-700">Stock crítico</p>
+                    <p className="text-sm text-green-700">Cargando...</p>
                   </div>
                 </div>
               ) : criticalStockError ? (
                 <div className="p-3 rounded-lg border-l-4 border-green-500 bg-green-50">
                   <div className="flex items-start gap-3">
-                    <div className="w-3 h-3 bg-green-500 rounded-full flex items-center justify-center text-white text-xs">
+                    <div className="w-3 h-3 bg-green-700 rounded-full flex items-center justify-center text-white text-xs">
                       !
                     </div>
                   </div>
                   <div className="flex-1 min-w-0">
-                    <p className="font-medium text-green-600">Stock crítico</p>
-                    <p className="text-sm text-red-500">Error al cargar stock</p>
+                    <p className="font-medium text-green-700">Stock crítico</p>
+                    <p className="text-sm text-red-700">Error al cargar stock</p>
                   </div>
                 </div>
               ) : (
                 <div className="p-3 rounded-lg border-l-4 border-green-500 bg-green-50">
                   <div className="flex items-start gap-3">
-                    <div className="w-3 h-3 bg-green-500 rounded-full flex items-center justify-center text-white text-xs">
+                    <div className="w-3 h-3 bg-green-700 rounded-full flex items-center justify-center text-white text-xs">
                       !
                     </div>
                   </div>
                   <div className="flex-1 min-w-0">
-                    <p className="font-medium text-green-600">Stock crítico</p>
-                    <p className="text-sm text-green-500">
+                    <p className="font-medium text-green-700">Stock crítico</p>
+                    <p className="text-sm text-green-700">
                       Materiales bajo mínimo: {criticalStock.length} referencias
                       {criticalStock.length > 0 && (
                         <span className="block mt-1 text-xs">

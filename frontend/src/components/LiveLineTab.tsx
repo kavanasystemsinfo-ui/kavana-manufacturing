@@ -149,12 +149,12 @@ export function LiveLineTab() {
   // Get status color
   function getStatusColor(status: WorkstationStatus['status']): string {
     switch (status) {
-      case 'running': return 'bg-green-500';
-      case 'idle': return 'bg-slate-400';
-      case 'down': return 'bg-red-500';
-      case 'changeover': return 'bg-amber-500';
-      case 'maintenance': return 'bg-blue-500';
-      default: return 'bg-slate-400';
+      case 'running': return 'bg-green-700';
+      case 'idle': return 'bg-slate-600';
+      case 'down': return 'bg-red-700';
+      case 'changeover': return 'bg-amber-700';
+      case 'maintenance': return 'bg-blue-700';
+      default: return 'bg-slate-600';
     }
   }
 
@@ -212,7 +212,7 @@ export function LiveLineTab() {
                   className="flex-1 border-r border-slate-200/50 relative"
                   style={{ width: `${(hour / 480) * 100}%` }}
                 >
-                  <div className="absolute top-0 left-0 -translate-x-1/2 text-xs text-slate-400">
+                  <div className="absolute top-0 left-0 -translate-x-1/2 text-xs text-slate-500">
                     {formatTime(hour)}
                   </div>
                 </div>
@@ -266,7 +266,7 @@ export function LiveLineTab() {
                               title={`${getStatusLabel(block.type)}: ${formatTime(block.start)} - ${formatTime(block.end)}${block.label ? ` | ${block.label}` : ''}`}
                             >
                               {widthPercent > 15 && block.label && (
-                                <span className="text-[10px] text-white/90 truncate px-1 whitespace-nowrap">
+                                <span className="text-[10px] text-white truncate px-1 whitespace-nowrap">
                                   {block.label}
                                 </span>
                               )}
@@ -296,7 +296,7 @@ export function LiveLineTab() {
                         {ws.oee !== undefined && (
                           <div className="text-right">
                             <div className="text-xs text-slate-500">OEE</div>
-                            <div className={`text-sm font-bold ${ws.oee > 0.85 ? 'text-green-600' : ws.oee > 0.7 ? 'text-amber-600' : 'text-red-600'}`}>
+                            <div className={`text-sm font-bold ${ws.oee > 0.85 ? 'text-green-700' : ws.oee > 0.7 ? 'text-amber-700' : 'text-red-700'}`}>
                               {(ws.oee * 100).toFixed(1)}%
                             </div>
                           </div>
@@ -327,12 +327,12 @@ export function LiveLineTab() {
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm text-slate-500">Produciendo</p>
-              <p className="text-2xl font-bold text-green-600">
+              <p className="text-2xl font-bold text-green-700">
                 {Array.from(liveData.values()).filter(ws => ws.status === 'running').length}
               </p>
             </div>
             <div className="w-12 h-12 rounded-full bg-green-100 flex items-center justify-center">
-              <svg className="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg className="w-6 h-6 text-green-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z" />
               </svg>
             </div>
@@ -361,12 +361,12 @@ export function LiveLineTab() {
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm text-slate-500">Parados</p>
-              <p className="text-2xl font-bold text-red-600">
+              <p className="text-2xl font-bold text-red-700">
                 {Array.from(liveData.values()).filter(ws => ws.status === 'down' || ws.status === 'maintenance').length}
               </p>
             </div>
             <div className="w-12 h-12 rounded-full bg-red-100 flex items-center justify-center">
-              <svg className="w-6 h-6 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg className="w-6 h-6 text-red-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
               </svg>
             </div>
@@ -424,7 +424,7 @@ export function LiveLineTab() {
                     {ws.oee !== undefined && (
                       <div className="text-right">
                         <p className="text-slate-500">OEE</p>
-                        <p className={`font-semibold ${ws.oee > 0.85 ? 'text-green-600' : ws.oee > 0.7 ? 'text-amber-600' : 'text-red-600'}`}>
+                        <p className={`font-semibold ${ws.oee > 0.85 ? 'text-green-700' : ws.oee > 0.7 ? 'text-amber-700' : 'text-red-700'}`}>
                           {(ws.oee * 100).toFixed(1)}%
                         </p>
                       </div>
