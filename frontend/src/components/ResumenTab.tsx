@@ -249,7 +249,7 @@ export function ResumenTab() {
                 Alertas y Notificaciones
               </h3>
               <button 
-                className="text-sm text-kavana-orange hover:text-kavana-orange-dark"
+                className="text-sm text-orange-800 hover:text-orange-900"
                 onClick={() => setShowAllAlerts(true)}
               >
                 Ver todas
