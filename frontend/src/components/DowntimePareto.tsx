@@ -50,7 +50,8 @@ export function DowntimePareto() {
     });
   }, [datos]);
 
-  const cubierto = filas.length > 0 ? Math.round(filas[filas.length - 1].acumulado) : 0;
+  const principalesCubiertas = filas.filter((f) => f.reason !== 'Otros');
+  const cubierto = principalesCubiertas.length > 0 ? Math.round(principalesCubiertas[principalesCubiertas.length - 1].acumulado) : 0;
 
   return (
     <div className="rounded-lg border border-slate-200 bg-white p-4 shadow-sm">

@@ -1,5 +1,6 @@
 import { useSupervisorPanel } from '../hooks/useSupervisorPanel.js';
 import { useEffect, useState } from 'react';
+import { formatThousands } from '../utils/quick-block.js';
 
 interface WorkstationStatus {
   id: string;
@@ -162,7 +163,7 @@ export function LiveLineTab() {
       case 'running': return 'Produciendo';
       case 'idle': return 'En espera';
       case 'down': return 'Parado';
-      case 'changeover': return 'Cambio';
+      case 'changeover': return 'Cambio de formato';
       case 'maintenance': return 'Mantenimiento';
       default: return 'Desconocido';
     }
@@ -282,7 +283,7 @@ export function LiveLineTab() {
                           <div className="text-right">
                             <div className="text-xs text-slate-500">Progreso</div>
                             <div className="text-sm font-bold text-slate-900">
-                              {ws.producedQuantity.toLocaleString()} / {ws.targetQuantity.toLocaleString()}
+                              {formatThousands(Number(ws.producedQuantity))} / {formatThousands(Number(ws.targetQuantity))}
                             </div>
                             <div className="w-20 h-1.5 bg-slate-200 rounded-full mt-0.5">
                               <div 
@@ -415,7 +416,7 @@ export function LiveLineTab() {
                       <div className="text-right">
                         <p className="text-slate-500">Producido</p>
                         <p className="font-semibold text-slate-900">
-                          {ws.producedQuantity.toLocaleString()} / {ws.targetQuantity.toLocaleString()}
+                          {formatThousands(Number(ws.producedQuantity))} / {formatThousands(Number(ws.targetQuantity))}
                           ({(ws.producedQuantity / ws.targetQuantity * 100).toFixed(1)}%)
                         </p>
                       </div>
