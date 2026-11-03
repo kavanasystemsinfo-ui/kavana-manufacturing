@@ -13,7 +13,13 @@ if (!process.env.JWT_HMAC_SECRET && !process.env.JWT_SECRET) {
 }
 
 /** Roles permitidos para demo-login (lista cerrada). */
-const DEMO_LOGIN_ROLES = new Set(['operario', 'supervisor', 'administrador']);
+// Rol público de la demo -> usuario sembrado del tenant demo (subdominio "demo", id 100).
+const DEMO_LOGIN_USERS: Record<string, string> = {
+  operario: '1094',
+  supervisor: '047',
+  administrador: 'admin',
+};
+const DEMO_TENANT_ID = 100;
 
 /** Lo que devuelve el login. El puesto va en la respuesta para que el panel del
  * operario pueda distinguir «no tengo puesto» de «no tengo órdenes». */
@@ -36,12 +42,6 @@ interface LoginResult {
 const CONSULTA_LOGIN = 'SELECT * FROM auth_login_lookup($1)';
 const CONSULTA_LOGIN_POR_PLANTA = 'SELECT * FROM auth_login_lookup($2, $1)';
 
-// Consulta para obtener un usuario demo por rol en el tenant demo (10000 = SnackPro)
-const CONSULTA_DEMO_USER_BY_ROLE = `
-  SELECT * FROM auth_login_lookup('demo', $1)
-  WHERE role = $2 AND is_active = true
-  LIMIT 1
-`;
 
 @Injectable()
 export class AuthLoginService {
@@ -159,17 +159,16 @@ export class AuthLoginService {
     if (process.env.DEMO_LOGIN_ENABLED !== 'true') {
       throw new HttpException('Not found', 404);
     }
-    if (!DEMO_LOGIN_ROLES.has(role)) {
+    if (!Object.hasOwn(DEMO_LOGIN_USERS, role)) {
       throw new HttpException('Rol no permitido para demo', 400);
     }
 
-    // Tenant demo real: 10000 (SnackPro), subdomain "demo"
-    const r = await postgresPool.query(CONSULTA_DEMO_USER_BY_ROLE, ['demo', role]);
-    if (r.rowCount === 0) {
+    // Mismo lookup que el login normal, fijado a la planta demo.
+    const r = await postgresPool.query(`${CONSULTA_LOGIN_POR_PLANTA} LIMIT 1`, ['demo', DEMO_LOGIN_USERS[role]]);
+    const user = r.rows[0];
+    if (!user || Number(user.tenant_id) !== DEMO_TENANT_ID) {
       throw new HttpException('Usuario demo no encontrado para ese rol', 400);
     }
-
-    const user = r.rows[0];
     const token = this.generateToken(Number(user.tenant_id), user.id, user.role);
 
     return {
