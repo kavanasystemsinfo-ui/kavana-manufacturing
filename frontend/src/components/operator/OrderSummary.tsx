@@ -22,7 +22,7 @@ const styles = {
   classic: {
     card: 'mb-6 rounded-lg border border-slate-200 bg-white p-5 shadow-sm',
     back: 'text-sm font-medium text-slate-500 hover:text-kavana-orange',
-    code: 'text-xs font-semibold uppercase tracking-wider text-slate-400',
+    code: 'text-xs font-semibold uppercase tracking-wider text-slate-600',
     title: 'mt-1 text-2xl font-bold text-slate-900',
     meta: 'mt-1 text-sm text-slate-500',
     track: 'mt-5 h-3 overflow-hidden rounded-full bg-slate-200',
