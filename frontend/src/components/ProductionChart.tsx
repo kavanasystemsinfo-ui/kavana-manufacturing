@@ -85,7 +85,7 @@ export function ProductionChart() {
       </div>
 
       {cargando ? (
-        <div className="h-48 flex items-center justify-center text-sm text-slate-400">
+        <div className="h-48 flex items-center justify-center text-sm text-slate-500">
           Cargando producción…
         </div>
       ) : error ? (
@@ -93,14 +93,14 @@ export function ProductionChart() {
           {error}
         </div>
       ) : sinDatos ? (
-        <div className="h-48 flex items-center justify-center text-sm text-slate-400 text-center px-4">
+        <div className="h-48 flex items-center justify-center text-sm text-slate-500 text-center px-4">
           Sin producción registrada en los últimos 30 días
         </div>
       ) : (
         <>
           <div className="h-48 flex gap-2">
             {/* Eje Y */}
-            <div className="w-10 pb-6 flex flex-col justify-between items-end text-xs text-slate-400">
+            <div className="w-10 pb-6 flex flex-col justify-between items-end text-xs text-slate-500">
               <span>{formatNumber(escala)}</span>
               <span>{formatNumber(escala / 2)}</span>
               <span>0</span>
