@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { listOrders } from '../../api/admin-entities.js';
+import { listOrders, listWorkstations, listManufacturingModels } from '../../api/admin-entities.js';
 import type { Order } from '../../api/admin-entities.js';
 import { HelpModal } from '../HelpModal.js';
 import { ORDERS_HELP } from '../../help-content.js';
@@ -8,11 +8,16 @@ interface Props { isClassic?: boolean; }
 
 export function OrdersTab({ isClassic }: Props) {
   const [orders, setOrders] = useState<Order[]>([]);
+  const [modelos, setModelos] = useState<Record<string, string>>({});
+  const [puestos, setPuestos] = useState<Record<string, string>>({});
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     listOrders().then(setOrders).catch((e) => setError(e instanceof Error ? e.message : String(e))).finally(() => setLoading(false));
+    // Nombres para no enseñar identificadores internos. Si fallan, la tabla sigue y la celda queda en blanco.
+    listManufacturingModels().then((m) => setModelos(Object.fromEntries(m.map((x) => [x.id, x.name])))).catch(() => undefined);
+    listWorkstations().then((w) => setPuestos(Object.fromEntries(w.map((x) => [x.id, x.name])))).catch(() => undefined);
   }, []);
 
   const th = isClassic ? 'px-4 py-2.5 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider border-b border-gray-200' : 'px-4 py-3 text-left text-sm text-gray-400';
@@ -46,7 +51,9 @@ export function OrdersTab({ isClassic }: Props) {
             <table className="w-full">
               <thead>
                 <tr className={isClassic ? '' : 'border-b border-gray-700 text-left text-sm text-gray-400'}>
-                  <th className={th}>ID</th>
+                  <th className={th}>Orden</th>
+                  <th className={th}>Producto</th>
+                  <th className={th}>Puesto</th>
                   <th className={th}>Estado</th>
                   <th className={th}>Cantidad</th>
                   <th className={th}>Creado</th>
@@ -55,14 +62,16 @@ export function OrdersTab({ isClassic }: Props) {
               <tbody>
                 {orders.map((o) => (
                   <tr key={o.id} className={isClassic ? 'hover:bg-gray-50 transition-colors' : 'hover:bg-gray-700/30 transition-colors'}>
-                    <td className={`${td} font-mono text-xs ${isClassic ? 'text-gray-400' : 'text-gray-400'}`}>{o.id.slice(0, 8)}...</td>
+                    <td className={`${td} font-medium`}>{o.code || 'Sin número'}</td>
+                    <td className={td}>{modelos[o.model_id] ?? ''}</td>
+                    <td className={td}>{puestos[o.workstation_id] ?? ''}</td>
                     <td className={td}><span className={statusBadge(o.status)}>{({ pending: 'Pendiente', in_progress: 'En Progreso', completed: 'Completada', cancelled: 'Cancelada' } as any)[o.status]}</span></td>
-                    <td className={td}>{o.quantity}</td>
-                    <td className={`${td} text-gray-400`}>{new Date(o.created_at).toLocaleDateString()}</td>
+                    <td className={td}>{o.quantity.toLocaleString('es-ES')}</td>
+                    <td className={`${td} text-gray-400`}>{new Date(o.created_at).toLocaleDateString('es-ES')}</td>
                   </tr>
                 ))}
                 {orders.length === 0 && (
-                  <tr><td colSpan={4} className={isClassic ? `${td} text-center text-gray-400 py-6` : 'px-4 py-8 text-center text-gray-500'}>No hay órdenes registradas</td></tr>
+                  <tr><td colSpan={6} className={isClassic ? `${td} text-center text-gray-400 py-6` : 'px-4 py-8 text-center text-gray-500'}>No hay órdenes registradas</td></tr>
                 )}
               </tbody>
             </table>
