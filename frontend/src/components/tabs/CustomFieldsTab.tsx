@@ -77,7 +77,7 @@ export function CustomFieldsTab({ isClassic }: Props) {
   const btnPrimary = isClassic ? `${btnSm} bg-kavana-orange text-white hover:bg-kavana-orange-light` : `px-4 py-2 bg-indigo-600 hover:bg-indigo-700 rounded-lg text-sm font-medium transition-colors`;
   const btnDanger = isClassic ? `${btnSm} text-red-600 hover:text-red-800 hover:bg-red-50` : 'text-red-400 hover:text-red-300 text-sm';
   const errBg = alertClass('error', isClassic);
-  const hintCls = isClassic ? 'text-xs text-gray-500' : 'text-xs text-gray-400';
+  const hintCls = isClassic ? 'text-xs text-gray-400' : 'text-xs text-gray-400';
 
   const schemaPreview = JSON.stringify({ fields }, null, 2);
 
@@ -113,7 +113,7 @@ export function CustomFieldsTab({ isClassic }: Props) {
       {loading ? (
         <div className={isClassic ? 'text-sm text-gray-400 py-4' : 'text-center py-8 text-gray-400'}>Cargando...</div>
       ) : fields.length === 0 ? (
-        <div className={isClassic ? 'text-sm text-gray-500 py-4' : 'text-center py-8 text-gray-500'}>
+        <div className={isClassic ? 'text-sm text-gray-400 py-4' : 'text-center py-8 text-gray-400'}>
           Todavía no hay campos. Añade el primero que necesites pedir al operario.
         </div>
       ) : (
@@ -121,12 +121,12 @@ export function CustomFieldsTab({ isClassic }: Props) {
           <table className="w-full">
             <thead>
               <tr className={isClassic ? 'border-b border-gray-200' : 'border-b border-gray-700'}>
-                <th className={isClassic ? 'px-2 py-2.5 text-left text-xs font-semibold text-gray-500 uppercase' : 'px-2 py-3 text-left text-xs text-gray-400'}>Orden</th>
-                <th className={isClassic ? 'px-4 py-2.5 text-left text-xs font-semibold text-gray-500 uppercase' : 'px-4 py-3 text-left text-sm text-gray-400'}>Llave</th>
-                <th className={isClassic ? 'px-4 py-2.5 text-left text-xs font-semibold text-gray-500 uppercase' : 'px-4 py-3 text-left text-sm text-gray-400'}>Nombre</th>
-                <th className={isClassic ? 'px-4 py-2.5 text-left text-xs font-semibold text-gray-500 uppercase' : 'px-4 py-3 text-left text-sm text-gray-400'}>Tipo</th>
-                <th className={isClassic ? 'px-4 py-2.5 text-left text-xs font-semibold text-gray-500 uppercase' : 'px-4 py-3 text-left text-sm text-gray-400'}>Obligatorio</th>
-                <th className={isClassic ? 'px-4 py-2.5 text-left text-xs font-semibold text-gray-500 uppercase' : 'px-4 py-3 text-left text-sm text-gray-400'}></th>
+                <th className={isClassic ? 'px-2 py-2.5 text-left text-xs font-semibold text-gray-400 uppercase' : 'px-2 py-3 text-left text-xs text-gray-400'}>Orden</th>
+                <th className={isClassic ? 'px-4 py-2.5 text-left text-xs font-semibold text-gray-400 uppercase' : 'px-4 py-3 text-left text-sm text-gray-400'}>Llave</th>
+                <th className={isClassic ? 'px-4 py-2.5 text-left text-xs font-semibold text-gray-400 uppercase' : 'px-4 py-3 text-left text-sm text-gray-400'}>Nombre</th>
+                <th className={isClassic ? 'px-4 py-2.5 text-left text-xs font-semibold text-gray-400 uppercase' : 'px-4 py-3 text-left text-sm text-gray-400'}>Tipo</th>
+                <th className={isClassic ? 'px-4 py-2.5 text-left text-xs font-semibold text-gray-400 uppercase' : 'px-4 py-3 text-left text-sm text-gray-400'}>Obligatorio</th>
+                <th className={isClassic ? 'px-4 py-2.5 text-left text-xs font-semibold text-gray-400 uppercase' : 'px-4 py-3 text-left text-sm text-gray-400'}></th>
               </tr>
             </thead>
             <tbody>
