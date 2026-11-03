@@ -241,7 +241,7 @@ export function LiveLineTab() {
                         </div>
                         <div className="text-xs text-slate-500">{ws.code}</div>
                         {ws.currentOrderCode && (
-                          <div className="text-xs text-kavana-orange mt-0.5">
+                          <div className="text-xs text-orange-800 mt-0.5">
                             📦 {ws.currentOrderCode}
                           </div>
                         )}
@@ -266,7 +266,7 @@ export function LiveLineTab() {
                               title={`${getStatusLabel(block.type)}: ${formatTime(block.start)} - ${formatTime(block.end)}${block.label ? ` | ${block.label}` : ''}`}
                             >
                               {widthPercent > 15 && block.label && (
-                                <span className="text-[10px] text-white truncate px-1 whitespace-nowrap">
+                                <span className="text-[10px] !text-white truncate px-1 whitespace-nowrap">
                                   {block.label}
                                 </span>
                               )}

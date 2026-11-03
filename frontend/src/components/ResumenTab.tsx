@@ -121,7 +121,7 @@ export function ResumenTab() {
                 />
               </div>
               
-              <div className="flex justify-between text-xs mt-1">
+              <div className="flex justify-between text-xs mt-1 text-slate-500">
                 <span>0%</span>
                 <span>100%</span>
                 {rendimiento.cumplimiento !== null && (
