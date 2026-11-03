@@ -35,6 +35,14 @@ describe('DemoReadOnlyMiddleware', () => {
     vi.restoreAllMocks();
   });
 
+  it('bloquea DELETE en el tenant demo real (id=100, SnackPro) con 403', () => {
+    vi.spyOn(storage, 'getTenantContext').mockReturnValue({ tenantId: 100n, userId: 'u1', role: 'tenant_admin' });
+    const res = makeRes();
+    middleware.use(makeReq('DELETE', `/api/v1/orders/${UUID}`), res, next);
+    expect(res.status).toHaveBeenCalledWith(403);
+    expect(next).not.toHaveBeenCalled();
+  });
+
   it('bloquea DELETE en el tenant demo (id=1) con 403', () => {
     asDemoTenant();
     const req = makeReq('DELETE', `/api/v1/orders/${UUID}`);
