@@ -50,7 +50,7 @@ export function KpiCardsRow() {
       >
         Órdenes
         <div className="text-2xl font-bold mt-1">{totalWo}</div>
-        <div className="text-xs text-slate-500">En total</div>
+        <div className="text-xs">En total</div>
       </button>
       
       <button
@@ -62,7 +62,7 @@ export function KpiCardsRow() {
       >
         En marcha
         <div className="text-2xl font-bold mt-1">{activeWo}</div>
-        <div className="text-xs text-slate-500">Fabricándose ahora</div>
+        <div className="text-xs">Fabricándose ahora</div>
       </button>
       
       <button
@@ -74,7 +74,7 @@ export function KpiCardsRow() {
       >
         Completadas
         <div className="text-2xl font-bold mt-1">{completedWo}</div>
-        <div className="text-xs text-slate-500">Ya terminadas</div>
+        <div className="text-xs">Ya terminadas</div>
       </button>
       
       <button
@@ -86,7 +86,7 @@ export function KpiCardsRow() {
       >
         Canceladas
         <div className="text-2xl font-bold mt-1">{blockedWo}</div>
-        <div className="text-xs text-slate-500">Anuladas</div>
+        <div className="text-xs">Anuladas</div>
       </button>
       
       <button
@@ -98,7 +98,7 @@ export function KpiCardsRow() {
       >
         Incidencias abiertas
         <div className="text-2xl font-bold mt-1">{openIssues}</div>
-        <div className="text-xs text-slate-500">Sin resolver</div>
+        <div className="text-xs">Sin resolver</div>
       </button>
       
       <button
@@ -110,7 +110,7 @@ export function KpiCardsRow() {
       >
         Incidencias bloqueantes
         <div className="text-2xl font-bold mt-1">{blockingIssues}</div>
-        <div className="text-xs text-slate-500">Urgentes</div>
+        <div className="text-xs">Urgentes</div>
       </button>
       
       <button

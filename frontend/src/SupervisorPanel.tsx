@@ -395,9 +395,9 @@ export function SupervisorPanel() {
           {activeTab === 'resumen' ? (
             <ResumenTab />
           ) : activeTab === 'live' ? (
-            <LiveLineTab />
+            <div className="rounded-xl bg-slate-50 p-4 text-slate-900"><LiveLineTab /></div>
           ) : activeTab === 'oee' ? (
-            <OeeAdvancedTab />
+            <div className="rounded-xl bg-slate-50 p-4 text-slate-900"><OeeAdvancedTab /></div>
           ) : activeTab === 'orders' ? (
             <>
               <OrderFiltersBar
