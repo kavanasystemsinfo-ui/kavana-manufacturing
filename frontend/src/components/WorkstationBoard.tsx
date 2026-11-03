@@ -20,6 +20,8 @@ function formatTime(ts: string | null | undefined) {
 
 interface Props {
   workstations: WorkstationLive[];
+  /** Tema clásico (claro): no sigue el modo oscuro del sistema. */
+  isClassic?: boolean;
 }
 
 /**
@@ -30,7 +32,7 @@ interface Props {
  * /workstations no devuelve, así que el punto salía siempre verde mientras el
  * puesto estuviera dado de alta. Parecía un indicador en vivo y nunca cambiaba.
  */
-export function WorkstationBoard({ workstations }: Props) {
+export function WorkstationBoard({ workstations, isClassic }: Props) {
   if (workstations.length === 0) {
     return <div className="py-12 text-center text-slate-500">No hay puestos activos</div>;
   }
@@ -41,11 +43,11 @@ export function WorkstationBoard({ workstations }: Props) {
         const badge = workstationBadge(ws.state);
         const ultima = ws.last_block_end ?? ws.last_block_start;
         return (
-          <div key={ws.id} className="bg-white dark:bg-gray-800 border rounded-xl shadow p-4 flex flex-col gap-2">
+          <div key={ws.id} className={`border rounded-xl shadow p-4 flex flex-col gap-2 ${isClassic ? 'bg-white border-slate-200 text-slate-900' : 'bg-white dark:bg-gray-800'}`}>
             {/* Header with name and status badge */}
-            <div className="flex items-center justify-between">
-              <h3 className="text-lg font-bold text-gray-900 dark:text-gray-100">{ws.name}</h3>
-              <div className="flex items-center gap-2">
+            <div className="flex items-start justify-between gap-3">
+              <h3 className={`min-w-0 text-lg font-bold ${isClassic ? 'text-slate-900' : 'text-gray-900 dark:text-gray-100'}`}>{ws.name}</h3>
+              <div className="flex shrink-0 items-center gap-2 whitespace-nowrap pt-1.5">
                 <span className={`h-2.5 w-2.5 shrink-0 rounded-full ${badge.dot}`} aria-hidden="true" />
                 <span className="text-xs font-medium">{badge.label}</span>
               </div>
@@ -53,19 +55,19 @@ export function WorkstationBoard({ workstations }: Props) {
 
             {/* Code */}
             {ws.code && (
-              <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">{ws.code}</p>
+              <p className={`mt-1 text-xs ${isClassic ? 'text-slate-500' : 'text-gray-500 dark:text-gray-400'}`}>{ws.code}</p>
             )}
 
             {/* Operator name */}
             {ws.operator_name && (
-              <p className="mt-2 text-sm text-gray-600 dark:text-gray-300">
+              <p className={`mt-2 text-sm ${isClassic ? 'text-slate-600' : 'text-gray-600 dark:text-gray-300'}`}>
                 Operario: <span className="font-medium">{ws.operator_name}</span>
               </p>
             )}
 
             {/* Last activity */}
             {ultima && (
-              <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
+              <p className={`mt-1 text-xs ${isClassic ? 'text-slate-500' : 'text-gray-500 dark:text-gray-400'}`}>
                 Última actividad: {formatTime(ultima)}
               </p>
             )}

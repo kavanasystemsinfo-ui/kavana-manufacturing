@@ -193,6 +193,7 @@ export function IncidenciasTab({ isClassic }: Props) {
           incidencias={incidencias}
           onStatusChange={handleStatusChange}
           onDelete={handleDelete}
+          isClassic={isClassic}
         />
       ) : (
       <div className="space-y-3">
