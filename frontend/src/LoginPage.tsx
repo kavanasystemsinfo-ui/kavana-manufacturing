@@ -69,7 +69,7 @@ export function LoginPage({ onLogin }: LoginPageProps) {
     <>
       <div className={`min-h-screen flex items-center justify-center p-4 font-sans ${isClassic ? 'bg-gray-50 text-gray-900' : 'bg-gray-900 text-gray-100'}`}>
       <div className="absolute top-4 right-4 z-50">
-        <ThemeToggle />
+        <ThemeToggle onLight={isClassic} />
       </div>
 
       <div className={`w-full max-w-md rounded-sm shadow-2xl overflow-hidden border ${isClassic ? 'bg-white border-gray-200' : 'bg-gray-800 border-gray-700'}`}>
@@ -197,7 +197,7 @@ export function LoginPage({ onLogin }: LoginPageProps) {
           </form>
         </div>
 
-        <div className={`p-4 text-center text-xs ${isClassic ? 'text-gray-400 border-t border-gray-100' : 'text-gray-500 border-t border-gray-700'}`}>
+        <div className={`p-4 text-center text-xs ${isClassic ? 'text-gray-500 border-t border-gray-100' : 'text-gray-400 border-t border-gray-700'}`}>
           &copy; 2026 KAVANA MANUFACTURING v1.0
         </div>
       </div>

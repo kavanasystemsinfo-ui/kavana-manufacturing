@@ -30,3 +30,50 @@ button:disabled {
   cursor: not-allowed;
   opacity: 0.72;
 }
+
+/*
+ * Tema Clásico (claro): varias pestañas se escribieron con clases pensadas para
+ * fondo oscuro (texto gray-400, tarjetas gray-800, insignias translúcidas...).
+ * Aquí se reasignan a equivalentes legibles sobre fondo claro (contraste >= 4,5:1).
+ * Solo actúa dentro de los paneles Clásicos (min-h-screen + texto oscuro) y no
+ * toca las cabeceras oscuras (header).
+ */
+:is(.min-h-screen.text-gray-900, .min-h-screen.text-slate-900) :is(.bg-gray-800, .bg-gray-900, .bg-slate-800, .bg-slate-900, [class*="bg-gray-800/"], [class*="bg-gray-900/"], [class*="bg-slate-800/"], [class*="bg-slate-900/"]):not(header *) { background-color: #ffffff; color: #111827; }
+:is(.min-h-screen.text-gray-900, .min-h-screen.text-slate-900) [class*="bg-emerald-900/"]:not(header *),:is(.min-h-screen.text-gray-900, .min-h-screen.text-slate-900) [class*="bg-emerald-800/"]:not(header *),:is(.min-h-screen.text-gray-900, .min-h-screen.text-slate-900) [class*="bg-green-900/"]:not(header *),:is(.min-h-screen.text-gray-900, .min-h-screen.text-slate-900) [class*="bg-green-800/"]:not(header *) { background-color: #d1fae5; }
+:is(.min-h-screen.text-gray-900, .min-h-screen.text-slate-900) [class*="bg-red-900/"]:not(header *),:is(.min-h-screen.text-gray-900, .min-h-screen.text-slate-900) [class*="bg-red-800/"]:not(header *),:is(.min-h-screen.text-gray-900, .min-h-screen.text-slate-900) [class*="bg-rose-900/"]:not(header *),:is(.min-h-screen.text-gray-900, .min-h-screen.text-slate-900) [class*="bg-rose-800/"]:not(header *) { background-color: #fee2e2; }
+:is(.min-h-screen.text-gray-900, .min-h-screen.text-slate-900) [class*="bg-blue-900/"]:not(header *),:is(.min-h-screen.text-gray-900, .min-h-screen.text-slate-900) [class*="bg-blue-800/"]:not(header *),:is(.min-h-screen.text-gray-900, .min-h-screen.text-slate-900) [class*="bg-sky-900/"]:not(header *),:is(.min-h-screen.text-gray-900, .min-h-screen.text-slate-900) [class*="bg-sky-800/"]:not(header *),:is(.min-h-screen.text-gray-900, .min-h-screen.text-slate-900) [class*="bg-cyan-900/"]:not(header *),:is(.min-h-screen.text-gray-900, .min-h-screen.text-slate-900) [class*="bg-cyan-800/"]:not(header *) { background-color: #dbeafe; }
+:is(.min-h-screen.text-gray-900, .min-h-screen.text-slate-900) [class*="bg-purple-900/"]:not(header *),:is(.min-h-screen.text-gray-900, .min-h-screen.text-slate-900) [class*="bg-purple-800/"]:not(header *),:is(.min-h-screen.text-gray-900, .min-h-screen.text-slate-900) [class*="bg-violet-900/"]:not(header *),:is(.min-h-screen.text-gray-900, .min-h-screen.text-slate-900) [class*="bg-violet-800/"]:not(header *) { background-color: #f3e8ff; }
+:is(.min-h-screen.text-gray-900, .min-h-screen.text-slate-900) [class*="bg-indigo-900/"]:not(header *),:is(.min-h-screen.text-gray-900, .min-h-screen.text-slate-900) [class*="bg-indigo-800/"]:not(header *) { background-color: #e0e7ff; }
+:is(.min-h-screen.text-gray-900, .min-h-screen.text-slate-900) [class*="bg-amber-900/"]:not(header *),:is(.min-h-screen.text-gray-900, .min-h-screen.text-slate-900) [class*="bg-amber-800/"]:not(header *),:is(.min-h-screen.text-gray-900, .min-h-screen.text-slate-900) [class*="bg-yellow-900/"]:not(header *),:is(.min-h-screen.text-gray-900, .min-h-screen.text-slate-900) [class*="bg-yellow-800/"]:not(header *) { background-color: #fef3c7; }
+:is(.min-h-screen.text-gray-900, .min-h-screen.text-slate-900) [class*="bg-orange-900/"]:not(header *),:is(.min-h-screen.text-gray-900, .min-h-screen.text-slate-900) [class*="bg-orange-800/"]:not(header *) { background-color: #ffedd5; }
+:is(.min-h-screen.text-gray-900, .min-h-screen.text-slate-900) [class*="bg-gray-700/"]:not(header *) { background-color: #e5e7eb; }
+:is(.min-h-screen.text-gray-900, .min-h-screen.text-slate-900) :is(.bg-gray-700, .bg-gray-600):not(header *):not([class~="text-white"]) { background-color: #e5e7eb; color: #1f2937; }
+:is(.min-h-screen.text-gray-900, .min-h-screen.text-slate-900) :is(.border-gray-700, .border-gray-600, .border-slate-700, .border-slate-600):not(header *) { border-color: #d1d5db; }
+:is(.min-h-screen.text-gray-900, .min-h-screen.text-slate-900) :is(.bg-indigo-600, .bg-emerald-600, .bg-blue-600, .bg-green-600, .bg-red-600, .bg-amber-600, .bg-purple-600):not(header *) { color: #ffffff; }
+:is(.min-h-screen.text-gray-900, .min-h-screen.text-slate-900) .bg-emerald-600:not(header *) { background-color: #047857; }
+:is(.min-h-screen.text-gray-900, .min-h-screen.text-slate-900) .bg-green-600:not(header *) { background-color: #15803d; }
+:is(.min-h-screen.text-gray-900, .min-h-screen.text-slate-900) .bg-amber-600:not(header *) { background-color: #b45309; }
+:is(.min-h-screen.text-gray-900, .min-h-screen.text-slate-900) :is(h1, h2, h3, h4, label, p, span, div).text-white:not([class*="bg-"]):not(header *) { color: #111827; }
+:is(.min-h-screen.text-gray-900, .min-h-screen.text-slate-900) :is(.text-gray-200, .text-gray-300, .text-slate-200, .text-slate-300):not(header *) { color: #374151; }
+:is(.min-h-screen.text-gray-900, .min-h-screen.text-slate-900) :is(.text-gray-400, .text-gray-500):not(header *) { color: #4b5563; }
+:is(.min-h-screen.text-gray-900, .min-h-screen.text-slate-900) :is(.text-slate-400, .text-slate-500):not(header *) { color: #475569; }
+:is(.min-h-screen.text-gray-900, .min-h-screen.text-slate-900) :is(.text-kavana-orange, .text-kavana-orange-light):not(header *) { color: #9a3412; }
+:is(.min-h-screen.text-gray-900, .min-h-screen.text-slate-900) :is(.text-indigo-300, .text-indigo-400, [class*="text-indigo-400/"]):not(header *) { color: #4338ca; }
+:is(.min-h-screen.text-gray-900, .min-h-screen.text-slate-900) :is(.text-red-300, .text-red-400):not(header *) { color: #991b1b; }
+:is(.min-h-screen.text-gray-900, .min-h-screen.text-slate-900) :is(.text-green-300, .text-green-400, .text-emerald-300, .text-emerald-400):not(header *) { color: #065f46; }
+:is(.min-h-screen.text-gray-900, .min-h-screen.text-slate-900) :is(.text-blue-300, .text-blue-400, .text-sky-300, .text-sky-400, .text-cyan-300, .text-cyan-400):not(header *) { color: #1e40af; }
+:is(.min-h-screen.text-gray-900, .min-h-screen.text-slate-900) :is(.text-amber-300, .text-amber-400, .text-yellow-300, .text-yellow-400):not(header *) { color: #92400e; }
+:is(.min-h-screen.text-gray-900, .min-h-screen.text-slate-900) :is(.text-orange-300, .text-orange-400):not(header *) { color: #9a3412; }
+:is(.min-h-screen.text-gray-900, .min-h-screen.text-slate-900) :is(.text-purple-300, .text-purple-400, .text-violet-300, .text-violet-400):not(header *) { color: #6b21a8; }
+:is(.min-h-screen.text-gray-900, .min-h-screen.text-slate-900) :is(.text-pink-300, .text-pink-400):not(header *) { color: #9d174d; }
+
+/* Naranja de marca como fondo de botón con texto blanco: debe llegar a 4,5:1 */
+.bg-kavana-orange.text-white { background-color: #b8531f; }
+.bg-kavana-orange.text-white:hover { background-color: #9f4619; }
+
+/* Botón de ayuda del tema Clásico dentro de la cabecera oscura */
+header .text-blue-600 { color: #93c5fd; }
+header .border-blue-200 { border-color: #3b82f6; }
+header .hover\:text-blue-800:hover { color: #dbeafe; }
+header .hover\:bg-blue-50:hover { background-color: rgba(59, 130, 246, 0.2); }
+
