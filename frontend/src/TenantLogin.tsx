@@ -100,7 +100,7 @@ export function TenantLogin({ subdomain, onLogin }: TenantLoginProps) {
     <>
       <div className={`min-h-screen flex items-center justify-center ${isClassic ? 'bg-gray-50' : 'bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900'}`}>
         <div className="absolute top-4 right-4">
-        <ThemeToggle />
+        <ThemeToggle onLight={isClassic} />
       </div>
 
       <div className={`w-full max-w-md rounded-xl border shadow-lg p-8 ${isClassic ? 'bg-white border-gray-200' : 'bg-gray-800/80 border-gray-700 backdrop-blur-sm'}`}>
@@ -186,7 +186,7 @@ export function TenantLogin({ subdomain, onLogin }: TenantLoginProps) {
           </button>
         </form>
 
-        <div className={`mt-6 text-center text-xs ${isClassic ? 'text-gray-400' : 'text-gray-500'}`}>
+        <div className={`mt-6 text-center text-xs ${isClassic ? 'text-gray-500' : 'text-gray-400'}`}>
           {subdomain}.kavana.app
         </div>
       </div>

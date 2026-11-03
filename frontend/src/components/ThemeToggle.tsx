@@ -3,9 +3,11 @@ import { useThemeStore, type Theme } from '../store/theme-store.js';
 interface ThemeToggleProps {
   variant?: 'header' | 'floating';
   dataTourStep?: string;
+  /** Sobre qué fondo se pinta: en las pantallas de acceso el fondo es claro en el tema Clásico. */
+  onLight?: boolean;
 }
 
-export function ThemeToggle({ variant = 'header', dataTourStep }: ThemeToggleProps) {
+export function ThemeToggle({ variant = 'header', dataTourStep, onLight = false }: ThemeToggleProps) {
   const { theme, toggleTheme } = useThemeStore();
   const isClassic = theme === 'classic';
 
@@ -34,7 +36,7 @@ export function ThemeToggle({ variant = 'header', dataTourStep }: ThemeTogglePro
   if (isClassic) {
     return (
       <div className="flex items-center gap-2" title="Cambia el diseño de la pantalla">
-        <span className="text-xs font-medium text-slate-400">Diseño:</span>
+        <span className={`text-xs font-medium ${onLight ? 'text-gray-600' : 'text-slate-400'}`}>Diseño:</span>
       <div
         data-tour-step={dataTourStep}
         className="flex items-center gap-1 rounded-md border border-gray-200 bg-gray-100 p-0.5"
@@ -47,7 +49,7 @@ export function ThemeToggle({ variant = 'header', dataTourStep }: ThemeTogglePro
         </button>
         <button
           onClick={() => useThemeStore.getState().setTheme('modern')}
-          className="rounded px-2.5 py-1 min-h-[40px] sm:min-h-0 text-xs font-medium transition text-gray-500 hover:text-gray-700 hover:bg-gray-200/50"
+          className="rounded px-2.5 py-1 min-h-[40px] sm:min-h-0 text-xs font-medium transition text-gray-600 hover:text-gray-800 hover:bg-gray-200/50"
         >
           Moderno
         </button>
