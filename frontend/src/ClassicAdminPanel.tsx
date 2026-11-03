@@ -16,19 +16,18 @@ import { ThemeToggle } from './components/ThemeToggle.js';
 import { OeeDashboard } from './components/OeeDashboard.js';
 import { QualityDashboard } from './components/QualityDashboard.js';
 import { CostDashboard } from './components/CostDashboard.js';
-import { USERS_HELP, WORKSTATIONS_HELP, MODELS_HELP, ORDERS_HELP, MODULES_HELP, CUSTOM_FIELDS_HELP } from './help-content.js';
+import { USERS_HELP, WORKSTATIONS_HELP, MODELS_HELP, ORDERS_HELP, CUSTOM_FIELDS_HELP } from './help-content.js';
 
 
 import { UsersTab } from './components/tabs/UsersTab.js';
 import { WorkstationsTab } from './components/tabs/WorkstationsTab.js';
 import { ModelsTab } from './components/tabs/ModelsTab.js';
 import { OrdersTab } from './components/tabs/OrdersTab.js';
-import { ModulesTab } from './components/tabs/ModulesTab.js';
 import { CustomFieldsTab } from './components/tabs/CustomFieldsTab.js';
 import { ToolingsTab } from './components/tabs/ToolingsTab.js';
 import { IncidenciasTab } from './components/tabs/IncidenciasTab.js';
 import { MaterialsTab } from './components/tabs/MaterialsTab.js';
-type Tab = 'users' | 'workstations' | 'models' | 'orders' | 'modules' | 'custom-fields' | 'oee' | 'quality' | 'cost' | 'toolings' | 'incidencias' | 'materials';
+type Tab = 'users' | 'workstations' | 'models' | 'orders' | 'custom-fields' | 'oee' | 'quality' | 'cost' | 'toolings' | 'incidencias' | 'materials';
 
 interface EditableField {
   key: string;
@@ -54,7 +53,6 @@ export function ClassicAdminPanel() {
     { key: 'orders', label: 'Órdenes' },
     { key: 'toolings', label: 'Utillajes' },
     { key: 'incidencias', label: 'Incidencias' },
-    { key: 'modules', label: 'Módulos' },
     { key: 'custom-fields', label: 'Campos' },
     { key: 'oee', label: 'Rendimiento (OEE)', module: 'oee_monitoring' },
     { key: 'quality', label: 'Calidad', module: 'quality_assurance' },
@@ -103,7 +101,6 @@ export function ClassicAdminPanel() {
         {tab === 'orders' && <OrdersTab isClassic />}
         {tab === 'toolings' && <ToolingsTab isClassic />}
         {tab === 'incidencias' && <IncidenciasTab isClassic />}
-        {tab === 'modules' && <ModulesTab isClassic />}
         {tab === 'custom-fields' && <CustomFieldsTab isClassic />}
         {tab === 'oee' && <OeeDashboard />}
         {tab === 'quality' && <QualityDashboard />}
