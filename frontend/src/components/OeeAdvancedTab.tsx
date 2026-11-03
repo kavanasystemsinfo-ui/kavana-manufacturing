@@ -406,7 +406,7 @@ export function OeeAdvancedTab() {
                 (Peor primero)
               </div>
             </div>
-            <div className="max-h-48 overflow-y-auto">
+            <div className="max-h-48 overflow-y-auto pr-3">
               {workstationRanking.length === 0 ? (
                 <div className="text-center py-8 text-sm text-slate-500">
                   Sin datos de OEE hoy

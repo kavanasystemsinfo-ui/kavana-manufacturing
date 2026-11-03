@@ -15,6 +15,8 @@ interface Props {
   incidencias: Incidencia[];
   onStatusChange: (id: string, status: string) => Promise<void>;
   onDelete?: (id: string) => Promise<void>;
+  /** Tema clásico (claro): tarjetas y avisos sin los colores del tema oscuro. */
+  isClassic?: boolean;
 }
 
 /**
@@ -28,7 +30,7 @@ interface Props {
  * (Iniciar → Resolver → Cerrar) y no dejaban rectificar: arrastrando se mueve una
  * incidencia a cualquier columna, incluso volver a abrirla.
  */
-export function IncidenciasKanban({ incidencias, onStatusChange, onDelete }: Props) {
+export function IncidenciasKanban({ incidencias, onStatusChange, onDelete, isClassic }: Props) {
   const huerfanas = incidenciasHuerfanas(incidencias);
 
   return (
@@ -39,19 +41,20 @@ export function IncidenciasKanban({ incidencias, onStatusChange, onDelete }: Pro
         onMove={(id, status) => void onStatusChange(id, status)}
         ariaLabel="Incidencias por estado"
         emptyLabel="Sin incidencias"
+        isClassic={isClassic}
         renderCard={(incidencia) => (
           <div>
-            <p className="text-sm font-bold text-white">{incidencia.title}</p>
-            <p className="mt-1 text-[11px] text-slate-400">
+            <p className={`text-sm font-bold ${isClassic ? 'text-slate-900' : 'text-white'}`}>{incidencia.title}</p>
+            <p className={`mt-1 text-[11px] ${isClassic ? 'text-slate-500' : 'text-slate-400'}`}>
               {typeLabels[incidencia.type] ?? incidencia.type} ·{' '}
               {new Date(incidencia.created_at).toLocaleDateString('es-ES')}
             </p>
             {incidencia.description && (
-              <p className="mt-2 line-clamp-2 text-xs text-slate-300">{incidencia.description}</p>
+              <p className={`mt-2 line-clamp-2 text-xs ${isClassic ? 'text-slate-600' : 'text-slate-300'}`}>{incidencia.description}</p>
             )}
             {incidencia.photo_data_url && (
               <div className="mt-2">
-                <IncidenciaPhoto src={incidencia.photo_data_url} alt="Evidencia de la incidencia" />
+                <IncidenciaPhoto src={incidencia.photo_data_url} alt="Evidencia de la incidencia" isClassic={isClassic} />
               </div>
             )}
             {onDelete && (
@@ -61,7 +64,7 @@ export function IncidenciasKanban({ incidencias, onStatusChange, onDelete }: Pro
                   event.stopPropagation();
                   if (confirm('¿Eliminar esta incidencia?')) void onDelete(incidencia.id);
                 }}
-                className="mt-2 rounded-full bg-red-600/20 px-3 py-1 text-[11px] font-bold text-red-300 transition hover:bg-red-600/40"
+                className={`mt-2 rounded-full px-3 py-1 text-[11px] font-bold transition ${isClassic ? 'bg-red-50 text-red-700 hover:bg-red-100' : 'bg-red-600/20 text-red-300 hover:bg-red-600/40'}`}
               >
                 Eliminar
               </button>
@@ -71,7 +74,7 @@ export function IncidenciasKanban({ incidencias, onStatusChange, onDelete }: Pro
       />
 
       {huerfanas.length > 0 && (
-        <div className="rounded-lg border border-amber-700 bg-amber-900/20 px-4 py-3 text-sm text-amber-200">
+        <div className={`rounded-lg border px-4 py-3 text-sm ${isClassic ? 'border-amber-300 bg-amber-50 text-amber-800' : 'border-amber-700 bg-amber-900/20 text-amber-200'}`}>
           {huerfanas.length === 1
             ? '1 incidencia tiene un estado que no está en el tablero:'
             : `${huerfanas.length} incidencias tienen un estado que no está en el tablero:`}{' '}

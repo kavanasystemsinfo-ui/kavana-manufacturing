@@ -85,7 +85,7 @@ export function SupervisorPanel() {
       id: 'tabs',
       selector: '[class*="overflow-x-auto"]',
       title: '6 Pestañas principales',
-      content: 'RESUMEN: KPIs y alertas. LÍNEA EN VIVO: timeline turno 8h. RENDIMIENTO (OEE): detalle por puesto y pérdidas. ÓRDENES: tabla/Kanban. PUESTOS: grid semáforo. INCIDENCIAS: Kanban 4 columnas.',
+      content: 'RESUMEN: KPIs y alertas. LÍNEA EN VIVO: timeline turno 8h. RENDIMIENTO (OEE): detalle por puesto. ÓRDENES: tabla/Kanban. PUESTOS: grid semáforo. INCIDENCIAS: Kanban 4 columnas.',
       position: 'bottom',
     },
     {
@@ -191,7 +191,7 @@ export function SupervisorPanel() {
       id: 'oee-tab',
       selector: '[data-tour-step="oee-tab"]',
       title: 'Rendimiento detallado (OEE)',
-      content: 'Medias de planta, tendencia Día/Semana/Mes (cambia endpoint), ranking puestos, tabla detalle, 6 Grandes Pérdidas (modelado proporcional documentado).',
+      content: 'Medias de planta, tendencia Día/Semana/Mes (cambia endpoint), ranking puestos y tabla detalle.',
       position: 'bottom',
     },
     {
