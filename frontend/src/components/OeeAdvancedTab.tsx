@@ -134,12 +134,12 @@ export function OeeAdvancedTab() {
     if (!oeeMetrics) return [];
     const totalLoss = 1 - calculatedOee;
     const losses: SixBigLoss[] = [
-      { label: 'Averías (Breakdowns)', value: totalLoss * 0.30, color: 'bg-red-500', category: 'availability' },
-      { label: 'Ajustes y preparaciones (Setup/Adjust)', value: totalLoss * 0.25, color: 'bg-orange-500', category: 'availability' },
-      { label: 'Paradas menores (Minor Stops)', value: totalLoss * 0.20, color: 'bg-amber-500', category: 'performance' },
-      { label: 'Reducción de velocidad (Reduced Speed)', value: totalLoss * 0.15, color: 'bg-yellow-500', category: 'performance' },
-      { label: 'Defectos en proceso (Process Defects)', value: totalLoss * 0.06, color: 'bg-green-500', category: 'quality' },
-      { label: 'Reducción de rendimiento (Yield Loss)', value: totalLoss * 0.04, color: 'bg-blue-500', category: 'quality' }
+      { label: 'Averías', value: totalLoss * 0.30, color: 'bg-red-500', category: 'availability' },
+      { label: 'Ajustes y preparaciones', value: totalLoss * 0.25, color: 'bg-orange-500', category: 'availability' },
+      { label: 'Paradas menores', value: totalLoss * 0.20, color: 'bg-amber-500', category: 'performance' },
+      { label: 'Velocidad reducida', value: totalLoss * 0.15, color: 'bg-yellow-500', category: 'performance' },
+      { label: 'Defectos del proceso', value: totalLoss * 0.06, color: 'bg-green-500', category: 'quality' },
+      { label: 'Pérdida de producto', value: totalLoss * 0.04, color: 'bg-blue-500', category: 'quality' }
     ];
     return losses.filter(loss => loss.value > 0.005); // Only show significant losses
   }, [calculatedOee, oeeMetrics]);
@@ -176,10 +176,10 @@ export function OeeAdvancedTab() {
       <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between w-full gap-3">
         <div className="flex-1 min-w-0">
           <h3 className="text-lg font-semibold text-slate-900">
-            Análisis OEE Avanzado
+            Rendimiento detallado (OEE)
           </h3>
           <p className="text-sm text-slate-500">
-            Eficiencia Global de los Equipos — Desglose por categorías y pérdidas
+            Rendimiento global de los equipos (OEE): desglose por categorías y pérdidas
           </p>
         </div>
         
@@ -474,7 +474,7 @@ export function OeeAdvancedTab() {
           <div className="rounded-lg border border-slate-200 bg-white p-4 shadow-sm">
             <div className="flex justify-between items-start mb-3">
               <h4 className="text-sm font-medium text-slate-700">
-                Ranking Workstations
+                Ranking de puestos
               </h4>
               <div className="text-xs text-slate-500">
                 (Peor primero)
@@ -522,10 +522,10 @@ export function OeeAdvancedTab() {
           <div className="rounded-lg border border-slate-200 bg-white p-4 shadow-sm">
             <div className="flex justify-between items-start mb-3">
               <h4 className="text-sm font-medium text-slate-700">
-                Seis Grandes Pérdidas
+                Seis grandes pérdidas
               </h4>
               <div className="text-xs text-slate-500">
-                Pérdidas totales: {oeeMetrics ? `${((1 - calculatedOee) * 100).toFixed(1)}%` : '—'}
+                Pérdidas totales: {oeeMetrics ? `${((1 - calculatedOee) * 100).toFixed(1)}%` : '—'} · reparto estimado
               </div>
             </div>
             <div className="h-48">

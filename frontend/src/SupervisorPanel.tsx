@@ -85,7 +85,7 @@ export function SupervisorPanel() {
       id: 'tabs',
       selector: '[class*="overflow-x-auto"]',
       title: '6 Pestañas principales',
-      content: 'RESUMEN: KPIs y alertas. LÍNEA EN VIVO: timeline turno 8h. OEE AVANZADO: métricas OEE y 6 Grandes Pérdidas. ÓRDENES: tabla/Kanban. PUESTOS: grid semáforo. INCIDENCIAS: Kanban 4 columnas.',
+      content: 'RESUMEN: KPIs y alertas. LÍNEA EN VIVO: timeline turno 8h. RENDIMIENTO (OEE): detalle por puesto y pérdidas. ÓRDENES: tabla/Kanban. PUESTOS: grid semáforo. INCIDENCIAS: Kanban 4 columnas.',
       position: 'bottom',
     },
     {
@@ -190,7 +190,7 @@ export function SupervisorPanel() {
     {
       id: 'oee-tab',
       selector: '[data-tour-step="oee-tab"]',
-      title: 'OEE Avanzado',
+      title: 'Rendimiento detallado (OEE)',
       content: 'Medias de planta, tendencia Día/Semana/Mes (cambia endpoint), ranking puestos, tabla detalle, 6 Grandes Pérdidas (modelado proporcional documentado).',
       position: 'bottom',
     },
@@ -386,7 +386,7 @@ export function SupervisorPanel() {
                   onClick={() => setActiveTab(tab)}
                   className={`min-h-[64px] whitespace-nowrap rounded-lg px-5 py-2.5 text-sm font-bold transition ${activeTab === tab ? 'bg-kavana-orange text-white shadow' : 'bg-kavana-surface text-slate-300 hover:text-white'}`}
                 >
-                  {tab === 'resumen' ? '📊 RESUMEN' : tab === 'live' ? '⏱️ LÍNEA EN VIVO' : tab === 'oee' ? '📊 OEE AVANZADO' : tab === 'orders' ? '📋 ÓRDENES' : tab === 'workstations' ? '🏭 PUESTOS' : '🚨 INCIDENCIAS'}
+                  {tab === 'resumen' ? '📊 RESUMEN' : tab === 'live' ? '⏱️ LÍNEA EN VIVO' : tab === 'oee' ? '📊 RENDIMIENTO (OEE)' : tab === 'orders' ? '📋 ÓRDENES' : tab === 'workstations' ? '🏭 PUESTOS' : '🚨 INCIDENCIAS'}
                 </button>
               );
             })}
