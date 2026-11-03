@@ -141,7 +141,7 @@ export function ToolingsTab({ isClassic }: Props) {
       <div className="flex items-center justify-between">
         <div>
           <h2 className="text-xl font-bold text-white">Utillajes</h2>
-          <p className="text-sm text-indigo-400/80 mt-1">Herramienta de estimación preventiva de vida útil</p>
+          <p className="text-sm text-indigo-400/80 mt-1">Aviso de desgaste: calcula cuántos ciclos lleva cada utillaje para cambiarlo a tiempo</p>
         </div>
         <div className="flex gap-2">
           <button onClick={() => setShowTypeConfig(true)} className="px-3 py-2 bg-gray-700 hover:bg-gray-600 rounded-lg text-sm font-medium transition-colors">
@@ -161,7 +161,7 @@ export function ToolingsTab({ isClassic }: Props) {
       )}
 
       <div className="bg-blue-900/20 border border-blue-700 rounded-lg px-4 py-3 text-blue-300 text-sm">
-        ℹ️ Los ciclos se estiman automáticamente: <code className="bg-blue-800/30 px-1 rounded">cycles_per_piece × piezas_producidas</code>. Registra producción con el botón ▶ Producción.
+        ℹ️ Los ciclos se calculan solos: ciclos por pieza × piezas producidas. Para sumarlos, registra la producción con el botón ▶ Producción.
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -188,8 +188,8 @@ export function ToolingsTab({ isClassic }: Props) {
 
               <div className="mb-3">
                 <div className="flex justify-between text-xs text-gray-400 mb-1">
-                  <span>Ciclos: {Math.round(t.current_cycles).toLocaleString()} / {t.max_cycles.toLocaleString()}</span>
-                  <span className={isWarning ? 'text-amber-400 font-semibold' : ''}>{Math.round(pct)}%</span>
+                  <span>{t.max_cycles > 0 ? `Ciclos: ${Math.round(t.current_cycles).toLocaleString('es-ES')} de ${t.max_cycles.toLocaleString('es-ES')}` : 'Sin límite de ciclos configurado'}</span>
+                  {t.max_cycles > 0 && <span className={isWarning ? 'text-amber-400 font-semibold' : ''}>{Math.round(pct)}%</span>}
                 </div>
                 <div className="w-full h-2 bg-gray-700 rounded-full overflow-hidden">
                   <div className={`h-full rounded-full transition-all ${getProgressColor(pct)}`} style={{ width: `${Math.min(pct, 100)}%` }} />
@@ -198,9 +198,9 @@ export function ToolingsTab({ isClassic }: Props) {
 
               {t.cycles_per_piece > 0 && (
                 <div className="text-xs text-gray-400 mb-3">
-                  <span className="text-indigo-400">⚡ {t.cycles_per_piece} ciclos/pieza</span>
+                  <span className="text-indigo-400">⚡ {t.cycles_per_piece.toLocaleString('es-ES')} ciclos por pieza</span>
                   {t.estimated_pieces !== null && t.estimated_pieces > 0 && (
-                    <span className="ml-2">· ~{t.estimated_pieces.toLocaleString()} piezas</span>
+                    <span className="ml-2">· unas {t.estimated_pieces.toLocaleString('es-ES')} piezas</span>
                   )}
                 </div>
               )}
@@ -284,7 +284,7 @@ export function ToolingsTab({ isClassic }: Props) {
         <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4">
           <div className="bg-gray-800 rounded-xl border border-gray-700 p-6 w-full max-w-sm">
             <h3 className="text-lg font-bold text-white mb-2">Registrar Producción</h3>
-            <p className="text-sm text-gray-400 mb-4">Las piezas se multiplican automáticamente por los ciclos/pieza del utillaje.</p>
+            <p className="text-sm text-gray-400 mb-4">Las piezas se multiplican automáticamente por los ciclos por pieza del utillaje.</p>
             <div className="mb-4">
               <label className="text-xs text-gray-400 mb-1 block">Piezas producidas</label>
               <input type="number" value={producePieces} onChange={(e) => setProducePieces(e.target.value)} className="w-full bg-gray-900 border border-gray-600 rounded-lg px-3 py-2 text-sm text-white focus:ring-2 focus:ring-indigo-500 outline-none" placeholder="100" autoFocus />

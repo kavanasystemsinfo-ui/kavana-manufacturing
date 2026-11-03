@@ -45,6 +45,8 @@ export interface Order {
   created_by: string;
   status: 'pending' | 'in_progress' | 'completed' | 'cancelled';
   quantity: number;
+  /** Número de orden que ve el operario (puede faltar en órdenes antiguas). */
+  code?: string | null;
   tenant_id: string;
   created_at: string;
 }
