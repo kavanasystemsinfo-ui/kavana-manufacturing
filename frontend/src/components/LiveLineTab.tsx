@@ -343,9 +343,9 @@ export function LiveLineTab() {
         <div className="rounded-lg border border-slate-200 bg-white p-4 shadow-sm">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm text-slate-500">En espera</p>
+              <p className="text-sm text-slate-500">En espera o cambio</p>
               <p className="text-2xl font-bold text-slate-600">
-                {Array.from(liveData.values()).filter(ws => ws.status === 'idle').length}
+                {Array.from(liveData.values()).filter(ws => ws.status === 'idle' || ws.status === 'changeover').length}
               </p>
             </div>
             <div className="w-12 h-12 rounded-full bg-slate-100 flex items-center justify-center">
@@ -362,7 +362,7 @@ export function LiveLineTab() {
             <div>
               <p className="text-sm text-slate-500">Parados</p>
               <p className="text-2xl font-bold text-red-600">
-                {Array.from(liveData.values()).filter(ws => ws.status === 'down').length}
+                {Array.from(liveData.values()).filter(ws => ws.status === 'down' || ws.status === 'maintenance').length}
               </p>
             </div>
             <div className="w-12 h-12 rounded-full bg-red-100 flex items-center justify-center">

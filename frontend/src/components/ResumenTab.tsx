@@ -297,7 +297,7 @@ export function ResumenTab() {
                       <p className="text-sm text-amber-500">
                         {incidencias
                           .filter(inc => inc.type === 'calidad' && inc.status === 'abierto')
-                          .length} incidencias abiertas
+                          .length} incidencias de calidad abiertas
                       </p>
                     </div>
                   </div>

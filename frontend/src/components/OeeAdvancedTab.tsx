@@ -96,13 +96,9 @@ export function OeeAdvancedTab() {
     };
   }, [puestosHoy]);
 
-  // OEE calculado = A × P × Q sobre los datos de hoy.
-  const calculatedOee = useMemo(() => {
-    if (!oeeMetrics) return 0;
-    return (oeeMetrics.availability || 0) *
-           (oeeMetrics.performance || 0) *
-           (oeeMetrics.quality || 0);
-  }, [oeeMetrics]);
+  // Misma cifra que el Resumen: media del OEE de cada puesto. Multiplicar las
+  // medias de A, P y Q daba otro número (71,3 % frente a 71,5 %).
+  const calculatedOee = oeeMetrics?.oee ?? 0;
 
   // Tendencia (último vs primero). Sin serie suficiente o partiendo de 0 no
   // hay porcentaje honesto que mostrar.
