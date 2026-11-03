@@ -94,7 +94,7 @@ export function KpiCardsRow() {
         onClick={() => {
           // Filter for open issues
         }}
-        className={`min-h-[64px] flex-1 whitespace-nowrap rounded-md px-4 py-2 text-sm font-medium transition bg-red-500 text-white hover:bg-red-600`}
+        className={`min-h-[64px] flex-1 whitespace-nowrap rounded-md px-4 py-2 text-sm font-medium transition bg-red-600 text-white hover:bg-red-700`}
       >
         Incidencias abiertas
         <div className="text-2xl font-bold mt-1">{openIssues}</div>
@@ -106,7 +106,7 @@ export function KpiCardsRow() {
         onClick={() => {
           // Filter for blocking issues
         }}
-        className={`min-h-[64px] flex-1 whitespace-nowrap rounded-md px-4 py-2 text-sm font-medium transition bg-red-600 text-white hover:bg-red-700`}
+        className={`min-h-[64px] flex-1 whitespace-nowrap rounded-md px-4 py-2 text-sm font-medium transition bg-red-700 text-white hover:bg-red-800`}
       >
         Incidencias bloqueantes
         <div className="text-2xl font-bold mt-1">{blockingIssues}</div>
@@ -118,13 +118,13 @@ export function KpiCardsRow() {
         onClick={() => {
           // Show OEE detail
         }}
-        className={`min-h-[64px] flex-1 whitespace-nowrap rounded-md px-4 py-2 text-sm font-medium transition bg-indigo-500 text-white hover:bg-indigo-600`}
+        className={`min-h-[64px] flex-1 whitespace-nowrap rounded-md px-4 py-2 text-sm font-medium transition bg-indigo-600 text-white hover:bg-indigo-700`}
       >
         Eficiencia (OEE)
         <div className="text-2xl font-bold mt-1">
           {plantOee === null ? '—' : `${plantOee.toFixed(1)}%`}
         </div>
-        <div className="text-xs text-slate-500">
+        <div className="text-xs">
           {plantOee === null ? 'Sin datos hoy' : 'De la planta, hoy'}
         </div>
       </button>
