@@ -15,8 +15,8 @@ import { getTenantContext } from './tenant-context.storage.js';
 // Un movimiento de estado sí queda guardado, así que el visitante siguiente ve
 // la fábrica en el punto donde la dejó el anterior. Se asume: es una demo, y lo
 // que se rompe por no poder mover nada es la demostración entera.
-// Empresas reales (tenant != 1) no se ven afectadas.
-const DEMO_TENANT_ID = 1n;
+// Empresas reales (tenant != 1 && tenant != 10000) no se ven afectadas.
+const DEMO_TENANT_IDS = new Set([1n, 10000n]);
 const BLOCKED_METHODS = new Set(['DELETE']);
 const STATE_CHANGE_METHODS = new Set(['PUT', 'PATCH']);
 const STATE_CHANGE_PATHS = /\/(orders|incidencias)\/[0-9a-fA-F-]{36}\/?$/;
@@ -26,7 +26,7 @@ export class DemoReadOnlyMiddleware implements NestMiddleware {
   use(request: Request, response: Response, next: NextFunction): void {
     try {
       const context = getTenantContext();
-      if (context.tenantId === DEMO_TENANT_ID && this.isBlocked(request)) {
+      if (DEMO_TENANT_IDS.has(context.tenantId) && this.isBlocked(request)) {
         response.status(403).json({
           statusCode: 403,
           message:
