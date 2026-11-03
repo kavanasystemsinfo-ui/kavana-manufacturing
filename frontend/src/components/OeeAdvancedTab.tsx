@@ -27,13 +27,6 @@ interface TimeRangeData {
   value: 'day' | 'week' | 'month';
 }
 
-interface SixBigLoss {
-  label: string;
-  value: number;
-  color: string;
-  category: 'availability' | 'performance' | 'quality';
-}
-
 export function OeeAdvancedTab() {
   const { workstationStatus } = useSupervisorPanel();
   const [timeRange, setTimeRange] = useState<'day' | 'week' | 'month'>('day');
@@ -128,30 +121,6 @@ export function OeeAdvancedTab() {
     [puestosHoy, workstationStatus],
   );
 
-  // Six Big Losses: reparto proporcional fijo de la pérdida total real
-  // (1 - OEE). No es una medición por motivo, es un modelo derivado del OEE.
-  const sixBigLosses = useMemo<SixBigLoss[]>(() => {
-    if (!oeeMetrics) return [];
-    const totalLoss = 1 - calculatedOee;
-    const losses: SixBigLoss[] = [
-      { label: 'Averías', value: totalLoss * 0.30, color: 'bg-red-500', category: 'availability' },
-      { label: 'Ajustes y preparaciones', value: totalLoss * 0.25, color: 'bg-orange-500', category: 'availability' },
-      { label: 'Paradas menores', value: totalLoss * 0.20, color: 'bg-amber-500', category: 'performance' },
-      { label: 'Velocidad reducida', value: totalLoss * 0.15, color: 'bg-yellow-500', category: 'performance' },
-      { label: 'Defectos del proceso', value: totalLoss * 0.06, color: 'bg-green-500', category: 'quality' },
-      { label: 'Pérdida de producto', value: totalLoss * 0.04, color: 'bg-blue-500', category: 'quality' }
-    ];
-    return losses.filter(loss => loss.value > 0.005); // Only show significant losses
-  }, [calculatedOee, oeeMetrics]);
-
-  // Category totals for summary
-  const availabilityLoss = useMemo(() =>
-    sixBigLosses.filter(l => l.category === 'availability').reduce((sum, l) => sum + l.value, 0), [sixBigLosses]);
-  const performanceLoss = useMemo(() =>
-    sixBigLosses.filter(l => l.category === 'performance').reduce((sum, l) => sum + l.value, 0), [sixBigLosses]);
-  const qualityLoss = useMemo(() =>
-    sixBigLosses.filter(l => l.category === 'quality').reduce((sum, l) => sum + l.value, 0), [sixBigLosses]);
-
   const colorBarra = (oee: number | null): string => {
     if (oee === null) return 'bg-slate-300';
     if (oee < 0.7) return 'bg-red-500';
@@ -179,7 +148,7 @@ export function OeeAdvancedTab() {
             Rendimiento detallado (OEE)
           </h3>
           <p className="text-sm text-slate-500">
-            Rendimiento global de los equipos (OEE): desglose por categorías y pérdidas
+            Rendimiento global de los equipos (OEE): desglose por categorías
           </p>
         </div>
         
@@ -219,7 +188,7 @@ export function OeeAdvancedTab() {
         </div>
       </div>
       
-      {/* Main content: Gauges + Trend + Ranking + Losses */}
+      {/* Main content: Gauges + Trend + Ranking */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
         {/* Availability Gauge */}
         <div className="col-span-1 sm:col-span-1 lg:col-span-1">
@@ -241,19 +210,6 @@ export function OeeAdvancedTab() {
               <span>100%</span>
             </div>
             
-            {/* Loss breakdown for availability */}
-            <div className="mt-3 pt-3 border-t border-slate-200">
-              <p className="text-xs text-slate-500 mb-2">Pérdidas de Disponibilidad: {oeeMetrics ? `${(availabilityLoss * 100).toFixed(1)}%` : '—'}</p>
-              {sixBigLosses.filter(l => l.category === 'availability').map((loss, idx) => (
-                <div key={idx} className="flex justify-between text-xs mb-1">
-                  <span className="flex items-center gap-1">
-                    <span className={`w-2 h-2 rounded ${loss.color}`}></span>
-                    {loss.label}
-                  </span>
-                  <span className="font-medium text-slate-700">{(loss.value * 100).toFixed(1)}%</span>
-                </div>
-              ))}
-            </div>
           </div>
         </div>
         
@@ -277,19 +233,6 @@ export function OeeAdvancedTab() {
               <span>100%</span>
             </div>
             
-            {/* Loss breakdown for performance */}
-            <div className="mt-3 pt-3 border-t border-slate-200">
-              <p className="text-xs text-slate-500 mb-2">Pérdidas de Rendimiento: {oeeMetrics ? `${(performanceLoss * 100).toFixed(1)}%` : '—'}</p>
-              {sixBigLosses.filter(l => l.category === 'performance').map((loss, idx) => (
-                <div key={idx} className="flex justify-between text-xs mb-1">
-                  <span className="flex items-center gap-1">
-                    <span className={`w-2 h-2 rounded ${loss.color}`}></span>
-                    {loss.label}
-                  </span>
-                  <span className="font-medium text-slate-700">{(loss.value * 100).toFixed(1)}%</span>
-                </div>
-              ))}
-            </div>
           </div>
         </div>
         
@@ -313,19 +256,6 @@ export function OeeAdvancedTab() {
               <span>100%</span>
             </div>
             
-            {/* Loss breakdown for quality */}
-            <div className="mt-3 pt-3 border-t border-slate-200">
-              <p className="text-xs text-slate-500 mb-2">Pérdidas de Calidad: {oeeMetrics ? `${(qualityLoss * 100).toFixed(1)}%` : '—'}</p>
-              {sixBigLosses.filter(l => l.category === 'quality').map((loss, idx) => (
-                <div key={idx} className="flex justify-between text-xs mb-1">
-                  <span className="flex items-center gap-1">
-                    <span className={`w-2 h-2 rounded ${loss.color}`}></span>
-                    {loss.label}
-                  </span>
-                  <span className="font-medium text-slate-700">{(loss.value * 100).toFixed(1)}%</span>
-                </div>
-              ))}
-            </div>
           </div>
         </div>
         
@@ -480,14 +410,14 @@ export function OeeAdvancedTab() {
                 (Peor primero)
               </div>
             </div>
-            <div className="h-48">
+            <div className="max-h-48 overflow-y-auto">
               {workstationRanking.length === 0 ? (
                 <div className="text-center py-8 text-sm text-slate-500">
                   Sin datos de OEE hoy
                 </div>
               ) : (
               <div className="space-y-2">
-                {workstationRanking.slice(0, 8).map((ws, index) => (
+                {workstationRanking.map((ws, index) => (
                   <div key={ws.id} className="flex items-start gap-3">
                     <div className="flex-shrink-0">
                       <div className={`w-2 h-2 rounded-full ${colorBarra(ws.oee)}`} />
@@ -513,53 +443,6 @@ export function OeeAdvancedTab() {
                 ))}
               </div>
               )}
-            </div>
-          </div>
-        </div>
-        
-        {/* Six Big Losses - Stacked Bar */}
-        <div className="col-span-1 sm:col-span-1 lg:col-span-1">
-          <div className="rounded-lg border border-slate-200 bg-white p-4 shadow-sm">
-            <div className="flex justify-between items-start mb-3">
-              <h4 className="text-sm font-medium text-slate-700">
-                Seis grandes pérdidas
-              </h4>
-              <div className="text-xs text-slate-500">
-                Pérdidas totales: {oeeMetrics ? `${((1 - calculatedOee) * 100).toFixed(1)}%` : '—'} · reparto estimado
-              </div>
-            </div>
-            <div className="h-48">
-              <div className="space-y-2">
-                {sixBigLosses.map((loss, index) => (
-                  <div key={index} className="flex items-start gap-3">
-                    <div className="flex-shrink-0">
-                      <div 
-                        className={`w-2 h-2 rounded-full ${loss.color}`} 
-                      />
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <div className="flex justify-between text-sm">
-                        <div className="font-medium">{loss.label}</div>
-                        <div className="text-slate-600">{(loss.value * 100).toFixed(1)}%</div>
-                      </div>
-                      <div className="h-1.5 w-full bg-slate-200/50 rounded-full">
-                        <div
-                          className={`h-full ${loss.color} rounded-full`}
-                          style={{ width: `${Math.min(100, loss.value * 100)}%` }}
-                        />
-                      </div>
-                    </div>
-                  </div>
-                ))}
-                
-                {!sixBigLosses.length && (
-                  <div className="text-center py-8 text-slate-500">
-                    {oeeMetrics
-                      ? 'OEE óptimo - sin pérdidas significativas'
-                      : 'Sin datos de OEE hoy'}
-                  </div>
-                )}
-              </div>
             </div>
           </div>
         </div>
