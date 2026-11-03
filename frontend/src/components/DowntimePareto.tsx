@@ -65,7 +65,7 @@ export function DowntimePareto() {
       </div>
 
       {cargando ? (
-        <div className="h-48 flex items-center justify-center text-sm text-slate-400">
+        <div className="h-48 flex items-center justify-center text-sm text-slate-500">
           Cargando paradas…
         </div>
       ) : error ? (
@@ -73,14 +73,14 @@ export function DowntimePareto() {
           {error}
         </div>
       ) : filas.length === 0 ? (
-        <div className="h-48 flex items-center justify-center text-sm text-slate-400 text-center px-4">
+        <div className="h-48 flex items-center justify-center text-sm text-slate-500 text-center px-4">
           Sin paradas registradas en los últimos 30 días
         </div>
       ) : (
         <>
           <div className="h-48 flex gap-2">
             {/* Eje Y: horas perdidas como % del total del periodo */}
-            <div className="w-8 h-48 pb-9 flex flex-col justify-between items-end text-xs text-slate-400">
+            <div className="w-8 h-48 pb-9 flex flex-col justify-between items-end text-xs text-slate-500">
               {EJE.map((pct) => (
                 <span key={pct}>{pct}%</span>
               ))}
