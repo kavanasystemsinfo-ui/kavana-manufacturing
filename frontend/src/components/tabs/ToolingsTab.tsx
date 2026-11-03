@@ -133,7 +133,7 @@ export function ToolingsTab({ isClassic }: Props) {
   const btn = isClassic ? "text-xs font-medium px-2 py-1 rounded transition-colors" : "text-sm";
   const btnPrimary = isClassic ? btn + " bg-kavana-orange text-white hover:bg-kavana-orange-light" : "px-4 py-2 bg-indigo-600 hover:bg-indigo-700 rounded-lg text-sm font-medium transition-colors";
   const btnSuccess = isClassic ? btn + " bg-green-600 text-white hover:bg-green-700" : "px-4 py-2 bg-green-600 hover:bg-green-700 rounded-lg text-sm font-medium transition-colors";
-  const btnGhost = isClassic ? btn + " text-gray-500 hover:text-gray-700 hover:bg-gray-100" : "px-4 py-2 bg-gray-600 hover:bg-gray-700 rounded-lg text-sm font-medium transition-colors";
+  const btnGhost = isClassic ? btn + " text-gray-400 hover:text-gray-700 hover:bg-gray-100" : "px-4 py-2 bg-gray-600 hover:bg-gray-700 rounded-lg text-sm font-medium transition-colors";
   const btnDanger = isClassic ? btn + " text-red-600 hover:text-red-800 hover:bg-red-50" : "text-red-400 hover:text-red-300 text-sm";
 
   return (
@@ -181,8 +181,8 @@ export function ToolingsTab({ isClassic }: Props) {
                   <div className="text-xs text-gray-400 mt-1">{t.code} · {t.type}</div>
                 </div>
                 <div className="flex gap-1">
-                  <button onClick={() => startEdit(t)} className="text-gray-500 hover:text-indigo-400 text-sm px-1">✏️</button>
-                  <button onClick={() => handleDelete(t.id)} className="text-gray-500 hover:text-red-400 text-sm px-1">🗑️</button>
+                  <button onClick={() => startEdit(t)} className="text-gray-400 hover:text-indigo-400 text-sm px-1">✏️</button>
+                  <button onClick={() => handleDelete(t.id)} className="text-gray-400 hover:text-red-400 text-sm px-1">🗑️</button>
                 </div>
               </div>
 
@@ -206,7 +206,7 @@ export function ToolingsTab({ isClassic }: Props) {
               )}
 
               {t.location && (
-                <div className="text-xs text-gray-500 mb-3">📍 {t.location}</div>
+                <div className="text-xs text-gray-400 mb-3">📍 {t.location}</div>
               )}
 
               <button
@@ -219,7 +219,7 @@ export function ToolingsTab({ isClassic }: Props) {
           );
         })}
         {toolings.length === 0 && (
-          <div className="col-span-full text-center py-12 text-gray-500">
+          <div className="col-span-full text-center py-12 text-gray-400">
             No hay utillajes configurados. Crea uno para empezar.
           </div>
         )}
@@ -261,7 +261,7 @@ export function ToolingsTab({ isClassic }: Props) {
                 <div>
                   <label className="text-xs text-gray-400 mb-1 block">Ciclos/pieza</label>
                   <input type="number" step="0.1" value={form.cycles_per_piece} onChange={(e) => setForm({ ...form, cycles_per_piece: e.target.value })} className="w-full bg-gray-900 border border-gray-600 rounded-lg px-3 py-2 text-sm text-white focus:ring-2 focus:ring-indigo-500 outline-none" />
-                  <p className="text-[10px] text-gray-500 mt-1">Se multiplica × piezas producidas</p>
+                  <p className="text-[10px] text-gray-400 mt-1">Se multiplica × piezas producidas</p>
                 </div>
               </div>
               <div>
