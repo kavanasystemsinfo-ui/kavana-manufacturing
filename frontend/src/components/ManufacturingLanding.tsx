@@ -157,7 +157,7 @@ export function ManufacturingLanding() {
           <li><strong>[RESUMEN]</strong> Indicadores con datos reales de hoy: 10 órdenes en progreso, rendimiento de planta (OEE) calculado, incidencias abiertas.</li>
           <li><strong>[LÍNEA EN VIVO]</strong> Timeline de 8h con bloques de producción por puesto (arranque, producción estable, cierre).</li>
           <li><strong>[ÓRDENES]</strong> Lista con estados mixtos (pending/in_progress) y cantidades producidas reales.</li>
-          <li><strong>[Acceso a demo en vivo]</strong> Supervisor: usuario <code>047</code> / contraseña <code>kavana</code> · Admin: usuario <code>admin</code> / contraseña <code>admin123</code>. Datos del laboratorio, actualizados en vivo.</li>
+          <li><strong>[Acceso a demo en vivo]</strong> Entra con un clic como operario, supervisor o administrador, sin escribir usuario ni contraseña. Datos del laboratorio, actualizados en vivo.</li>
         </ul>
         <div className="mt-6 flex gap-4">
           <a
