@@ -271,7 +271,7 @@ export function OeeAdvancedTab() {
                 Cargando tendencia…
               </div>
             ) : tendenciaError ? (
-              <div className="h-48 flex items-center justify-center text-sm text-red-500">
+              <div className="h-48 flex items-center justify-center text-sm text-red-700">
                 {tendenciaError}
               </div>
             ) : serieTendencia.length < 2 ? (
@@ -330,12 +330,12 @@ export function OeeAdvancedTab() {
 
               {/* Axis labels */}
               <div className="absolute left-0 top-0 h-full flex flex-col justify-between items-center w-4">
-                <div className="text-xs text-slate-400">1.00</div>
-                <div className="text-xs text-slate-400">0.80</div>
-                <div className="text-xs text-slate-400">0.60</div>
-                <div className="text-xs text-slate-400">0.40</div>
-                <div className="text-xs text-slate-400">0.20</div>
-                <div className="text-xs text-slate-400">0.00</div>
+                <div className="text-xs text-slate-500">1.00</div>
+                <div className="text-xs text-slate-500">0.80</div>
+                <div className="text-xs text-slate-500">0.60</div>
+                <div className="text-xs text-slate-500">0.40</div>
+                <div className="text-xs text-slate-500">0.20</div>
+                <div className="text-xs text-slate-500">0.00</div>
               </div>
 
               {/* Etiquetas X colocadas en su posicion temporal real, sin
