@@ -105,7 +105,7 @@ export function ClassicSupervisorPanel() {
       id: 'tabs',
       selector: '[class*="overflow-x-auto"]',
       title: '6 Pestañas principales',
-      content: 'RESUMEN: KPIs y alertas. LÍNEA EN VIVO: timeline turno 8h. OEE AVANZADO: métricas OEE y 6 Grandes Pérdidas. ÓRDENES: tabla/Kanban. PUESTOS: grid semáforo. INCIDENCIAS: Kanban 4 columnas.',
+      content: 'RESUMEN: KPIs y alertas. LÍNEA EN VIVO: timeline turno 8h. RENDIMIENTO (OEE): detalle por puesto y pérdidas. ÓRDENES: tabla/Kanban. PUESTOS: grid semáforo. INCIDENCIAS: Kanban 4 columnas.',
       position: 'bottom',
     },
     {
@@ -210,7 +210,7 @@ export function ClassicSupervisorPanel() {
     {
       id: 'oee-tab',
       selector: 'button[class*="overflow-x-auto"]:nth-child(3)',
-      title: 'OEE Avanzado',
+      title: 'Rendimiento detallado (OEE)',
       content: 'Medias de planta, tendencia Día/Semana/Mes (cambia endpoint), ranking puestos, tabla detalle, 6 Grandes Pérdidas (modelado proporcional documentado).',
       position: 'bottom',
     },
@@ -359,7 +359,7 @@ export function ClassicSupervisorPanel() {
               LÍNEA EN VIVO
             </button>
             <button onClick={() => setActiveTab('oee')} className={`min-h-[64px] flex-1 whitespace-nowrap rounded-md px-4 py-2 text-sm font-medium transition ${activeTab === 'oee' ? 'bg-kavana-orange text-white' : 'text-slate-600 hover:bg-slate-100'}`}>
-              OEE AVANZADO
+              RENDIMIENTO (OEE)
             </button>
             <button onClick={() => setActiveTab('workstations')} className={`min-h-[64px] flex-1 whitespace-nowrap rounded-md px-4 py-2 text-sm font-medium transition ${activeTab === 'workstations' ? 'bg-kavana-orange text-white' : 'text-slate-600 hover:bg-slate-100'}`}>
               PUESTOS ({workstationStatus.length})
