@@ -12,6 +12,11 @@ const loginAttempts = new Map<string, number[]>();
 const WINDOW_MS = 5 * 60 * 1000;
 const MAX_ATTEMPTS = Number(process.env.LOGIN_MAX_ATTEMPTS ?? 10);
 
+// Rate limit para demo-login (20 req/min/IP)
+const demoLoginAttempts = new Map<string, number[]>();
+const DEMO_LOGIN_WINDOW_MS = 60 * 1000;
+const DEMO_LOGIN_MAX_ATTEMPTS = 20;
+
 function clientIp(req: Request): string {
   const fwd = (req.headers['x-forwarded-for'] as string)?.split(',')[0]?.trim();
   return fwd || req.socket?.remoteAddress || 'unknown';
@@ -28,6 +33,17 @@ function enforceLoginRateLimit(req: Request): void {
   loginAttempts.set(ip, recent);
 }
 
+function enforceDemoLoginRateLimit(req: Request): void {
+  const ip = clientIp(req);
+  const now = Date.now();
+  const recent = (demoLoginAttempts.get(ip) ?? []).filter((t) => now - t < DEMO_LOGIN_WINDOW_MS);
+  if (recent.length >= DEMO_LOGIN_MAX_ATTEMPTS) {
+    throw new HttpException('Demasiados intentos de demo-login. Espera un momento.', 429);
+  }
+  recent.push(now);
+  demoLoginAttempts.set(ip, recent);
+}
+
 @Controller('auth')
 export class AuthLoginController {
   constructor(@Inject(AuthLoginService) private readonly authLoginService: AuthLoginService) {}
@@ -42,6 +58,12 @@ export class AuthLoginController {
   async loginByTenant(@Body() body: { subdomain: string; username: string; password: string }, @Req() req: Request) {
     enforceLoginRateLimit(req);
     return this.authLoginService.loginByTenant(body.subdomain, body.username, body.password);
+  }
+
+  @Post('demo-login')
+  async demoLogin(@Body() body: { role: string }, @Req() req: Request) {
+    enforceDemoLoginRateLimit(req);
+    return this.authLoginService.demoLogin(body.role);
   }
 
   @Get('tenant/:subdomain')

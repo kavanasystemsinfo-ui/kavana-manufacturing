@@ -12,6 +12,9 @@ if (!process.env.JWT_HMAC_SECRET && !process.env.JWT_SECRET) {
   console.warn('⚠ JWT_HMAC_SECRET not set — using dev fallback (not for production)');
 }
 
+/** Roles permitidos para demo-login (lista cerrada). */
+const DEMO_LOGIN_ROLES = new Set(['operario', 'supervisor', 'administrador']);
+
 /** Lo que devuelve el login. El puesto va en la respuesta para que el panel del
  * operario pueda distinguir «no tengo puesto» de «no tengo órdenes». */
 interface LoginResult {
@@ -32,6 +35,13 @@ interface LoginResult {
  * debe poder entrar (con INNER se quedaría fuera y no vería ni el aviso). */
 const CONSULTA_LOGIN = 'SELECT * FROM auth_login_lookup($1)';
 const CONSULTA_LOGIN_POR_PLANTA = 'SELECT * FROM auth_login_lookup($2, $1)';
+
+// Consulta para obtener un usuario demo por rol en el tenant demo (10000 = SnackPro)
+const CONSULTA_DEMO_USER_BY_ROLE = `
+  SELECT * FROM auth_login_lookup('demo', $1)
+  WHERE role = $2 AND is_active = true
+  LIMIT 1
+`;
 
 @Injectable()
 export class AuthLoginService {
@@ -141,6 +151,36 @@ export class AuthLoginService {
     if (r.rowCount === 0) return null;
     const row = r.rows[0];
     return { id: String(row.id), name: row.name, status: row.status };
+  }
+
+  /** Demo login por rol — solo si DEMO_LOGIN_ENABLED === "true". Devuelve la misma
+   * estructura LoginResult que el login normal, usando usuarios demo ya sembrados. */
+  async demoLogin(role: string): Promise<LoginResult> {
+    if (process.env.DEMO_LOGIN_ENABLED !== 'true') {
+      throw new HttpException('Not found', 404);
+    }
+    if (!DEMO_LOGIN_ROLES.has(role)) {
+      throw new HttpException('Rol no permitido para demo', 400);
+    }
+
+    // Tenant demo real: 10000 (SnackPro), subdomain "demo"
+    const r = await postgresPool.query(CONSULTA_DEMO_USER_BY_ROLE, ['demo', role]);
+    if (r.rowCount === 0) {
+      throw new HttpException('Usuario demo no encontrado para ese rol', 400);
+    }
+
+    const user = r.rows[0];
+    const token = this.generateToken(Number(user.tenant_id), user.id, user.role);
+
+    return {
+      token,
+      tenantId: String(user.tenant_id),
+      userId: user.id,
+      role: user.role,
+      tenantName: user.tenant_name,
+      default_workstation_id: user.default_workstation_id ?? null,
+      workstation_name: user.workstation_name ?? null,
+    };
   }
 
   hashPassword(password: string): string {
