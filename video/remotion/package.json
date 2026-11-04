@@ -1,0 +1,25 @@
+{
+  "name": "kavana-video-remotion",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "preview": "remotion studio src/index.ts",
+    "render": "remotion render src/index.ts ManufacturingVideo ../out/manufacturing-90s.mp4",
+    "still": "remotion still src/index.ts ManufacturingVideo ../out/frame-0.png --frame=0"
+  },
+  "dependencies": {
+    "@remotion/cli": "^4.0.0",
+    "@remotion/player": "^4.0.0",
+    "@remotion/zod-types": "^4.0.0",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
+    "remotion": "^4.0.0",
+    "zod": "^4.6.7"
+  },
+  "devDependencies": {
+    "@types/react": "^18.2.0",
+    "@types/react-dom": "^18.2.0",
+    "typescript": "^5.3.0"
+  }
+}

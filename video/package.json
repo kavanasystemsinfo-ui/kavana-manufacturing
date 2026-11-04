@@ -1,0 +1,20 @@
+{
+  "name": "kavana-video-pipeline",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Pipeline de grabación (Playwright) y montaje (Remotion) del vídeo demo de Kavana Manufacturing",
+  "type": "module",
+  "scripts": {
+    "record": "playwright test record.ts --project=chromium --reporter=list",
+    "prepare": "node scripts/prepare-assets.mjs",
+    "render": "npm --prefix remotion run render",
+    "build": "npm run record && npm run prepare && npm run render",
+    "verify": "node scripts/verify.mjs",
+    "install:playwright": "playwright install chromium"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.40.0",
+    "@types/node": "^20.10.0",
+    "typescript": "^5.3.0"
+  }
+}

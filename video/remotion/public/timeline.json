@@ -1,0 +1,42 @@
+[
+  {
+    "id": "intro",
+    "startMs": 2,
+    "endMs": 10006
+  },
+  {
+    "id": "demo-login-operario",
+    "startMs": 10163,
+    "endMs": 25576
+  },
+  {
+    "id": "operator-panel-orders",
+    "startMs": 26056,
+    "endMs": 36056
+  },
+  {
+    "id": "operator-block-registration",
+    "startMs": 36256,
+    "endMs": 48257
+  },
+  {
+    "id": "supervisor-panel-resumen",
+    "startMs": 48501,
+    "endMs": 66264
+  },
+  {
+    "id": "supervisor-live-line",
+    "startMs": 66516,
+    "endMs": 76518
+  },
+  {
+    "id": "admin-panel-capabilities",
+    "startMs": 76728,
+    "endMs": 96122
+  },
+  {
+    "id": "outro-cta",
+    "startMs": 96341,
+    "endMs": 111342
+  }
+]
