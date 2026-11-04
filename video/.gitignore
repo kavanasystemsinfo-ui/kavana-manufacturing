@@ -1,0 +1,17 @@
+# Dependencias y artefactos del pipeline de vídeo (se regeneran).
+node_modules/
+remotion/node_modules/
+recordings/
+test-results/
+playwright-report/
+probe*.mjs
+
+# Metraje y música: se regeneran con `npm run record` + `npm run prepare`.
+remotion/public/recording.webm
+remotion/public/recording.mp4
+remotion/public/music.mp3
+
+# MP4 de salida: si pesa <15 MB se versiona copiado en frontend/public/videos/;
+# aquí no se duplica. Segmentos y fotogramas son artefactos de trabajo.
+out/
+
