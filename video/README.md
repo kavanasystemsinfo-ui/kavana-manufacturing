@@ -75,10 +75,10 @@ Puedes apuntar a otro entorno con `BASE_URL=https://... npm run record`.
 
 ## Montaje
 
-- Zoom lento hacia `zoomArea` de cada escena (1 → 1,14).
-- Rótulo superior con el título y subtítulo inferior con la descripción.
+- Metraje recortado por escena, con zoom lento hacia `zoomArea` (1 → 1,14).
+- **Franja inferior** de 115 px con el rótulo y el subtítulo: la app se ve completa, sin capas que tapen el formulario ni los botones.
 - Intro y outro con capa de marca sobre el metraje.
-- Barra de progreso.
+- Barra de progreso sobre la franja.
 - Audio: `remotion/public/music.mp3`.
 
 ### Música y licencias

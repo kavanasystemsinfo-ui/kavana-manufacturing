@@ -51,9 +51,12 @@ function footageFor(scene: Scene, fps: number) {
   return { startFrom, frames: sceneFrames };
 }
 
+const BAND_H = 115;
+const FOOTAGE_H = 1080 - BAND_H;
+
 const ZoomedFootage: React.FC<{ scene: Scene }> = ({ scene }) => {
   const frame = useCurrentFrame();
-  const { fps, width, height } = useVideoConfig();
+  const { fps, width } = useVideoConfig();
   const { startFrom, frames } = footageFor(scene, fps);
 
   const p = interpolate(frame, [0, Math.max(1, frames - 1)], [0, 1], {
@@ -64,11 +67,11 @@ const ZoomedFootage: React.FC<{ scene: Scene }> = ({ scene }) => {
 
   const area = scene.zoomArea;
   const cx = area ? (area.x + area.width / 2) / width : 0.5;
-  const cy = area ? (area.y + area.height / 2) / height : 0.5;
+  const cy = area ? (area.y + area.height / 2) / FOOTAGE_H : 0.5;
 
   return (
-    <AbsoluteFill style={{ overflow: 'hidden', background: BRAND.dark }}>
-      <AbsoluteFill style={{ transform: `scale(${scale})`, transformOrigin: `${cx * 100}% ${cy * 100}%` }}>
+    <div style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: FOOTAGE_H, overflow: 'hidden', background: BRAND.dark }}>
+      <div style={{ width: '100%', height: '100%', transform: `scale(${scale})`, transformOrigin: `${cx * 100}% ${cy * 100}%` }}>
         <OffthreadVideo
           src={staticFile('recording.mp4')}
           startFrom={startFrom}
@@ -76,8 +79,42 @@ const ZoomedFootage: React.FC<{ scene: Scene }> = ({ scene }) => {
           muted
           style={{ width: '100%', height: '100%', objectFit: 'cover' }}
         />
-      </AbsoluteFill>
-    </AbsoluteFill>
+      </div>
+    </div>
+  );
+};
+
+/** Franja inferior: rótulo y subtítulo sin tapar ni un píxel de la aplicación. */
+const LowerThird: React.FC<{ label: string; description: string; frames: number }> = ({ label, description, frames }) => {
+  const f = useCurrentFrame();
+  const inP = interpolate(f, [0, 10], [0, 1], { extrapolateRight: 'clamp', easing: Easing.out(Easing.cubic) });
+  const outP = interpolate(f, [frames - 10, frames], [1, 0], { extrapolateLeft: 'clamp', extrapolateRight: 'clamp' });
+
+  return (
+    <div
+      style={{
+        position: 'absolute',
+        bottom: 0,
+        left: 0,
+        right: 0,
+        height: BAND_H,
+        background: 'linear-gradient(180deg, rgba(11,11,20,0.92) 0%, rgba(11,11,20,0.99) 100%)',
+        borderTop: `2px solid ${BRAND.primary}`,
+        display: 'flex',
+        alignItems: 'center',
+        padding: '0 64px',
+        gap: 28,
+        opacity: Math.min(inP, outP),
+      }}
+    >
+      <div style={{ width: 6, height: 62, background: BRAND.accent, borderRadius: 3, flexShrink: 0 }} />
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+        <div style={{ fontFamily: FONT, fontSize: 25, fontWeight: 800, color: BRAND.primary, letterSpacing: '0.04em', textTransform: 'uppercase' }}>
+          {label}
+        </div>
+        <div style={{ fontFamily: FONT, fontSize: 23, fontWeight: 400, color: 'rgba(255,255,255,0.92)' }}>{description}</div>
+      </div>
+    </div>
   );
 };
 
@@ -237,12 +274,7 @@ const SceneLayer: React.FC<{ scene: Scene }> = ({ scene }) => {
   return (
     <AbsoluteFill>
       <ZoomedFootage scene={scene} />
-      {!isIntro && !isOutro && (
-        <>
-          <SceneTitle text={scene.label} frames={frames} />
-          <SceneSubtitle text={scene.description} frames={frames} />
-        </>
-      )}
+      {!isIntro && !isOutro && <LowerThird label={scene.label} description={scene.description} frames={frames} />}
       {isIntro && <IntroOverlay />}
       {isOutro && <OutroOverlay />}
     </AbsoluteFill>

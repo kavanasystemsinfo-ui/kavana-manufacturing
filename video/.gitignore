@@ -12,6 +12,6 @@ remotion/public/recording.mp4
 remotion/public/music.mp3
 
 # MP4 de salida: si pesa <15 MB se versiona copiado en frontend/public/videos/;
-# aquí no se duplica.
-out/*.mp4
-out/frames/
+# aquí no se duplica. Segmentos y fotogramas son artefactos de trabajo.
+out/
+
