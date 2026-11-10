@@ -5,6 +5,7 @@ import { tenantQuery } from '../db/tenant-query.js';
 import { tracePrompt } from '../telemetry/metrics.js';
 import { versionContext, ContextVersion } from './context-version.js';
 import { estimateCostCents, formatCost } from './cost-tracking.js';
+import { esOpenRouter, modelosGratis } from './modelos-gratis.js';
 import { OeeService } from '../oee/oee.service.js';
 
 interface ContextBundle {
@@ -232,7 +233,7 @@ export class AiAdvisorService {
       deepseek: 'https://api.deepseek.com/v1',
     }[provider] || 'https://openrouter.ai/api/v1';
 
-    const model = process.env.LLM_MODEL || {
+    const modeloConfigurado = process.env.LLM_MODEL || {
       ollama: 'llama3.1:8b',
       vllm: 'mistralai/Mistral-7B-Instruct-v0.3',
       nvidia: 'meta/llama-3.1-8b-instruct',
@@ -243,7 +244,10 @@ export class AiAdvisorService {
 
     // Modelo gratuito de respaldo (mismo patrón que RouteAI/Warehouse: si el
     // principal falla, reintentar con el modelo free antes de rendirse).
-    const MODELO_FREE = process.env.LLM_MODEL_FREE || 'poolside/laguna-s-2.1:free';
+    // En OpenRouter solo modelos gratuitos (política T-061): el principal y un respaldo distinto.
+    const gratis = esOpenRouter(baseUrl) ? modelosGratis(process.env.LLM_MODEL, process.env.LLM_MODEL_FREE) : [];
+    const model = esOpenRouter(baseUrl) ? gratis[0] : modeloConfigurado;
+    const MODELO_FREE = esOpenRouter(baseUrl) ? (gratis[1] ?? gratis[0]) : (process.env.LLM_MODEL_FREE || modeloConfigurado);
 
     if (!apiKey) {
       throw new Error(`API key no configurada para provider "${provider}". Configura ${provider.toUpperCase()}_API_KEY en .env`);
