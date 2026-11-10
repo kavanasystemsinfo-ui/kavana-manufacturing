@@ -21,9 +21,22 @@ describe('TechnicalAdvisorService', () => {
     expect(docs[0].texto.length).toBeGreaterThan(60);
   });
 
-  it('detecta preguntas complejas de arquitectura', () => {
-    expect((service as any).esCompleja('¿Por qué elegiste offline-first y qué tradeoffs tuvo?')).toBe(true);
-    expect((service as any).esCompleja('¿Cuántas órdenes hay hoy?')).toBe(false);
+  it('prueba los modelos gratuitos en orden y nunca uno de pago', async () => {
+    vi.spyOn(service as any, 'buscar').mockReturnValue([
+      { fuente: 'README.md', texto: 'x'.repeat(200), score: 1 },
+    ]);
+    const usados: string[] = [];
+    vi.spyOn(service as any, 'llamarOpenRouter').mockImplementation(async (...args: unknown[]) => {
+      const modelo = args[1] as string;
+      usados.push(modelo);
+      if (usados.length < 2) throw new Error('OpenRouter 429');
+      return 'respuesta';
+    });
+    const r = await service.responder('fake-key', '¿Qué es offline first?');
+    expect(r.respuesta).toBe('respuesta');
+    expect(usados).toHaveLength(2);
+    expect(usados.every((m) => m.endsWith(':free'))).toBe(true);
+    expect(r.modelo).toBe(usados[1]);
   });
 
   it('no llama al LLM y devuelve sugerencias si no hay contexto suficiente', async () => {

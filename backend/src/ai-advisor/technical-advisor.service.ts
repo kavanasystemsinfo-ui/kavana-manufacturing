@@ -1,7 +1,7 @@
 // Asistente TÉCNICO de KAVANA Manufacturing (RAG sobre la documentación real del repo).
 // - Indexa en memoria README, DECISIONS, SECURITY, ADRs y docs técnicos.
 // - Búsqueda TF-IDF simple (sin embeddings ni coste).
-// - Llama a OpenRouter: deepseek/deepseek-chat principal, fallback gpt-oss-20b:free.
+// - Llama a OpenRouter solo con modelos gratuitos (:free), probando hasta 3 en orden.
 // - Regla de honestidad: solo responde con lo documentado; si no lo sabe, lo dice.
 // (Mismo patrón que RouteAI/Warehouse; separado del asistente MES que consulta
 //  datos vivos de producción.)
@@ -10,14 +10,18 @@ import { Injectable, Logger } from '@nestjs/common';
 import { readFileSync, readdirSync, existsSync } from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { esOpenRouter, modelosGratis } from './modelos-gratis.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const REPO_ROOT = path.resolve(__dirname, '../../..');
 
-const MODELO_PRO = process.env.ASSISTANT_MODEL_PRO || process.env.LLM_MODEL || 'deepseek-chat';
-const MODELO_FREE = process.env.ASSISTANT_MODEL_FREE || process.env.LLM_MODEL || 'deepseek-chat';
 // Base URL del proveedor (OpenRouter por defecto; DeepSeek: https://api.deepseek.com/v1)
 const LLM_BASE_URL = process.env.LLM_BASE_URL || 'https://openrouter.ai/api/v1';
+// En OpenRouter solo se usan modelos gratuitos (política T-061); con otro proveedor
+// se respeta el modelo configurado.
+const MODELOS: string[] = esOpenRouter(LLM_BASE_URL)
+  ? modelosGratis(process.env.ASSISTANT_MODEL_FREE, process.env.ASSISTANT_MODEL_PRO, process.env.LLM_MODEL)
+  : [process.env.ASSISTANT_MODEL_PRO || process.env.LLM_MODEL || 'deepseek-chat'];
 
 @Injectable()
 export class TechnicalAdvisorService {
@@ -102,17 +106,6 @@ export class TechnicalAdvisorService {
     return scored.map(({ i, score }) => ({ ...indice.chunks[i], score }));
   }
 
-  private esCompleja(pregunta: string): boolean {
-    const q = pregunta.toLowerCase();
-    const senales = [
-      'compara', 'diferencia', 'por qué no', 'por que no', 'alternativas',
-      'tradeoff', 'desventaja', 'ventaja', 'decidiste', 'elegiste', 'descartaste',
-      'cómo resolverías', 'cómo harías', 'mejoraría', 'cambiarías', 'evolucionaría',
-      'arquitectura', 'diseño', 'escalabilidad', 'seguridad', 'multi-tenant',
-    ];
-    return senales.some((s) => q.includes(s));
-  }
-
   private async llamarOpenRouter(
     apiKey: string,
     model: string,
@@ -193,22 +186,23 @@ export class TechnicalAdvisorService {
       `CONTEXTO (documentación del proyecto):\n${contexto}`,
     ].join('\n\n');
 
-    let model = this.esCompleja(pregunta) ? MODELO_PRO : MODELO_FREE;
-    let respuesta: string;
-    try {
-      respuesta = await this.llamarOpenRouter(apiKey, model, systemPrompt, userPrompt);
-    } catch (err) {
-      // Si el modelo gratuito falla (rate limit), reintentar con el de pago
-      if (model === MODELO_FREE) {
-        try {
-          model = MODELO_PRO;
-          respuesta = await this.llamarOpenRouter(apiKey, model, systemPrompt, userPrompt);
-        } catch (err2) {
-          throw new Error(`Fallo al llamar a OpenRouter: ${(err2 as Error).message}`);
+    let model = MODELOS[0];
+    let respuesta = '';
+    let ultimoError: unknown = null;
+    for (const candidato of MODELOS) {
+      try {
+        respuesta = await this.llamarOpenRouter(apiKey, candidato, systemPrompt, userPrompt);
+        if (respuesta) {
+          model = candidato;
+          break;
         }
-      } else {
-        throw err;
+        ultimoError = new Error('respuesta vacía');
+      } catch (err) {
+        ultimoError = err;
       }
+    }
+    if (!respuesta) {
+      throw new Error(`Fallo al llamar a OpenRouter: ${(ultimoError as Error)?.message ?? 'sin respuesta'}`);
     }
 
     return {
