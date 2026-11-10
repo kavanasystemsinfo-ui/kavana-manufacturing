@@ -18,6 +18,7 @@ import { summarizeOrder } from './utils/order-summary.js';
 import { OPERATOR_HELP } from './help-content.js';
 import { mapCustomFieldsToUI, type CustomFieldUI } from './utils/customFieldsMapper.js';
 import { ordersEmptyState } from './utils/orders-empty-state.js';
+import { AiAdvisorFab } from './components/AiAdvisorFab.js';
 
 const statusLabels: Record<string, string> = {
   pendiente: 'Pendiente',
@@ -254,6 +255,7 @@ export function ClassicOperatorPanel() {
         isClassic={true}
       />
     </main>
+    <AiAdvisorFab />
 </div>
   );
 }

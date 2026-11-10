@@ -318,7 +318,7 @@ export function LoginPage({ onLogin }: LoginPageProps) {
         </div>
       </div>
     </div>
-    <AiAdvisorFab />
+    <AiAdvisorFab mode="tech" />
     </>
   );
 }
