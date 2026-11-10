@@ -104,7 +104,9 @@ describe('Contrato de rutas /api/v1 en todo el frontend', () => {
     expect(hmi).toContain("callApiWithTimeout<AvailableOrder[]>('/api/v1/orders/available'");
     expect(hmi).toContain("callApiWithTimeout('/api/v1/production/time-logs/sync'");
     const advisor = readSrc('components/AiAdvisorChat.tsx');
-    expect(advisor).toContain("isTech ? '/api/v1/ai-advisor/ask-tech' : '/api/v1/ai-advisor/ask'");
+    expect(advisor).toContain("/api/v1/ai-advisor/ask-tech");
+    expect(advisor).toContain("/api/v1/ai-advisor/ask-user");
+    expect(advisor).toContain("/api/v1/ai-advisor/ask");
   });
 
   it('las páginas de login llaman a /api/v1/auth/...', () => {

@@ -15,7 +15,8 @@ interface AskResponse {
   success: boolean;
   answer: string;
   engine: string;
-  contextVersion: ContextVersion;
+  contextVersion?: ContextVersion;
+  role?: string;
 }
 
 interface Message {
@@ -40,7 +41,14 @@ const suggestedQuestionsTech = [
   '¿Qué decisiones de arquitectura documentaste?',
 ];
 
-export type AdvisorMode = 'mes' | 'tech';
+const suggestedQuestionsUser = [
+  '¿Cómo registro producción?',
+  '¿Cómo pongo una incidencia?',
+  '¿Cómo cambio de orden?',
+  '¿Qué significan los estados?',
+];
+
+export type AdvisorMode = 'mes' | 'tech' | 'user';
 
 interface AiAdvisorChatProps {
   mode?: AdvisorMode;
@@ -50,7 +58,8 @@ export function AiAdvisorChat({ mode = 'mes' }: AiAdvisorChatProps) {
   const theme = useThemeStore((s) => s.theme);
   const isClassic = theme === 'classic';
   const isTech = mode === 'tech';
-  const suggestedQuestions = isTech ? suggestedQuestionsTech : suggestedQuestionsMES;
+  const isUser = mode === 'user';
+  const suggestedQuestions = isTech ? suggestedQuestionsTech : isUser ? suggestedQuestionsUser : suggestedQuestionsMES;
 
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState('');
@@ -74,7 +83,10 @@ export function AiAdvisorChat({ mode = 'mes' }: AiAdvisorChatProps) {
       const controller = new AbortController();
       const timeout = setTimeout(() => controller.abort(), 30000);
       const token = localStorage.getItem('kavana_dev_token') || 'mock-token';
-      const endpoint = isTech ? '/api/v1/ai-advisor/ask-tech' : '/api/v1/ai-advisor/ask';
+      let endpoint = '/api/v1/ai-advisor/ask';
+      if (isTech) endpoint = '/api/v1/ai-advisor/ask-tech';
+      else if (isUser) endpoint = '/api/v1/ai-advisor/ask-user';
+      
       const res = await fetch(endpoint, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + token },
@@ -90,7 +102,7 @@ export function AiAdvisorChat({ mode = 'mes' }: AiAdvisorChatProps) {
         role: 'assistant',
         content: result.answer,
         engine: result.engine,
-        contextVersion: result.contextVersion.hash.slice(0, 8),
+        contextVersion: result.contextVersion?.hash.slice(0, 8),
       }]);
     } catch (err) {
       setMessages((prev) => [...prev, {
@@ -113,11 +125,11 @@ export function AiAdvisorChat({ mode = 'mes' }: AiAdvisorChatProps) {
   return (
     <div className={`flex flex-col rounded-xl border ${containerBg}`} style={{ height: '520px' }}>
       <div className={`flex items-center gap-2 border-b px-5 py-3 ${isClassic ? 'border-slate-200 bg-slate-50' : 'border-kavana-steel/20 bg-kavana-dark/50'}`}>
-        <span className="text-lg">{isTech ? '📐' : '🤖'}</span>
+        <span className="text-lg">{isTech ? '📐' : isUser ? '👤' : '🤖'}</span>
         <div>
-          <p className={`text-sm font-bold ${textPrimary}`}>{isTech ? 'Asistente técnico' : 'Asistente MES'}</p>
+          <p className={`text-sm font-bold ${textPrimary}`}>{isTech ? 'Asistente técnico' : isUser ? 'Asistente de usuario' : 'Asistente MES'}</p>
           <p className={`text-xs ${textSecondary}`}>
-            {isTech ? 'Pregunta sobre el código, la arquitectura y las decisiones' : 'Consulta los datos de producción en lenguaje natural'}
+            {isTech ? 'Pregunta sobre el código, la arquitectura y las decisiones' : isUser ? 'Ayuda para tu rol en este panel' : 'Consulta los datos de producción en lenguaje natural'}
           </p>
         </div>
       </div>
@@ -125,7 +137,7 @@ export function AiAdvisorChat({ mode = 'mes' }: AiAdvisorChatProps) {
       <div className="flex-1 overflow-y-auto space-y-3 px-5 py-4">
         {messages.length === 0 && !loading && (
           <div className="flex flex-col items-center justify-center h-full text-center space-y-4">
-            <p className={`text-sm ${textSecondary}`}>Pregunta sobre tus datos de producción:</p>
+            <p className={`text-sm ${textSecondary}`}>{isTech ? 'Pregunta sobre la arquitectura:' : isUser ? 'Pregunta cómo usar tu panel:' : 'Pregunta sobre tus datos de producción:'}</p>
           </div>
         )}
 
