@@ -21,6 +21,11 @@ describe('detalleIncidencia (T-093)', () => {
     expect(d.cuando).toBe('24/10/2026 14:35'); // 12:35 UTC = 14:35 en España (CEST)
   });
 
+  it('usa el nombre que ya trae la incidencia del backend', () => {
+    const d = detalleIncidencia({ ...inc, reported_by_name: 'Luis Gómez' }, {});
+    expect(d.operario).toBe('Luis Gómez');
+  });
+
   it('si no conoce un nombre lo omite en vez de enseñar el UUID', () => {
     const d = detalleIncidencia(inc, { puestos: { 'ws-1': 'Sierra 2' } });
     expect(d.puesto).toBe('Sierra 2');
