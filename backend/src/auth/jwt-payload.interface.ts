@@ -8,6 +8,7 @@ export interface JwtPayload {
   'custom:role'?: KavanaRole;
   email?: string;
   name?: string;
+  owner?: boolean;
   iat?: number;
   exp?: number;
 }
