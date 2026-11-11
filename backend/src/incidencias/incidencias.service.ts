@@ -10,8 +10,11 @@ export class IncidenciasService {
     const res = await tenantQuery(
       postgresPool,
       `SELECT i.*,
-              CASE WHEN i.photo IS NOT NULL THEN encode(i.photo, 'base64') ELSE NULL END AS photo_b64
-       FROM incidencias i WHERE i.tenant_id = $1 ORDER BY i.created_at DESC`,
+              CASE WHEN i.photo IS NOT NULL THEN encode(i.photo, 'base64') ELSE NULL END AS photo_b64,
+              COALESCE(NULLIF(TRIM(CONCAT_WS(' ', u.first_name, u.last_name)), ''), u.username) AS reported_by_name
+       FROM incidencias i
+       LEFT JOIN users u ON u.id = i.reported_by AND u.tenant_id = i.tenant_id
+       WHERE i.tenant_id = $1 ORDER BY i.created_at DESC`,
       [tenantId]
     );
     return res.rows.map((row) => this.mapRow(row));
@@ -21,8 +24,11 @@ export class IncidenciasService {
     const res = await tenantQuery(
       postgresPool,
       `SELECT i.*,
-              CASE WHEN i.photo IS NOT NULL THEN encode(i.photo, 'base64') ELSE NULL END AS photo_b64
-       FROM incidencias i WHERE i.tenant_id = $1 AND i.id = $2`,
+              CASE WHEN i.photo IS NOT NULL THEN encode(i.photo, 'base64') ELSE NULL END AS photo_b64,
+              COALESCE(NULLIF(TRIM(CONCAT_WS(' ', u.first_name, u.last_name)), ''), u.username) AS reported_by_name
+       FROM incidencias i
+       LEFT JOIN users u ON u.id = i.reported_by AND u.tenant_id = i.tenant_id
+       WHERE i.tenant_id = $1 AND i.id = $2`,
       [tenantId, id]
     );
     return res.rows[0] ? this.mapRow(res.rows[0]) : null;
