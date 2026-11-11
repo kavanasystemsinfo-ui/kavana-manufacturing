@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import type { NextFunction, Request, Response } from 'express';
 import { DemoReadOnlyMiddleware } from './demo-readonly.middleware.js';
 import * as storage from './tenant-context.storage.js';
@@ -150,5 +150,43 @@ describe('DemoReadOnlyMiddleware', () => {
     const res = makeRes();
     middleware.use(req, res, next);
     expect(next).toHaveBeenCalled();
+  });
+
+  describe('cuenta propia (DEMO_OWNER_USER_IDS)', () => {
+    const OWNER = '11111111-2222-3333-4444-555555555555';
+
+    afterEach(() => {
+      delete process.env.DEMO_OWNER_USER_IDS;
+    });
+
+    it('deja borrar y editar a la cuenta propia en el tenant demo', () => {
+      process.env.DEMO_OWNER_USER_IDS = `otro-id, ${OWNER}`;
+      vi.spyOn(storage, 'getTenantContext').mockReturnValue({ tenantId: 100n, userId: OWNER, role: 'tenant_admin' });
+      for (const [method, path] of [
+        ['DELETE', `/api/v1/incidencias/${UUID}`],
+        ['PUT', '/api/v1/workstations/algo'],
+      ]) {
+        const res = makeRes();
+        const nextFn = vi.fn();
+        middleware.use(makeReq(method, path), res, nextFn);
+        expect(res.status).not.toHaveBeenCalled();
+        expect(nextFn).toHaveBeenCalled();
+      }
+    });
+
+    it('sigue bloqueando a cualquier otro usuario demo aunque la variable exista', () => {
+      process.env.DEMO_OWNER_USER_IDS = OWNER;
+      vi.spyOn(storage, 'getTenantContext').mockReturnValue({ tenantId: 100n, userId: 'otro', role: 'tenant_admin' });
+      const res = makeRes();
+      middleware.use(makeReq('DELETE', `/api/v1/orders/${UUID}`), res, next);
+      expect(res.status).toHaveBeenCalledWith(403);
+    });
+
+    it('sin la variable nadie queda exento (fail-closed)', () => {
+      vi.spyOn(storage, 'getTenantContext').mockReturnValue({ tenantId: 100n, userId: OWNER, role: 'tenant_admin' });
+      const res = makeRes();
+      middleware.use(makeReq('DELETE', `/api/v1/orders/${UUID}`), res, next);
+      expect(res.status).toHaveBeenCalledWith(403);
+    });
   });
 });
