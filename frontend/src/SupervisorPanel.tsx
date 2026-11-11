@@ -418,6 +418,10 @@ export function SupervisorPanel() {
                   icon="📋"
                   title="No hay órdenes con estos filtros"
                   description="Prueba a cambiar el estado o a limpiar la búsqueda."
+                  action={{
+                    label: '+ Nueva Orden',
+                    onClick: () => setShowForm(true),
+                  }}
                 />
               ) : view === 'tablero' ? (
                 <KanbanBoard
