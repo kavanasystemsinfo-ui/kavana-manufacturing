@@ -1,5 +1,4 @@
-import { useEffect, useState } from 'react';
-import { listUsers, type Incidencia } from '../../api/admin-entities.js';
+import type { Incidencia } from '../../api/admin-entities.js';
 import { detalleIncidencia } from '../../utils/incidencia-detalle.js';
 import { KanbanColumns } from '../ui/KanbanColumns.js';
 import { IncidenciaPhoto } from '../IncidenciaPhoto.js';
@@ -38,26 +37,6 @@ interface Props {
 export function IncidenciasKanban({ incidencias, onStatusChange, onDelete, puestos, ordenes, isClassic }: Props) {
   const huerfanas = incidenciasHuerfanas(incidencias);
 
-  // Quién reportó: la incidencia guarda su id; el nombre se pide una vez. Si el
-  // rol no puede listar usuarios, la tarjeta simplemente no enseña el operario.
-  const [operarios, setOperarios] = useState<Record<string, string>>({});
-  useEffect(() => {
-    let vivo = true;
-    listUsers()
-      .then((users) => {
-        if (!vivo) return;
-        const mapa: Record<string, string> = {};
-        for (const u of users) {
-          mapa[u.id] = `${u.first_name ?? ''} ${u.last_name ?? ''}`.trim() || u.username;
-        }
-        setOperarios(mapa);
-      })
-      .catch(() => undefined);
-    return () => {
-      vivo = false;
-    };
-  }, []);
-
   return (
     <div className="space-y-3">
       <KanbanColumns
@@ -68,7 +47,7 @@ export function IncidenciasKanban({ incidencias, onStatusChange, onDelete, puest
         emptyLabel="Sin incidencias"
         isClassic={isClassic}
         renderCard={(incidencia) => {
-          const detalle = detalleIncidencia(incidencia, { puestos, ordenes, operarios });
+          const detalle = detalleIncidencia(incidencia, { puestos, ordenes });
           return (
           <div>
             <p className={`text-sm font-bold ${isClassic ? 'text-slate-900' : 'text-white'}`}>{incidencia.title}</p>
