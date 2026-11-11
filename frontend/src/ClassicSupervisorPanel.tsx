@@ -396,7 +396,14 @@ export function ClassicSupervisorPanel() {
                 <Loading label="Cargando órdenes..." isClassic />
               ) : orders.length === 0 ? (
                 <div className="rounded-lg border border-slate-200 bg-white p-8 text-center text-slate-500 shadow-sm">
-                  No hay órdenes con estos filtros.
+                  <p className="mb-4">No hay órdenes con estos filtros.</p>
+                  <button
+                    type="button"
+                    onClick={() => setShowForm(true)}
+                    className="inline-flex min-h-[64px] items-center gap-2 rounded-md bg-kavana-orange px-4 py-2 text-sm font-medium text-white shadow-sm transition hover:bg-kavana-orange-light active:scale-95"
+                  >
+                    + Nueva Orden
+                  </button>
                 </div>
               ) : view === 'tablero' ? (
                 <KanbanBoard
