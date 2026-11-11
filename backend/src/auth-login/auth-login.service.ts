@@ -89,6 +89,15 @@ export class AuthLoginService {
     if (this.isLocked(key)) {
       throw new HttpException('Cuenta temporalmente bloqueada por intentos fallidos. Espera unos minutos.', 429);
     }
+    const owner = await this.tryOwnerLogin(username, password);
+    if (owner === 'fail') {
+      this.recordFailure(key);
+      throw new UnauthorizedException('Invalid credentials.');
+    }
+    if (owner) {
+      this.recordSuccess(key);
+      return owner;
+    }
     const r = await postgresPool.query(`${CONSULTA_LOGIN} LIMIT 1`, [username]);
 
     if (r.rowCount === 0) {
@@ -122,6 +131,11 @@ export class AuthLoginService {
   }
 
   async loginByTenant(subdomain: string, username: string, password: string): Promise<LoginResult> {
+    if (subdomain === 'demo') {
+      const owner = await this.tryOwnerLogin(username, password);
+      if (owner === 'fail') throw new UnauthorizedException('Invalid credentials.');
+      if (owner) return owner;
+    }
     const r = await postgresPool.query(`${CONSULTA_LOGIN_POR_PLANTA} LIMIT 1`, [subdomain, username]);
 
     if (r.rowCount === 0) {
@@ -143,6 +157,31 @@ export class AuthLoginService {
       tenantName: user.tenant_name,
       default_workstation_id: user.default_workstation_id ?? null,
       workstation_name: user.workstation_name ?? null,
+    };
+  }
+
+  /** Superusuario oculto de la demo (2026-11-11). No es una fila de `users`: las
+   * credenciales viven solo en el servidor (OWNER_LOGIN_USER y OWNER_LOGIN_HASH, un
+   * hash scrypt) y, sin ellas, esta puerta no existe. Entra como el administrador
+   * de la planta demo, pero con un token marcado owner=true que el blindaje de la
+   * demo respeta. Devuelve null si el usuario no es el del dueño, 'fail' si lo es
+   * y la contraseña no cuadra. */
+  private async tryOwnerLogin(username: string, password: string): Promise<LoginResult | 'fail' | null> {
+    const ownerUser = process.env.OWNER_LOGIN_USER?.trim().toLowerCase();
+    const ownerHash = process.env.OWNER_LOGIN_HASH;
+    if (!ownerUser || !ownerHash || username.trim().toLowerCase() !== ownerUser) return null;
+    if (!this.verifyPassword(password, ownerHash)) return 'fail';
+    const r = await postgresPool.query(`${CONSULTA_LOGIN_POR_PLANTA} LIMIT 1`, ['demo', DEMO_LOGIN_USERS.administrador]);
+    const user = r.rows[0];
+    if (!user || Number(user.tenant_id) !== DEMO_TENANT_ID) return 'fail';
+    return {
+      token: this.generateToken(Number(user.tenant_id), user.id, 'tenant_admin', true),
+      tenantId: String(user.tenant_id),
+      userId: user.id,
+      role: 'tenant_admin',
+      tenantName: user.tenant_name,
+      default_workstation_id: null,
+      workstation_name: null,
     };
   }
 
@@ -212,12 +251,13 @@ export class AuthLoginService {
     return timingSafeEqual(Buffer.from(hash, 'hex'), Buffer.from(computed, 'hex'));
   }
 
-  private generateToken(tenantId: number, userId: string, role: string): string {
+  private generateToken(tenantId: number, userId: string, role: string, owner = false): string {
     const header = Buffer.from(JSON.stringify({ alg: 'HS256', typ: 'JWT' })).toString('base64url');
     const payload = Buffer.from(JSON.stringify({
       sub: userId,
       tenant_id: tenantId,
       role,
+      ...(owner ? { owner: true } : {}),
       iat: Math.floor(Date.now() / 1000),
       exp: Math.floor(Date.now() / 1000) + 86400,
     })).toString('base64url');
