@@ -104,6 +104,7 @@ export class JwtServiceWrapper {
       tenantId: BigInt(payload.tenant_id),
       userId: payload.sub,
       role: payload.role,
+      ...(payload.owner === true ? { owner: true } : {}),
     };
   }
 }
