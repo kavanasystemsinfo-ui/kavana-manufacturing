@@ -457,6 +457,8 @@ export function SupervisorPanel() {
               incidencias={incidencias}
               onStatusChange={changeIncidenciaStatus}
               onDelete={removeIncidencia}
+              puestos={Object.fromEntries(workstations.map((w) => [w.id, w.name]))}
+              ordenes={Object.fromEntries(orders.map((o) => [o.id, o.code || o.model_name]))}
             />
           )}
         </section>

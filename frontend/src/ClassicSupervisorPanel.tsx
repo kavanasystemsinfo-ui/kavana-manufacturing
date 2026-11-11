@@ -22,12 +22,14 @@ import { useTour, TourStep } from './components/Tour.js';
  * sustituye. Decision de Jorge (2026-09-24): el supervisor ve el tablero tambien
  * en el tema clasico, que es el que viene por defecto, no solo en el moderno.
  */
-function IncidenciasTablero({ incidencias, loading, error, onStatusChange, onDelete }: {
+function IncidenciasTablero({ incidencias, loading, error, onStatusChange, onDelete, puestos, ordenes }: {
   incidencias: Incidencia[];
   loading: boolean;
   error: string | null;
   onStatusChange: (id: string, status: string) => Promise<void>;
   onDelete: (id: string) => Promise<void>;
+  puestos?: Record<string, string>;
+  ordenes?: Record<string, string>;
 }) {
   if (loading) return <div className="py-12 text-center text-slate-500">Cargando incidencias...</div>;
   if (error) return <div className="py-12 text-center text-red-600">{error}</div>;
@@ -37,7 +39,16 @@ function IncidenciasTablero({ incidencias, loading, error, onStatusChange, onDel
         No hay incidencias. Cuando alguien registre una, aparecerá aquí.
       </div>
     );
-  return <IncidenciasKanban incidencias={incidencias} onStatusChange={onStatusChange} onDelete={onDelete} isClassic />;
+  return (
+    <IncidenciasKanban
+      incidencias={incidencias}
+      onStatusChange={onStatusChange}
+      onDelete={onDelete}
+      puestos={puestos}
+      ordenes={ordenes}
+      isClassic
+    />
+  );
 }
 
 /**
@@ -444,6 +455,8 @@ export function ClassicSupervisorPanel() {
               error={incidenciasError}
               onStatusChange={changeIncidenciaStatus}
               onDelete={removeIncidencia}
+              puestos={Object.fromEntries(workstations.map((w) => [w.id, w.name]))}
+              ordenes={Object.fromEntries(orders.map((o) => [o.id, o.code || o.model_name]))}
             />
           )}
         </main>
