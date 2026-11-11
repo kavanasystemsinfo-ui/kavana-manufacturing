@@ -16,7 +16,20 @@ import { getTenantContext } from './tenant-context.storage.js';
 // la fábrica en el punto donde la dejó el anterior. Se asume: es una demo, y lo
 // que se rompe por no poder mover nada es la demostración entera.
 // Empresas reales (tenant != 1 && tenant != 100) no se ven afectadas.
+// Cuentas propias (2026-11-11, decisión de Jorge): los ids de usuario listados en
+// DEMO_OWNER_USER_IDS (separados por comas) quedan fuera del blindaje y pueden
+// borrar y editar en la demo. Fail-closed: sin la variable, nadie queda exento.
+// Esas cuentas solo se obtienen entrando con usuario y contraseña, nunca con los
+// botones públicos de la demo (que van con otros usuarios).
 const DEMO_TENANT_IDS = new Set([1n, 100n]);
+
+function esCuentaPropia(userId: string): boolean {
+  return (process.env.DEMO_OWNER_USER_IDS ?? '')
+    .split(',')
+    .map((s) => s.trim())
+    .filter(Boolean)
+    .includes(userId);
+}
 const BLOCKED_METHODS = new Set(['DELETE']);
 const STATE_CHANGE_METHODS = new Set(['PUT', 'PATCH']);
 const STATE_CHANGE_PATHS = /\/(orders|incidencias)\/[0-9a-fA-F-]{36}\/?$/;
@@ -26,7 +39,11 @@ export class DemoReadOnlyMiddleware implements NestMiddleware {
   use(request: Request, response: Response, next: NextFunction): void {
     try {
       const context = getTenantContext();
-      if (DEMO_TENANT_IDS.has(context.tenantId) && this.isBlocked(request)) {
+      if (
+        DEMO_TENANT_IDS.has(context.tenantId) &&
+        !esCuentaPropia(context.userId) &&
+        this.isBlocked(request)
+      ) {
         response.status(403).json({
           statusCode: 403,
           message:
