@@ -423,6 +423,8 @@ export interface Incidencia {
   workstation_id: string | null;
   order_id: string | null;
   reported_by: string;
+  /** Nombre de quien reportó (lo resuelve el backend; el supervisor no puede listar usuarios). */
+  reported_by_name?: string | null;
   type: 'calidad' | 'seguridad' | 'mantenimiento' | 'produccion' | 'otro';
   title: string;
   description: string | null;

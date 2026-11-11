@@ -45,6 +45,17 @@ describe('IncidenciasService', () => {
     expect(result[0].photo_b64).toBeUndefined();
   });
 
+  it('list pide el nombre de quien reportó (T-093): el supervisor no puede listar usuarios', async () => {
+    (tenantQuery as any).mockResolvedValue({
+      rows: [{ id: 'i3', title: 'X', photo_b64: null, reported_by_name: 'Ana Pérez' }],
+    });
+    const result = await service.list(1n);
+    const sql = (tenantQuery as any).mock.calls.at(-1)[1] as string;
+    expect(sql).toMatch(/LEFT JOIN users u ON u\.id = i\.reported_by AND u\.tenant_id = i\.tenant_id/);
+    expect(sql).toContain('reported_by_name');
+    expect(result[0].reported_by_name).toBe('Ana Pérez');
+  });
+
   it('getById returns null when incidencia not found', async () => {
     (tenantQuery as any).mockResolvedValue({ rowCount: 0, rows: [] });
     const result = await service.getById(1n, 'non-existent');

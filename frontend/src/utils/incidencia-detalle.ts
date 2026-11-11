@@ -8,6 +8,7 @@ export interface IncidenciaConIds {
   workstation_id?: string | null;
   order_id?: string | null;
   reported_by?: string | null;
+  reported_by_name?: string | null;
   created_at: string;
 }
 
@@ -40,7 +41,7 @@ export function fechaHoraIncidencia(iso: string): string {
 export function detalleIncidencia(inc: IncidenciaConIds, nombres: NombresPorId): DetalleIncidencia {
   return {
     puesto: (inc.workstation_id && nombres.puestos?.[inc.workstation_id]) || null,
-    operario: (inc.reported_by && nombres.operarios?.[inc.reported_by]) || null,
+    operario: inc.reported_by_name || (inc.reported_by && nombres.operarios?.[inc.reported_by]) || null,
     orden: (inc.order_id && nombres.ordenes?.[inc.order_id]) || null,
     cuando: fechaHoraIncidencia(inc.created_at),
   };
