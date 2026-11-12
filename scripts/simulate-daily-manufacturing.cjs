@@ -10,6 +10,7 @@
 ('pg');
 const crypto = require('crypto');
 const { getClient } = require('./db.cjs');
+const { limpiarVisitantes } = require('./limpiar-demo-visitantes.cjs');
 
 const c = getClient();
 
@@ -66,6 +67,9 @@ async function main() {
   const esSabado = diaSemana === 6;
   const fechaISO = hoy.toISOString().slice(0, 10);
   console.log(`→ Simulación diaria Manufacturing (${fechaISO}, ${esDomingo ? 'domingo' : esSabado ? 'sábado' : 'laborable'})`);
+
+  // 0) Devolver la demo a su origen: borrar lo que crearon los visitantes (T-099)
+  await limpiarVisitantes(c);
 
   // 1) Limpiar work_blocks de hoy (idempotente: regenera, no duplica)
   const del = await c.query(
