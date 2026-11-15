@@ -229,7 +229,10 @@ export function LiveLineTab() {
           <div className="min-w-[860px]">
             {/* Eje horario: mismo grid y mismas columnas que las filas */}
             <div className="grid grid-cols-[12rem_1fr_10rem] items-end border-b border-slate-200">
-              <div className="text-xs font-medium text-slate-500 px-2 py-1">PUESTO</div>
+              <div className="text-xs font-medium text-slate-500 px-2 py-1">
+                PUESTO
+                {turnoEnCurso && <span className="ml-1 font-normal normal-case">· punto: estado a las {horaMadrid(limite)}</span>}
+              </div>
               <div className="relative h-6 mx-3">
                 {marcas.map((m, i) => (
                   <span
@@ -253,10 +256,13 @@ export function LiveLineTab() {
                 <div key={puesto.workstation_id} className="grid grid-cols-[12rem_1fr_10rem] items-center h-20 border-b border-slate-200/60">
                   <div className="px-2 min-w-0">
                     <div className="flex items-center gap-2">
-                      <span
-                        className={`w-2 h-2 rounded-full flex-shrink-0 ${ultimo ? COLOR[ultimo.tipo] : 'bg-slate-300'}`}
-                        title={ultimo ? `${turnoEnCurso ? 'Ahora' : 'Al terminar'}: ${NOMBRE[ultimo.tipo]}` : 'Sin partes en el turno'}
-                      ></span>
+                      {/* El punto es el estado en el último dato: solo tiene sentido con el turno en curso. */}
+                      {turnoEnCurso && (
+                        <span
+                          className={`w-2 h-2 rounded-full flex-shrink-0 ${ultimo ? COLOR[ultimo.tipo] : 'bg-slate-300'}`}
+                          title={ultimo ? `Estado a las ${horaMadrid(limite)}: ${NOMBRE[ultimo.tipo]}` : 'Sin partes en el turno'}
+                        ></span>
+                      )}
                       <span className="text-sm font-medium text-slate-900 truncate" title={puesto.name}>{puesto.name}</span>
                     </div>
                     <div className="text-xs text-slate-500">{puesto.code}</div>
