@@ -218,4 +218,103 @@ export class OeeService {
           : 0,
     }));
   }
+
+  /**
+   * Línea del tiempo de los puestos en un rango (un turno): los partes reales
+   * que se cruzan con el rango, puesto por puesto, y la orden en curso. Es lo
+   * que dibuja la pestaña "Línea en vivo"; antes lo inventaba el navegador.
+   */
+  async getLiveTimeline(startDate: string, endDate: string): Promise<LiveTimelineWorkstation[]> {
+    const rango = validarRango(startDate, endDate);
+    const horas = (Date.parse(rango.endDate) - Date.parse(rango.startDate)) / 3600000;
+    if (horas > MAX_HORAS_LINEA_EN_VIVO) {
+      throw new BadRequestException(`Periodo demasiado largo: la línea en vivo admite hasta ${MAX_HORAS_LINEA_EN_VIVO} horas`);
+    }
+    const context = getTenantContext();
+    const tenant = String(context.tenantId);
+
+    const puestos = await tenantQuery(
+      postgresPool,
+      `SELECT w.id, w.name, w.code
+       FROM workstations w
+       WHERE w.tenant_id = $1 AND w.status = 'active'
+       ORDER BY w.code`,
+      [tenant],
+    );
+
+    const partes = await tenantQuery(
+      postgresPool,
+      `SELECT wb.workstation_id, wb.type, wb.start_time, wb.end_time, wb.downtime_reason,
+              wb.produced_quantity, o.code AS order_code, o.quantity AS order_quantity,
+              o.produced_quantity AS order_produced, o.status AS order_status
+       FROM production_work_blocks wb
+       LEFT JOIN orders o ON o.tenant_id = wb.tenant_id AND o.id = wb.order_id
+       WHERE wb.tenant_id = $1
+         AND wb.start_time < $3 AND wb.end_time > $2
+       ORDER BY wb.start_time ASC`,
+      [tenant, rango.startDate, rango.endDate],
+    );
+
+    const porPuesto = new Map<string, LiveTimelineWorkstation>();
+    for (const puesto of puestos.rows) {
+      porPuesto.set(puesto.id, {
+        workstation_id: puesto.id,
+        name: puesto.name,
+        code: puesto.code,
+        order: null,
+        blocks: [],
+      });
+    }
+
+    for (const parte of partes.rows) {
+      const puesto = porPuesto.get(parte.workstation_id);
+      if (!puesto) continue;
+      puesto.blocks.push({
+        type: parte.type,
+        start_time: new Date(parte.start_time).toISOString(),
+        end_time: new Date(parte.end_time).toISOString(),
+        downtime_reason: parte.downtime_reason ?? null,
+        produced_quantity: Number(parte.produced_quantity ?? 0),
+        order_code: parte.order_code ?? null,
+      });
+      // La orden del puesto es la del último parte del rango.
+      if (parte.order_code != null) {
+        puesto.order = {
+          code: parte.order_code,
+          quantity: Number(parte.order_quantity ?? 0),
+          produced_quantity: Number(parte.order_produced ?? 0),
+          status: parte.order_status ?? 'in_progress',
+        };
+      }
+    }
+
+    return [...porPuesto.values()];
+  }
+}
+
+/** Un turno son 8 horas; con margen para pedir un día completo. */
+const MAX_HORAS_LINEA_EN_VIVO = 26;
+
+export interface LiveTimelineBlock {
+  type: string;
+  start_time: string;
+  end_time: string;
+  downtime_reason: string | null;
+  produced_quantity: number;
+  order_code: string | null;
+}
+
+export interface LiveTimelineOrder {
+  code: string;
+  quantity: number;
+  produced_quantity: number;
+  status: string;
+}
+
+export interface LiveTimelineWorkstation {
+  workstation_id: string;
+  name: string;
+  code: string;
+  order: LiveTimelineOrder | null;
+  blocks: LiveTimelineBlock[];
 }

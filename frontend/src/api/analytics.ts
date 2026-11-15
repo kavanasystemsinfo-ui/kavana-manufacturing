@@ -67,3 +67,31 @@ export async function fetchOeeWorkstations(
     `${API_BASE}/oee/workstations?startDate=${encodeURIComponent(startDate)}&endDate=${encodeURIComponent(endDate)}`,
   );
 }
+
+/** Parte de un puesto dentro de un turno (endpoint /oee/live-timeline). */
+export interface LiveTimelineBlock {
+  type: string;
+  start_time: string;
+  end_time: string;
+  downtime_reason: string | null;
+  produced_quantity: number;
+  order_code: string | null;
+}
+
+export interface LiveTimelineWorkstation {
+  workstation_id: string;
+  name: string;
+  code: string;
+  order: { code: string; quantity: number; produced_quantity: number; status: string } | null;
+  blocks: LiveTimelineBlock[];
+}
+
+/** Partes reales de cada puesto en un rango (un turno), para la pestaña Línea en vivo. */
+export async function fetchLiveTimeline(
+  startDate: string,
+  endDate: string,
+): Promise<LiveTimelineWorkstation[]> {
+  return callApiWithTimeout<LiveTimelineWorkstation[]>(
+    `${API_BASE}/oee/live-timeline?startDate=${encodeURIComponent(startDate)}&endDate=${encodeURIComponent(endDate)}`,
+  );
+}

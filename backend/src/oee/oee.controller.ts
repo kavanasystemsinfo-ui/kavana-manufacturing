@@ -31,6 +31,14 @@ export class OeeController {
     return this.oeeService.getOeeByWorkstation(startDate, endDate);
   }
 
+  @Get('live-timeline')
+  async getLiveTimeline(
+    @Query('startDate') startDate: string,
+    @Query('endDate') endDate: string,
+  ) {
+    return this.oeeService.getLiveTimeline(startDate, endDate);
+  }
+
   @Get('workstation/:workstationId/downtime')
   async getDowntimeBreakdown(
     @Param('workstationId') workstationId: string,
