@@ -1,450 +1,364 @@
-import { useSupervisorPanel } from '../hooks/useSupervisorPanel.js';
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
+import {
+  fetchLiveTimeline,
+  fetchOeeWorkstations,
+  type LiveTimelineWorkstation,
+  type OeeWorkstation,
+} from '../api/analytics.js';
+import { etiquetaParada } from '../utils/parada-etiqueta.js';
 import { formatThousands } from '../utils/quick-block.js';
+import {
+  datosHasta,
+  duracionLegible,
+  horaMadrid,
+  marcasDeHora,
+  milisegundosDeTipo,
+  posicionAhora,
+  segmentosDeTurno,
+  type SegmentoLinea,
+  type TipoSegmento,
+} from '../utils/live-line.js';
+import {
+  proximaApertura,
+  turnoActual,
+  turnosDeJornada,
+  ultimoTurno,
+  type Turno,
+} from '../utils/planta-calendario.js';
 
-interface WorkstationStatus {
-  id: string;
-  name: string;
-  code: string;
-  status: 'running' | 'idle' | 'down' | 'maintenance' | 'changeover';
-  currentOrderId?: string;
-  currentOrderCode?: string | null;
-  targetQuantity?: number;
-  producedQuantity?: number;
-  oee?: number;
-  lastUpdate?: string;
+const REFRESCO_MS = 60_000;
+const DATOS_ANTIGUOS_MS = 2 * 3600_000;
+
+const COLOR: Record<TipoSegmento, string> = {
+  produccion: 'bg-green-700',
+  parada: 'bg-red-700',
+  cambio: 'bg-amber-600',
+  sin_actividad: 'bg-slate-300',
+};
+
+const NOMBRE: Record<TipoSegmento, string> = {
+  produccion: 'Produciendo',
+  parada: 'Parada',
+  cambio: 'Cambio de formato',
+  sin_actividad: 'Sin parte registrado',
+};
+
+function textoTooltip(s: SegmentoLinea): string {
+  const base = `${NOMBRE[s.tipo]}: ${horaMadrid(s.inicio)} - ${horaMadrid(s.fin)}`;
+  const motivo = s.motivo && s.tipo !== 'produccion' ? ` | ${etiquetaParada(s.motivo)}` : '';
+  const orden = s.orden && s.tipo !== 'sin_actividad' ? ` | Orden ${s.orden}` : '';
+  return base + motivo + orden;
 }
 
-interface TimelineBlock {
-  start: number; // minutes from shift start
-  end: number;
-  type: 'running' | 'idle' | 'down' | 'maintenance' | 'changeover';
-  label?: string;
+function colorOee(oee: number): string {
+  if (oee > 85) return 'text-green-700';
+  if (oee > 70) return 'text-amber-700';
+  return 'text-red-700';
+}
+
+function fechaLarga(d: Date): string {
+  return new Intl.DateTimeFormat('es-ES', { timeZone: 'Europe/Madrid', weekday: 'long', day: 'numeric', month: 'long' }).format(d);
 }
 
 export function LiveLineTab() {
-  const { workstationStatus, orders } = useSupervisorPanel();
-  const [liveData, setLiveData] = useState<Map<string, WorkstationStatus>>(new Map());
-  const [lastPoll, setLastPoll] = useState<Date | null>(null);
-  const [isLive, setIsLive] = useState(true);
+  const [ahora, setAhora] = useState(() => new Date());
+  const [elegido, setElegido] = useState<number | null>(null);
+  const [puestos, setPuestos] = useState<LiveTimelineWorkstation[]>([]);
+  const [oee, setOee] = useState<Map<string, OeeWorkstation>>(new Map());
+  const [cargando, setCargando] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
-  // Simulate real-time updates every 10 seconds
+  // El reloj de la pantalla avanza cada minuto: mueve el marcador de "ahora" y
+  // decide si el turno sigue en curso.
   useEffect(() => {
-    const updateLiveData = () => {
-      const newData = new Map<string, WorkstationStatus>();
-      
-      workstationStatus.forEach(ws => {
-        // Determine current status with some realistic variation
-        const statuses: WorkstationStatus['status'][] = ['running', 'idle', 'down', 'changeover'];
-        const weights = [0.6, 0.2, 0.1, 0.1]; // 60% running, 20% idle, 10% down, 10% changeover
-        
-        const random = Math.random();
-        let selectedStatus: WorkstationStatus['status'] = 'running';
-        let cumulative = 0;
-        for (let i = 0; i < weights.length; i++) {
-          cumulative += weights[i];
-          if (random <= cumulative) {
-            selectedStatus = statuses[i];
-            break;
-          }
-        }
-        
-        // Find current order for this workstation
-        const currentOrder = orders.find(o => o.workstation_id === ws.id && o.status === 'in_progress');
-        
-        // Generate timeline blocks for the current shift (8 hours = 480 minutes)
-        const timelineBlocks: TimelineBlock[] = generateShiftTimeline(selectedStatus, currentOrder);
-        
-        newData.set(ws.id, {
-          id: ws.id,
-          name: ws.name,
-          code: ws.code,
-          status: selectedStatus,
-          currentOrderId: currentOrder?.id,
-          currentOrderCode: currentOrder?.code,
-          targetQuantity: currentOrder?.quantity,
-          producedQuantity: currentOrder?.produced_quantity || 0,
-          oee: 0.65 + Math.random() * 0.3, // 65-95%
-          lastUpdate: new Date().toISOString()
-        });
+    const id = window.setInterval(() => setAhora(new Date()), REFRESCO_MS);
+    return () => window.clearInterval(id);
+  }, []);
+
+  const actual = useMemo(() => turnoActual(ahora), [ahora]);
+  const referencia: Turno | null = actual ?? ultimoTurno(ahora);
+  const jornadaRef = referencia?.jornada ?? null;
+  const opciones = useMemo(() => (jornadaRef ? turnosDeJornada(jornadaRef) : []), [jornadaRef]);
+  const turno: Turno | null = opciones.find((t) => t.inicio.getTime() === elegido) ?? referencia;
+  const turnoEnCurso = turno !== null && actual !== null && turno.inicio.getTime() === actual.inicio.getTime();
+
+  const inicioMs = turno?.inicio.getTime() ?? null;
+  const finMs = turno?.fin.getTime() ?? null;
+  // Solo un turno en curso se vuelve a pedir cada minuto; uno terminado se pide una vez.
+  const refresco = turnoEnCurso ? Math.floor(ahora.getTime() / REFRESCO_MS) : 0;
+
+  // Carga de los partes reales del turno elegido; se repite cada minuto solo si está en curso.
+  useEffect(() => {
+    if (inicioMs === null || finMs === null) {
+      setCargando(false);
+      return;
+    }
+    let cancelado = false;
+    const desde = new Date(inicioMs).toISOString();
+    const hasta = new Date(finMs).toISOString();
+    Promise.all([fetchLiveTimeline(desde, hasta), fetchOeeWorkstations(desde, hasta)])
+      .then(([lineas, oeeLista]) => {
+        if (cancelado) return;
+        setPuestos(lineas);
+        setOee(new Map(oeeLista.map((o) => [o.workstation_id, o])));
+        setError(null);
+      })
+      .catch(() => {
+        if (!cancelado) setError('No se han podido cargar los datos de la línea. Se volverá a intentar en un minuto.');
+      })
+      .finally(() => {
+        if (!cancelado) setCargando(false);
       });
-      
-      setLiveData(newData);
-      setLastPoll(new Date());
-      setIsLive(true);
-    };
-    
-    // Initial load
-    updateLiveData();
-    
-    // Poll every 10 seconds
-    const interval = setInterval(updateLiveData, 10000);
-    
-    // Mark as stale after 30 seconds without update
-    const staleInterval = setInterval(() => {
-      if (lastPoll && Date.now() - lastPoll.getTime() > 30000) {
-        setIsLive(false);
-      }
-    }, 5000);
-    
     return () => {
-      clearInterval(interval);
-      clearInterval(staleInterval);
+      cancelado = true;
     };
-  }, [workstationStatus, orders]);
+  }, [inicioMs, finMs, refresco]);
 
-  // Generate a realistic shift timeline based on current status
-  function generateShiftTimeline(currentStatus: WorkstationStatus['status'], currentOrder?: any): TimelineBlock[] {
-    const blocks: TimelineBlock[] = [];
-    const shiftMinutes = 480; // 8 hour shift
-    let currentTime = 0;
-    
-    // Simulate a typical shift pattern
-    const patterns = [
-      { type: 'running' as const, minDuration: 60, maxDuration: 180 },
-      { type: 'idle' as const, minDuration: 10, maxDuration: 30 },
-      { type: 'changeover' as const, minDuration: 15, maxDuration: 45 },
-      { type: 'down' as const, minDuration: 20, maxDuration: 120 }
-    ];
-    
-    while (currentTime < shiftMinutes) {
-      // Bias towards current status for the current period
-      let pattern;
-      if (currentTime > shiftMinutes - 60) {
-        // Last hour - likely running or winding down
-        pattern = { type: currentStatus, minDuration: 30, maxDuration: 60 };
-      } else {
-        const rand = Math.random();
-        if (rand < 0.5) pattern = patterns[0];
-        else if (rand < 0.7) pattern = patterns[1];
-        else if (rand < 0.85) pattern = patterns[2];
-        else pattern = patterns[3];
-      }
-      
-      const duration = pattern.minDuration + Math.random() * (pattern.maxDuration - pattern.minDuration);
-      const endTime = Math.min(currentTime + duration, shiftMinutes);
-      
-      if (endTime > currentTime) {
-        blocks.push({
-          start: currentTime,
-          end: endTime,
-          type: pattern.type,
-          label: pattern.type === 'running' && currentOrder ? currentOrder.code : undefined
-        });
-      }
-      
-      currentTime = endTime;
-    }
-    
-    return blocks;
-  }
+  const ultimoDato = useMemo(() => datosHasta(puestos.map((p) => p.blocks)), [puestos]);
+  // La franja llega hasta el último dato (o hasta ahora, lo que ocurra antes): el futuro queda en blanco.
+  const limite = useMemo(() => {
+    if (!turno) return ahora;
+    if (!turnoEnCurso) return turno.fin;
+    return ultimoDato ? new Date(Math.min(ultimoDato.getTime(), ahora.getTime())) : ahora;
+  }, [turno, turnoEnCurso, ultimoDato, ahora]);
 
-  // Format minutes to HH:MM
-  function formatTime(minutes: number): string {
-    const hours = Math.floor(minutes / 60);
-    const mins = minutes % 60;
-    return `${hours.toString().padStart(2, '0')}:${mins.toString().padStart(2, '0')}`;
-  }
+  const marcas = useMemo(() => (turno ? marcasDeHora(turno) : []), [turno]);
+  const filas = useMemo(
+    () =>
+      puestos.map((p) => ({
+        puesto: p,
+        segmentos: turno ? segmentosDeTurno(p.blocks, turno, limite) : [],
+      })),
+    [puestos, turno, limite],
+  );
 
-  // Get status color
-  function getStatusColor(status: WorkstationStatus['status']): string {
-    switch (status) {
-      case 'running': return 'bg-green-700';
-      case 'idle': return 'bg-slate-600';
-      case 'down': return 'bg-red-700';
-      case 'changeover': return 'bg-amber-700';
-      case 'maintenance': return 'bg-blue-700';
-      default: return 'bg-slate-600';
-    }
-  }
+  const ahoraPct = turno && turnoEnCurso ? posicionAhora(turno, ahora) : null;
 
-  function getStatusLabel(status: WorkstationStatus['status']): string {
-    switch (status) {
-      case 'running': return 'Produciendo';
-      case 'idle': return 'En espera';
-      case 'down': return 'Parado';
-      case 'changeover': return 'Cambio de formato';
-      case 'maintenance': return 'Mantenimiento';
-      default: return 'Desconocido';
-    }
-  }
+  const resumen = useMemo(() => {
+    const conActividad = filas.filter((f) => f.puesto.blocks.length > 0).length;
+    const producido = filas.reduce(
+      (s, f) => s + f.puesto.blocks.reduce((a, b) => a + (b.type === 'produccion' ? b.produced_quantity : 0), 0),
+      0,
+    );
+    const paradaMs = filas.reduce(
+      (s, f) => s + milisegundosDeTipo(f.segmentos, 'parada') + milisegundosDeTipo(f.segmentos, 'cambio'),
+      0,
+    );
+    const valores = filas
+      .map((f) => oee.get(f.puesto.workstation_id))
+      .filter((o): o is OeeWorkstation => !!o && !o.sin_datos);
+    const oeeMedio = valores.length > 0 ? valores.reduce((s, o) => s + o.oee, 0) / valores.length : null;
+    return { conActividad, producido, paradaMs, oeeMedio };
+  }, [filas, oee]);
+
+  const datosAntiguos = turnoEnCurso && ultimoDato !== null && ahora.getTime() - ultimoDato.getTime() > DATOS_ANTIGUOS_MS;
+  const reabre = !actual ? proximaApertura(ahora) : null;
+
+  let insignia: { texto: string; clase: string };
+  if (!actual) insignia = { texto: 'PLANTA CERRADA', clase: 'bg-slate-100 text-slate-700' };
+  else if (datosAntiguos) insignia = { texto: 'DATOS ANTIGUOS', clase: 'bg-amber-100 text-amber-800' };
+  else if (turnoEnCurso) insignia = { texto: 'TURNO EN CURSO', clase: 'bg-green-100 text-green-700' };
+  else insignia = { texto: 'TURNO TERMINADO', clase: 'bg-slate-100 text-slate-700' };
 
   return (
     <div className="space-y-4">
-      {/* Header with LIVE badge */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
         <div>
           <h3 className="text-lg font-semibold text-slate-900">Línea en Vivo</h3>
-          <p className="text-sm text-slate-500">Monitoreo en tiempo real del turno actual</p>
+          <p className="text-sm text-slate-500">
+            Qué ha hecho cada puesto durante el turno, según los partes registrados. La pantalla se actualiza sola cada minuto.
+          </p>
         </div>
         <div className="flex items-center gap-3">
-          <div className={`flex items-center gap-1 px-3 py-1 rounded-full text-xs font-bold ${
-            isLive ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'
-          }`}>
-            <span className={`w-2 h-2 rounded-full ${isLive ? 'bg-green-500 animate-pulse' : 'bg-red-500'}`}></span>
-            {isLive ? 'LIVE' : 'STALE'}
+          <div className={`flex items-center gap-1 px-3 py-1 rounded-full text-xs font-bold ${insignia.clase}`}>
+            {turnoEnCurso && !datosAntiguos && <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse"></span>}
+            {insignia.texto}
           </div>
-          {lastPoll && (
-            <span className="text-xs text-slate-500">
-              Actualizado: {lastPoll.toLocaleTimeString('es-ES')}
-            </span>
+          {turno && ultimoDato && (
+            <span className="text-xs text-slate-500">Datos hasta las {horaMadrid(ultimoDato)}</span>
           )}
         </div>
       </div>
 
-      {/* Time axis */}
-      <div className="rounded-lg border border-slate-200 bg-white p-4 shadow-sm overflow-x-auto">
-        <div className="flex">
-          {/* Workstation labels column */}
-          <div className="w-48 flex-shrink-0 border-r border-slate-200">
-            <div className="text-xs font-medium text-slate-500 px-2 py-1 bg-slate-50 border-b border-slate-200">
-              PUESTO
-            </div>
-          </div>
-          
-          {/* Timeline column */}
-          <div className="flex-1 min-w-[800px] relative">
-            {/* Hour markers */}
-            <div className="absolute inset-0 flex">
-              {[0, 60, 120, 180, 240, 300, 360, 420, 480].map((hour, i) => (
-                <div 
-                  key={i}
-                  className="flex-1 border-r border-slate-200/50 relative"
-                  style={{ width: `${(hour / 480) * 100}%` }}
-                >
-                  <div className="absolute top-0 left-0 -translate-x-1/2 text-xs text-slate-500">
-                    {formatTime(hour)}
-                  </div>
-                </div>
-              ))}
-            </div>
-            
-            {/* Current time indicator */}
-            <div className="absolute top-0 bottom-0 w-0.5 bg-red-500/80 pointer-events-none"
-                 style={{ left: `${((new Date().getHours() * 60 + new Date().getMinutes()) / 480) * 100}%` }}>
-              <div className="absolute top-0 w-2 h-2 bg-red-500 rounded-full -translate-x-1/2 -translate-y-1/2" />
-            </div>
-            
-            {/* Workstation timelines */}
-            <div className="relative">
-              {Array.from(liveData.entries()).map(([id, ws]) => {
-                const blocks = generateShiftTimeline(ws.status, ws.currentOrderId ? { code: ws.currentOrderCode } : undefined);
-                
-                return (
-                  <div key={id} className="h-20 border-b border-slate-200/50 relative group">
-                    {/* Workstation info */}
-                    <div className="absolute left-0 top-0 w-48 h-20 flex items-center px-2 bg-slate-50/50 border-r border-slate-200/50">
-                      <div className="w-full">
-                        <div className="flex items-center gap-2">
-                          <span className={`w-2 h-2 rounded-full ${getStatusColor(ws.status)}`}></span>
-                          <span className="text-sm font-medium text-slate-900 truncate">{ws.name}</span>
-                        </div>
-                        <div className="text-xs text-slate-500">{ws.code}</div>
-                        {ws.currentOrderCode && (
-                          <div className="text-xs text-orange-800 mt-0.5">
-                            📦 {ws.currentOrderCode}
-                          </div>
-                        )}
-                      </div>
-                    </div>
-                    
-                    {/* Timeline bars */}
-                    <div className="absolute left-48 right-0 top-0 bottom-0 flex items-center">
-                      <div className="flex h-6 gap-1">
-                        {blocks.map((block, idx) => {
-                          const widthPercent = ((block.end - block.start) / 480) * 100;
-                          const leftPercent = (block.start / 480) * 100;
-                          
-                          return (
-                            <div
-                              key={idx}
-                              className={`h-full ${getStatusColor(block.type)} rounded-sm transition-all cursor-pointer`}
-                              style={{ 
-                                width: `${widthPercent}%`,
-                                minWidth: '2px'
-                              }}
-                              title={`${getStatusLabel(block.type)}: ${formatTime(block.start)} - ${formatTime(block.end)}${block.label ? ` | ${block.label}` : ''}`}
-                            >
-                              {widthPercent > 15 && block.label && (
-                                <span className="text-[10px] !text-white truncate px-1 whitespace-nowrap">
-                                  {block.label}
-                                </span>
-                              )}
-                            </div>
-                          );
-                        })}
-                      </div>
-                    </div>
-                    
-                    {/* KPI badges on the right */}
-                    <div className="absolute right-0 top-0 w-40 h-20 flex items-center justify-end px-2 gap-1">
-                      <div className="flex flex-col items-end gap-1">
-                        {ws.targetQuantity && ws.producedQuantity !== undefined && (
-                          <div className="text-right">
-                            <div className="text-xs text-slate-500">Progreso</div>
-                            <div className="text-sm font-bold text-slate-900">
-                              {formatThousands(Number(ws.producedQuantity))} / {formatThousands(Number(ws.targetQuantity))}
-                            </div>
-                            <div className="w-20 h-1.5 bg-slate-200 rounded-full mt-0.5">
-                              <div 
-                                className="h-full bg-kavana-orange rounded-full"
-                                style={{ width: `${Math.min((ws.producedQuantity / ws.targetQuantity) * 100, 100)}%` }}
-                              />
-                            </div>
-                          </div>
-                        )}
-                        {ws.oee !== undefined && (
-                          <div className="text-right">
-                            <div className="text-xs text-slate-500">OEE</div>
-                            <div className={`text-sm font-bold ${ws.oee > 0.85 ? 'text-green-700' : ws.oee > 0.7 ? 'text-amber-700' : 'text-red-700'}`}>
-                              {(ws.oee * 100).toFixed(1)}%
-                            </div>
-                          </div>
-                        )}
-                      </div>
-                    </div>
-                    
-                    {/* Hover detail */}
-                    <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity bg-black/5 z-10" />
-                  </div>
-                );
-              })}
-              
-              {liveData.size === 0 && (
-                <div className="h-48 flex items-center justify-center text-slate-500">
-                  No hay puestos configurados
-                </div>
-              )}
-            </div>
-          </div>
+      {!actual && (
+        <div className="rounded-lg border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-700">
+          <strong>Planta cerrada.</strong>{' '}
+          {reabre ? `Reabre el ${fechaLarga(reabre)} a las ${horaMadrid(reabre)}. ` : ''}
+          {turno ? 'Abajo, el último turno trabajado.' : 'Todavía no hay ningún turno que mostrar.'}
         </div>
-      </div>
+      )}
 
-      {/* Shift Summary Cards */}
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-        {/* Total Running */}
-        <div className="rounded-lg border border-slate-200 bg-white p-4 shadow-sm">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm text-slate-500">Produciendo</p>
-              <p className="text-2xl font-bold text-green-700">
-                {Array.from(liveData.values()).filter(ws => ws.status === 'running').length}
-              </p>
-            </div>
-            <div className="w-12 h-12 rounded-full bg-green-100 flex items-center justify-center">
-              <svg className="w-6 h-6 text-green-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z" />
-              </svg>
-            </div>
-          </div>
+      {datosAntiguos && ultimoDato && (
+        <div className="rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">
+          Los últimos datos son de las {horaMadrid(ultimoDato)} (hace {duracionLegible(ahora.getTime() - ultimoDato.getTime())}).
         </div>
-        
-        {/* Idle */}
-        <div className="rounded-lg border border-slate-200 bg-white p-4 shadow-sm">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm text-slate-500">En espera o cambio</p>
-              <p className="text-2xl font-bold text-slate-600">
-                {Array.from(liveData.values()).filter(ws => ws.status === 'idle' || ws.status === 'changeover').length}
-              </p>
-            </div>
-            <div className="w-12 h-12 rounded-full bg-slate-100 flex items-center justify-center">
-              <svg className="w-6 h-6 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-              </svg>
-            </div>
-          </div>
-        </div>
-        
-        {/* Down */}
-        <div className="rounded-lg border border-slate-200 bg-white p-4 shadow-sm">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm text-slate-500">Parados</p>
-              <p className="text-2xl font-bold text-red-700">
-                {Array.from(liveData.values()).filter(ws => ws.status === 'down' || ws.status === 'maintenance').length}
-              </p>
-            </div>
-            <div className="w-12 h-12 rounded-full bg-red-100 flex items-center justify-center">
-              <svg className="w-6 h-6 text-red-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-              </svg>
-            </div>
-          </div>
-        </div>
-        
-        {/* Avg OEE */}
-        <div className="rounded-lg border border-slate-200 bg-white p-4 shadow-sm">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm text-slate-500">Rendimiento medio (OEE)</p>
-              <p className="text-2xl font-bold text-indigo-600">
-                {liveData.size > 0 ? 
-                  (Array.from(liveData.values()).reduce((sum, ws) => sum + (ws.oee || 0), 0) / liveData.size * 100).toFixed(1) + '%' : 
-                  'N/A'}
-              </p>
-            </div>
-            <div className="w-12 h-12 rounded-full bg-indigo-100 flex items-center justify-center">
-              <svg className="w-6 h-6 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
-              </svg>
-            </div>
-          </div>
-        </div>
-      </div>
+      )}
 
-      {/* Current Orders Detail */}
-      <div className="rounded-lg border border-slate-200 bg-white shadow-sm overflow-hidden">
-        <div className="border-b border-slate-200 bg-slate-50 px-4 py-3">
-          <h4 className="text-sm font-semibold text-slate-900">Órdenes en Progreso</h4>
+      {error && <div className="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800">{error}</div>}
+
+      {turno && (
+        <div className="flex flex-wrap items-center gap-2" role="tablist" aria-label="Turno">
+          {opciones.map((t) => {
+            const activo = t.inicio.getTime() === turno.inicio.getTime();
+            return (
+              <button
+                key={t.inicio.getTime()}
+                type="button"
+                role="tab"
+                aria-selected={activo}
+                onClick={() => setElegido(t.inicio.getTime())}
+                className={`px-3 py-1.5 rounded-md text-sm font-medium border ${
+                  activo ? 'bg-slate-900 text-white border-slate-900' : 'bg-white text-slate-700 border-slate-300 hover:bg-slate-50'
+                }`}
+              >
+                {t.etiqueta}
+                <span className="ml-1 text-xs opacity-80">
+                  {horaMadrid(t.inicio)}-{horaMadrid(t.fin)}
+                </span>
+              </button>
+            );
+          })}
+          <span className="text-xs text-slate-500 ml-1">
+            {turno.etiqueta} del {fechaLarga(new Date(turno.fin.getTime() - 1))}
+          </span>
         </div>
-        <div className="divide-y divide-slate-200">
-          {Array.from(liveData.entries())
-            .filter(([, ws]) => ws.currentOrderId)
-            .map(([id, ws]) => (
-              <div key={id} className="px-4 py-3 hover:bg-slate-50">
-                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
-                  <div className="flex items-center gap-3">
-                    <div className={`w-3 h-3 rounded-full ${getStatusColor(ws.status)}`}></div>
-                    <div>
-                      <p className="font-medium text-slate-900">{ws.name} ({ws.code})</p>
-                      <p className="text-sm text-slate-500">Orden: {ws.currentOrderCode}</p>
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-4 text-sm">
-                    {ws.targetQuantity && ws.producedQuantity !== undefined && (
-                      <div className="text-right">
-                        <p className="text-slate-500">Producido</p>
-                        <p className="font-semibold text-slate-900">
-                          {formatThousands(Number(ws.producedQuantity))} / {formatThousands(Number(ws.targetQuantity))}
-                          ({(ws.producedQuantity / ws.targetQuantity * 100).toFixed(1)}%)
-                        </p>
-                      </div>
-                    )}
-                    {ws.oee !== undefined && (
-                      <div className="text-right">
-                        <p className="text-slate-500">OEE</p>
-                        <p className={`font-semibold ${ws.oee > 0.85 ? 'text-green-700' : ws.oee > 0.7 ? 'text-amber-700' : 'text-red-700'}`}>
-                          {(ws.oee * 100).toFixed(1)}%
-                        </p>
-                      </div>
-                    )}
-                    <div className="text-right">
-                      <p className="text-slate-500">Estado</p>
-                      <p className="font-semibold text-slate-900 capitalize">{getStatusLabel(ws.status)}</p>
-                    </div>
-                  </div>
-                </div>
+      )}
+
+      {turno && (
+        <div className="rounded-lg border border-slate-200 bg-white p-4 shadow-sm overflow-x-auto">
+          <div className="min-w-[860px]">
+            {/* Eje horario: mismo grid y mismas columnas que las filas */}
+            <div className="grid grid-cols-[12rem_1fr_10rem] items-end border-b border-slate-200">
+              <div className="text-xs font-medium text-slate-500 px-2 py-1">PUESTO</div>
+              <div className="relative h-6 mx-3">
+                {marcas.map((m, i) => (
+                  <span
+                    key={i}
+                    className={`absolute top-0 text-xs text-slate-500 ${i === 0 ? '' : i === marcas.length - 1 ? '-translate-x-full' : '-translate-x-1/2'}`}
+                    style={{ left: `${m.pct}%` }}
+                  >
+                    {m.etiqueta}
+                  </span>
+                ))}
               </div>
-            ))}
-          
-          {Array.from(liveData.entries()).filter(([, ws]) => !ws.currentOrderId).length === liveData.size && (
-            <div className="px-4 py-8 text-center text-slate-500">
-              No hay órdenes en progreso en este momento
+              <div className="text-xs font-medium text-slate-500 px-2 py-1 text-right">AVANCE · OEE</div>
             </div>
-          )}
+
+            {filas.map(({ puesto, segmentos }) => {
+              const ultimo = segmentos.length > 0 ? segmentos[segmentos.length - 1] : null;
+              const o = oee.get(puesto.workstation_id);
+              const orden = puesto.order;
+              const avance = orden && orden.quantity > 0 ? Math.min((orden.produced_quantity / orden.quantity) * 100, 100) : 0;
+              return (
+                <div key={puesto.workstation_id} className="grid grid-cols-[12rem_1fr_10rem] items-center h-20 border-b border-slate-200/60">
+                  <div className="px-2 min-w-0">
+                    <div className="flex items-center gap-2">
+                      <span
+                        className={`w-2 h-2 rounded-full flex-shrink-0 ${ultimo ? COLOR[ultimo.tipo] : 'bg-slate-300'}`}
+                        title={ultimo ? `${turnoEnCurso ? 'Ahora' : 'Al terminar'}: ${NOMBRE[ultimo.tipo]}` : 'Sin partes en el turno'}
+                      ></span>
+                      <span className="text-sm font-medium text-slate-900 truncate" title={puesto.name}>{puesto.name}</span>
+                    </div>
+                    <div className="text-xs text-slate-500">{puesto.code}</div>
+                    {orden && <div className="text-xs text-orange-800 mt-0.5">Orden {orden.code}</div>}
+                  </div>
+
+                  <div className="relative h-6 mx-3 rounded bg-slate-100">
+                    {marcas.map((m, i) => (
+                      <div key={i} className="absolute top-0 bottom-0 border-l border-slate-200" style={{ left: `${m.pct}%` }} />
+                    ))}
+                    {segmentos.map((s, i) => (
+                      <div
+                        key={i}
+                        className={`absolute top-0 h-full ${COLOR[s.tipo]} ${s.tipo === 'sin_actividad' ? 'opacity-60' : ''}`}
+                        style={{ left: `${s.izquierdaPct}%`, width: `${s.anchoPct}%` }}
+                        title={textoTooltip(s)}
+                      >
+                        {s.tipo === 'produccion' && s.orden && s.anchoPct > 12 && (
+                          <span className="block truncate px-1 text-[10px] leading-6 !text-white">{s.orden}</span>
+                        )}
+                      </div>
+                    ))}
+                    {ahoraPct !== null && (
+                      <div className="absolute -top-2 -bottom-2 w-0.5 bg-red-500/80 pointer-events-none" style={{ left: `${ahoraPct}%` }} />
+                    )}
+                  </div>
+
+                  <div className="px-2 text-right">
+                    {orden ? (
+                      <>
+                        <div className="text-xs text-slate-500">Orden</div>
+                        <div className="text-sm font-bold text-slate-900">
+                          {formatThousands(orden.produced_quantity)} / {formatThousands(orden.quantity)}
+                        </div>
+                        <div className="w-20 h-1.5 bg-slate-200 rounded-full mt-0.5 ml-auto">
+                          <div className="h-full bg-kavana-orange rounded-full" style={{ width: `${avance}%` }} />
+                        </div>
+                      </>
+                    ) : (
+                      <div className="text-xs text-slate-500">Sin orden</div>
+                    )}
+                    <div className="text-xs text-slate-500 mt-1">
+                      OEE{' '}
+                      {o && !o.sin_datos ? (
+                        <span className={`text-sm font-bold ${colorOee(o.oee)}`}>{o.oee.toFixed(1)}%</span>
+                      ) : (
+                        <span className="text-sm font-bold text-slate-400">—</span>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
+
+            {!cargando && filas.length === 0 && (
+              <div className="h-32 flex items-center justify-center text-slate-500">No hay puestos configurados</div>
+            )}
+            {cargando && filas.length === 0 && (
+              <div className="h-32 flex items-center justify-center text-slate-500">Cargando el turno…</div>
+            )}
+          </div>
+
+          <div className="mt-3 flex flex-wrap gap-4 text-xs text-slate-600" aria-label="Leyenda">
+            {(['produccion', 'parada', 'cambio', 'sin_actividad'] as TipoSegmento[]).map((tipo) => (
+              <span key={tipo} className="flex items-center gap-1.5">
+                <span className={`inline-block w-3 h-3 rounded-sm ${COLOR[tipo]} ${tipo === 'sin_actividad' ? 'opacity-60' : ''}`}></span>
+                {NOMBRE[tipo]}
+              </span>
+            ))}
+            {ahoraPct !== null && (
+              <span className="flex items-center gap-1.5">
+                <span className="inline-block w-0.5 h-3 bg-red-500"></span>
+                Ahora
+              </span>
+            )}
+          </div>
         </div>
-      </div>
+      )}
+
+      {turno && (
+        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+          <div className="rounded-lg border border-slate-200 bg-white p-4 shadow-sm">
+            <p className="text-sm text-slate-500">Puestos con actividad</p>
+            <p className="text-2xl font-bold text-green-700">
+              {resumen.conActividad}
+              <span className="text-base font-medium text-slate-500"> de {filas.length}</span>
+            </p>
+          </div>
+          <div className="rounded-lg border border-slate-200 bg-white p-4 shadow-sm">
+            <p className="text-sm text-slate-500">Producido en el turno</p>
+            <p className="text-2xl font-bold text-slate-900">{formatThousands(resumen.producido)}</p>
+          </div>
+          <div className="rounded-lg border border-slate-200 bg-white p-4 shadow-sm">
+            <p className="text-sm text-slate-500">Tiempo de paradas</p>
+            <p className="text-2xl font-bold text-red-700">{resumen.paradaMs > 0 ? duracionLegible(resumen.paradaMs) : '0 min'}</p>
+          </div>
+          <div className="rounded-lg border border-slate-200 bg-white p-4 shadow-sm">
+            <p className="text-sm text-slate-500">Rendimiento medio (OEE)</p>
+            <p className="text-2xl font-bold text-indigo-600">{resumen.oeeMedio !== null ? `${resumen.oeeMedio.toFixed(1)}%` : 'Sin datos'}</p>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
