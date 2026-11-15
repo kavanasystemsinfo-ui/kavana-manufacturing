@@ -158,6 +158,7 @@ const RESUMENES: Readonly<Record<string, string>> = {
   'oee.getOeeSummary': 'Resumen OEE de un puesto en un rango',
   'oee.getOeeByWorkstation': 'OEE por puesto en un rango',
   'oee.getDowntimeBreakdown': 'Desglose de paradas de un puesto',
+  'oee.getLiveTimeline': 'Partes de cada puesto en un rango (línea en vivo de un turno)',
   // quality
   'quality.createCheck': 'Registra un control de calidad',
   'quality.listChecks': 'Controles de calidad de una orden',
@@ -342,6 +343,10 @@ const QUERY_PARAMS: Readonly<Record<string, { name: string; required: boolean }[
     { name: 'endDate', required: true },
   ],
   'GET /oee/workstations': [
+    { name: 'startDate', required: true },
+    { name: 'endDate', required: true },
+  ],
+  'GET /oee/live-timeline': [
     { name: 'startDate', required: true },
     { name: 'endDate', required: true },
   ],
