@@ -169,7 +169,7 @@ export function LiveLineTab() {
             Qué ha hecho cada puesto durante el turno, según los partes registrados. La pantalla se actualiza sola cada minuto.
           </p>
         </div>
-        <div className="flex items-center gap-3">
+        <div data-tour-step="live-estado" className="flex items-center gap-3">
           <div className={`flex items-center gap-1 px-3 py-1 rounded-full text-xs font-bold ${insignia.clase}`}>
             {turnoEnCurso && !datosAntiguos && <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse"></span>}
             {insignia.texto}
@@ -197,7 +197,7 @@ export function LiveLineTab() {
       {error && <div className="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800">{error}</div>}
 
       {turno && (
-        <div className="flex flex-wrap items-center gap-2" role="tablist" aria-label="Turno">
+        <div data-tour-step="live-turnos" className="flex flex-wrap items-center gap-2" role="tablist" aria-label="Turno">
           {opciones.map((t) => {
             const activo = t.inicio.getTime() === turno.inicio.getTime();
             return (
@@ -225,7 +225,7 @@ export function LiveLineTab() {
       )}
 
       {turno && (
-        <div className="rounded-lg border border-slate-200 bg-white p-4 shadow-sm overflow-x-auto">
+        <div data-tour-step="live-tabla" className="rounded-lg border border-slate-200 bg-white p-4 shadow-sm overflow-x-auto">
           <div className="min-w-[860px]">
             {/* Eje horario: mismo grid y mismas columnas que las filas */}
             <div className="grid grid-cols-[12rem_1fr_10rem] items-end border-b border-slate-200">
@@ -325,7 +325,7 @@ export function LiveLineTab() {
             )}
           </div>
 
-          <div className="mt-3 flex flex-wrap gap-4 text-xs text-slate-600" aria-label="Leyenda">
+          <div data-tour-step="live-leyenda" className="mt-3 flex flex-wrap gap-4 text-xs text-slate-600" aria-label="Leyenda">
             {(['produccion', 'parada', 'cambio', 'sin_actividad'] as TipoSegmento[]).map((tipo) => (
               <span key={tipo} className="flex items-center gap-1.5">
                 <span className={`inline-block w-3 h-3 rounded-sm ${COLOR[tipo]} ${tipo === 'sin_actividad' ? 'opacity-60' : ''}`}></span>
@@ -343,7 +343,7 @@ export function LiveLineTab() {
       )}
 
       {turno && (
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+        <div data-tour-step="live-resumen" className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
           <div className="rounded-lg border border-slate-200 bg-white p-4 shadow-sm">
             <p className="text-sm text-slate-500">Puestos con actividad</p>
             <p className="text-2xl font-bold text-green-700">

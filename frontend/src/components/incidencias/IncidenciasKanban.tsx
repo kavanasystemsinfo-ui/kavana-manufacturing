@@ -38,7 +38,7 @@ export function IncidenciasKanban({ incidencias, onStatusChange, onDelete, puest
   const huerfanas = incidenciasHuerfanas(incidencias);
 
   return (
-    <div className="space-y-3">
+    <div data-tour-step="incidencias-tablero" className="space-y-3">
       <KanbanColumns
         columns={[...COLUMNAS_INCIDENCIAS]}
         items={incidencias}

@@ -79,18 +79,18 @@ export function ResumenTab() {
       {/* Main content grid */}
       <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
         {/* Production Chart */}
-        <div className="col-span-1 md:col-span-1 lg:col-span-1">
+        <div data-tour-step="resumen-produccion" className="col-span-1 md:col-span-1 lg:col-span-1">
           <ProductionChart />
         </div>
         
         {/* Downtime Pareto */}
-        <div className="col-span-1 md:col-span-1 lg:col-span-1">
+        <div data-tour-step="resumen-paradas" className="col-span-1 md:col-span-1 lg:col-span-1">
           <DowntimePareto />
         </div>
         
         {/* Today's Performance */}
         <div className="col-span-1 md:col-span-1 lg:col-span-1">
-          <div className="rounded-lg border border-slate-200 bg-white p-4 shadow-sm">
+          <div data-tour-step="resumen-rendimiento-dia" className="rounded-lg border border-slate-200 bg-white p-4 shadow-sm">
             <div className="flex justify-between items-start mb-3">
               <h3 className="text-lg font-semibold text-slate-900">
                 Rendimiento del Día
@@ -160,7 +160,7 @@ export function ResumenTab() {
         
         {/* OEE Trend Mini */}
         <div className="col-span-1 md:col-span-2 lg:col-span-1">
-          <div className="rounded-lg border border-slate-200 bg-white p-4 shadow-sm">
+          <div data-tour-step="resumen-tendencia" className="rounded-lg border border-slate-200 bg-white p-4 shadow-sm">
             <div className="flex justify-between items-start mb-3">
               <h3 className="text-lg font-semibold text-slate-900">
                 Eficiencia de la planta (OEE), última semana

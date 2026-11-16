@@ -63,6 +63,7 @@ export function KanbanBoard({ orders, changeOrderStatus, isClassic, onDelete }: 
       onMove={changeOrderStatus}
       isClassic={isClassic}
       ariaLabel="Órdenes de producción"
+      tourStep="ordenes-contenido"
       renderCard={(order) => {
         const siguiente =
           order.status === 'pending'
