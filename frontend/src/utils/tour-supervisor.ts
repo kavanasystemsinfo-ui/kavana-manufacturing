@@ -263,18 +263,18 @@ export function toursSupervisor(irA: (pestana: PestanaTour) => void): Record<Pes
   };
 }
 
-const CLAVE_TOUR_VISTO = 'kavana-tour-supervisor-visto';
 
 /**
  * ¿Hay que abrir el tour al entrar al panel? Una vez por sesión del navegador
  * (no en cada recarga ni al cambiar de diseño) y nunca en navegadores
  * automatizados, para no estorbar a las pruebas E2E.
  */
-export function debeAbrirTourAlEntrar(): boolean {
+export function debeAbrirTourAlEntrar(panel: 'supervisor' | 'operario' = 'supervisor'): boolean {
+  const clave = `kavana-tour-${panel}-visto`;
   try {
     if (typeof navigator !== 'undefined' && navigator.webdriver) return false;
-    if (sessionStorage.getItem(CLAVE_TOUR_VISTO)) return false;
-    sessionStorage.setItem(CLAVE_TOUR_VISTO, '1');
+    if (sessionStorage.getItem(clave)) return false;
+    sessionStorage.setItem(clave, '1');
     return true;
   } catch {
     return false;

@@ -41,6 +41,11 @@ import { IncidenciaModal } from './components/operator/IncidenciaModal.js'; // N
 import { ShiftKpiCard } from './components/operator/ShiftKpiCard.js';
 import { useMyShiftKPI } from './hooks/useMyShiftKPI.js';
 import { ThemeToggle } from './components/ThemeToggle.js';
+import { useTour } from './components/Tour.js';
+import { TourButton } from './components/TourButton.js';
+import { toursOperario, type PantallaOperario } from './utils/tour-operario.js';
+import { debeAbrirTourAlEntrar } from './utils/tour-supervisor.js';
+
 import { LogoutButton } from './components/LogoutButton.js';
 import { HelpModal } from './components/HelpModal.js';
 import { AiAdvisorFab } from './components/AiAdvisorFab.js';
@@ -54,7 +59,7 @@ import { useOperatorActions } from './hooks/useOperatorActions.js';
 import { useOrderLogs } from './hooks/useOrderLogs.js';
 import { summarizeOrder, type SummaryOrder } from './utils/order-summary.js';
 import { OPERATOR_HELP } from './help-content.js';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { mapCustomFieldsToUI, type CustomFieldUI } from './utils/customFieldsMapper.js';
 import { buildDraftValues } from './utils/custom-field-values.js';
 import { CustomFieldsEditor } from './components/operator/CustomFieldsEditor.js';
@@ -169,8 +174,34 @@ export function OperatorPanel() {
   // For simplicity, we could rely solely on the hook, but the goal was to demonstrate selectors.
   // We'll keep the selectors for state and the hook for actions and derived data.
 
+  // Tour guiado: uno por pantalla (cola, orden y cierre de turno), encadenados.
+  const pantallaTour: PantallaOperario = showShift ? 'turno' : orderId ? 'orden' : 'cola';
+  const tours = toursOperario({
+    moderno: true,
+    hayOrdenes: filteredOrders.length > 0,
+    irACola: () => {
+      setShowShift(false);
+      useHmiStore.getState().leaveOrder();
+    },
+    abrirOrden: () => {
+      setShowShift(false);
+      if (!orderId && filteredOrders[0]) selectOrder(filteredOrders[0]);
+    },
+    abrirCierre: () => setShowShift(true),
+  });
+  const { start: startTour, TourComponent, tourProps } = useTour(tours);
+
+  // El tour se abre solo al entrar al panel (una vez por sesión) y se puede omitir.
+  useEffect(() => {
+    if (!debeAbrirTourAlEntrar('operario')) return;
+    const t = setTimeout(() => startTour(pantallaTour), 1200);
+    return () => clearTimeout(t);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   if (showShift) {
     return (
+      <>
       <ShiftClose
         variant="kavana"
         operatorName={operatorName ?? null}
@@ -179,6 +210,8 @@ export function OperatorPanel() {
         labelOf={labelOf}
         onBack={() => setShowShift(false)}
       />
+      <TourComponent {...tourProps} />
+      </>
     );
   }
 
@@ -191,10 +224,11 @@ export function OperatorPanel() {
               <img src={logo} alt="Logo Kavana" className="h-14 w-14 rounded-2xl bg-kavana-surface object-cover p-2 ring-1 ring-kavana-orange/40" />
               <div>
                 <p className="text-sm font-bold uppercase tracking-[0.32em] text-kavana-orange-light">Manufacturing</p>
-                <h1 className="mt-1 text-2xl font-black tracking-tight text-white md:text-3xl">Seleccionar Orden</h1>
+                <h1 data-tour-step="header-title" className="mt-1 text-2xl font-black tracking-tight text-white md:text-3xl">Seleccionar Orden</h1>
               </div>
             </div>
-            <ThemeToggle />
+            <TourButton onClick={() => startTour(pantallaTour)} />
+            <ThemeToggle dataTourStep="header-theme" />
             <LogoutButton />
           </header>
 
@@ -204,7 +238,7 @@ export function OperatorPanel() {
             </p>
           </div>
 
-          <div className="relative mb-6">
+          <div data-tour-step="cola-buscar" className="relative mb-6">
             <input
               type="text"
               value={orderSearch}
@@ -226,10 +260,11 @@ export function OperatorPanel() {
           )}
 
           <div className="mt-6 flex items-center justify-between gap-3">
-            <button type="button" onClick={() => setShowShift(true)} className="rounded-xl border border-kavana-steel/40 bg-kavana-surface px-5 py-3 text-sm font-bold text-slate-100 hover:bg-kavana-steel/30">
+            <button type="button" data-tour-step="cola-cerrar-turno" onClick={() => setShowShift(true)} className="rounded-xl border border-kavana-steel/40 bg-kavana-surface px-5 py-3 text-sm font-bold text-slate-100 hover:bg-kavana-steel/30">
               Cerrar turno
             </button>
           </div>
+          <TourComponent {...tourProps} />
         </section>
       </main>
     );
@@ -248,11 +283,11 @@ export function OperatorPanel() {
               />
               <div>
                 <p className="text-sm font-bold uppercase tracking-[0.32em] text-kavana-orange-light">Manufacturing</p>
-                <h1 className="mt-2 text-3xl font-black tracking-tight text-white md:text-5xl">Panel de Operario</h1>
+                <h1 data-tour-step="header-title" className="mt-2 text-3xl font-black tracking-tight text-white md:text-5xl">Panel de Operario</h1>
               </div>
             </div>
 
-            <div className="flex flex-wrap gap-3">
+            <div data-tour-step="orden-conexion" className="flex flex-wrap gap-3">
               <span className={onlineBadgeClass(isOnline)}>
                 {isOnline ? 'Online' : 'Offline'}
               </span>
@@ -269,13 +304,15 @@ export function OperatorPanel() {
                 Con error: {failedCount}
               </button>
               <button
+                data-tour-step="orden-incidencia"
                 onClick={() => setIsIncidenciaModalOpen(true)}
                 className="rounded-full bg-kavana-surface px-4 py-3 text-sm font-bold text-kavana-orange ring-1 ring-kavana-orange/40 transition hover:bg-kavana-orange hover:text-white"
               >
                 ⚠ Incidencia
               </button>
-              <HelpModal {...OPERATOR_HELP} />
-              <ThemeToggle />
+              <TourButton onClick={() => startTour(pantallaTour)} />
+              <HelpModal {...OPERATOR_HELP} dataTourStep="header-help" />
+              <ThemeToggle dataTourStep="header-theme" />
               <LogoutButton />
             </div>
           </header>
@@ -411,6 +448,7 @@ export function OperatorPanel() {
         </section>
       </main>
       <AiAdvisorFab />
+      <TourComponent {...tourProps} />
       <PauseModal
         isOpen={isPauseModalOpen}
         onClose={() => setIsPauseModalOpen(false)}
