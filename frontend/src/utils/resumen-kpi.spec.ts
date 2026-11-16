@@ -110,18 +110,18 @@ describe('rendimientoDelDia', () => {
 });
 
 describe('rendimientoDelDia con la jornada de planta', () => {
-  // Las órdenes del lunes nacen el domingo a las 22:00 (inicio de su jornada).
+  // Las ordenes del lunes nacen el domingo a las 22:00 (inicio de su jornada).
   const ventana = { inicio: new Date(2026, 10, 15, 22, 0, 0), fin: new Date(2026, 10, 16, 22, 0, 0) };
   const ahora = new Date(2026, 10, 16, 14, 51, 0);
 
-  it('cuenta las órdenes creadas el domingo por la noche como de la jornada del lunes', () => {
+  it('cuenta las ordenes creadas el domingo por la noche como de la jornada del lunes', () => {
     const domingoNoche = new Date(2026, 10, 15, 22, 0, 0);
     const r = rendimientoDelDia([orden(domingoNoche, { quantity: 100, produced_quantity: '40.0000' })], ahora, ventana);
     expect(r.objetivo).toBe(100);
     expect(r.real).toBe(40);
   });
 
-  it('el día natural, en cambio, las dejaba fuera (el fallo de origen)', () => {
+  it('el dia natural, en cambio, las dejaba fuera (el fallo de origen)', () => {
     const domingoNoche = new Date(2026, 10, 15, 22, 0, 0);
     const r = rendimientoDelDia([orden(domingoNoche, { quantity: 100, produced_quantity: '40.0000' })], ahora);
     expect(r.objetivo).toBe(0);
