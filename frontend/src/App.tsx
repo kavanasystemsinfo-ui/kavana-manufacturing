@@ -15,7 +15,7 @@ import { getSubdomain, getTenantFromUrl } from './utils/subdomain.js';
 import { MobilePhotoUpload } from './pages/MobilePhotoUpload.js';
 import { ManufacturingLanding } from './components/ManufacturingLanding.js';
 import { OfflineBanner } from './components/ui/OfflineBanner.js';
-import { purgeLocalData } from './db/local-db.js';
+import { limpiarSesionLocal } from './utils/session.js';
 
 interface AuthState {
   token: string;
@@ -51,7 +51,7 @@ function getInitialAuth(): AuthState | null {
   const payload = decodeJwtPayload(token);
   if (!payload) {
     // Token ausente/mutilado/caducado: limpiar restos y forzar login.
-    handleLogoutStorage();
+    limpiarSesionLocal();
     return null;
   }
   return {
@@ -63,14 +63,6 @@ function getInitialAuth(): AuthState | null {
   };
 }
 
-function handleLogoutStorage(): void {
-  localStorage.removeItem('kavana_dev_token');
-  localStorage.removeItem('kavana_tenant_id');
-  localStorage.removeItem('kavana_user_id');
-  localStorage.removeItem('kavana_role');
-  localStorage.removeItem('kavana_tenant_name');
-  localStorage.removeItem('kavana_workstation_name');
-}
 
 export function AppRoutes() {
   const theme = useThemeStore((s) => s.theme);
@@ -97,18 +89,6 @@ export function AppRoutes() {
       localStorage.removeItem('kavana_workstation_name');
     }
     setAuth({ token, tenantId, userId, role, tenantName });
-  }
-
-  function handleLogout() {
-    handleLogoutStorage();
-    // FIX A6: purgar también el IndexedDB (logs offline, config de tenant).
-    setAuth(null);
-    void purgeLocalData();
-    // U2: cerrar sesión recarga la aplicación en vez de limitarse a cambiar el
-    // estado. Así mueren también los temporizadores y la cola en memoria, y el
-    // usuario ve que ha salido de verdad (antes se repintaba el login encima del
-    // panel y parecía que seguía dentro).
-    window.location.reload();
   }
 
   // Ruta pública de subida de foto de incidencia (flujo QR + móvil).
@@ -148,12 +128,6 @@ export function AppRoutes() {
             ? (theme === 'classic' ? <ClassicSupervisorPanel /> : <SupervisorPanel />)
             : (theme === 'classic' ? <ClassicAdminPanel /> : <AdminPanel />)
         }
-        <button
-          onClick={handleLogout}
-          className="fixed bottom-4 left-4 min-h-[64px] px-3 py-1.5 bg-gray-600 hover:bg-gray-500 text-white text-xs rounded-lg z-50"
-        >
-          Salir ({auth.tenantName})
-        </button>
       </>
     );
   }
@@ -171,12 +145,6 @@ export function AppRoutes() {
             ? (theme === 'classic' ? <ClassicSupervisorPanel /> : <SupervisorPanel />)
             : (theme === 'classic' ? <ClassicAdminPanel /> : <AdminPanel />)
         }
-        <button
-          onClick={handleLogout}
-          className="fixed bottom-4 left-4 min-h-[64px] px-3 py-1.5 bg-gray-600 hover:bg-gray-500 text-white text-xs rounded-lg z-50"
-        >
-          Salir ({auth.tenantName})
-        </button>
       </>
     );
   }
@@ -206,12 +174,6 @@ export function AppRoutes() {
   return (
     <>
       {theme === 'classic' ? <ClassicOperatorPanel /> : <OperatorPanel />}
-      <button
-        onClick={handleLogout}
-        className="fixed bottom-4 left-4 px-3 py-1.5 bg-gray-600 hover:bg-gray-500 text-white text-xs rounded-lg z-50"
-      >
-        Salir ({auth.tenantName})
-      </button>
     </>
   );
 }
