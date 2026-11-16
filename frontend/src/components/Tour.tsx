@@ -67,9 +67,8 @@ export function Tour({ steps, isOpen, onClose, onComplete }: TourProps) {
       if (el) {
         el.scrollIntoView({ block: 'center', inline: 'nearest' });
         objetivoRef.current = el;
-        requestAnimationFrame(() => {
-          if (!cancelado) setRect(el.getBoundingClientRect());
-        });
+        // scrollIntoView es síncrono: se mide ya, sin esperar a un fotograma.
+        setRect(el.getBoundingClientRect());
         return;
       }
       if (!paso.anchor || Date.now() - inicio > ESPERA_MAXIMA_MS) return;
