@@ -79,8 +79,8 @@ export function OrderSummary({ variant, order, productName, workstationName, ope
   const stoppedMinutes = useStoppedMinutes(summary.stoppedSince);
   const meta = [workstationName, operatorName].filter(Boolean).join(' · ');
   return (
-    <section className={s.card} aria-label="Resumen de la orden">
-      <button type="button" onClick={onBack} className={s.back}>
+    <section data-tour-step="orden-resumen" className={s.card} aria-label="Resumen de la orden">
+      <button type="button" data-tour-step="orden-volver" onClick={onBack} className={s.back}>
         ← Volver a la cola
       </button>
 
@@ -102,7 +102,7 @@ export function OrderSummary({ variant, order, productName, workstationName, ope
         {uds(summary.produced)} de {uds(summary.planned)} · {summary.pct} %
       </p>
 
-      <div className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-4">
+      <div data-tour-step="orden-cifras" className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-4">
         <div className={s.stat}>
           <p className={s.label}>Faltan</p>
           <p className={`text-lg font-semibold ${s.big}`}>{uds(summary.remaining)}</p>
@@ -125,6 +125,7 @@ export function OrderSummary({ variant, order, productName, workstationName, ope
 
       <button
         type="button"
+        data-tour-step="orden-pausa"
         disabled={busy}
         onClick={summary.stopped ? onResume : onPause}
         className={`mt-5 w-full rounded-xl px-6 py-5 text-lg font-bold shadow-sm transition disabled:opacity-50 ${summary.stopped ? s.resume : s.pause}`}
@@ -132,6 +133,7 @@ export function OrderSummary({ variant, order, productName, workstationName, ope
         {summary.stopped ? 'Reanudar producción' : 'Pausar producción'}
       </button>
 
+      <div data-tour-step="orden-ultimos">
       <h3 className={s.listTitle}>Últimos bloques</h3>
       {summary.recent.length === 0 ? (
         <p className={s.empty}>Todavía no has registrado ningún bloque en esta orden.</p>
@@ -144,6 +146,7 @@ export function OrderSummary({ variant, order, productName, workstationName, ope
           ))}
         </ul>
       )}
+      </div>
     </section>
   );
 }

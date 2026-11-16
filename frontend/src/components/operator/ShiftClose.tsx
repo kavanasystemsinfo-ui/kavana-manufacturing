@@ -75,8 +75,8 @@ export function ShiftClose({ variant, operatorName, workstationName, dateLabel, 
 
   return (
     <div className={s.page}>
-      <section className={s.card} aria-label="Cierre de turno">
-        <button type="button" onClick={onBack} className={s.back}>
+      <section data-tour-step="turno-cierre" className={s.card} aria-label="Cierre de turno">
+        <button type="button" data-tour-step="turno-volver" onClick={onBack} className={s.back}>
           ← Volver
         </button>
         <h2 className={s.title}>Cierre de turno</h2>
@@ -95,7 +95,7 @@ export function ShiftClose({ variant, operatorName, workstationName, dateLabel, 
           <p className={`mt-4 ${s.muted}`}>Hoy no has registrado ningún bloque todavía.</p>
         ) : (
           <>
-            <div className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-4">
+            <div data-tour-step="turno-cifras" className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-4">
               <div className={s.stat}>
                 <p className={s.label}>Piezas buenas</p>
                 <p className={`text-xl font-semibold ${s.big}`}>{formatThousands(summary.kpi.buenas)}</p>
@@ -115,7 +115,7 @@ export function ShiftClose({ variant, operatorName, workstationName, dateLabel, 
             </div>
 
             <h3 className={`mt-6 ${s.h3}`}>Por orden</h3>
-            <ul>
+            <ul data-tour-step="turno-por-orden">
               {summary.orders.map((o) => (
                 <li key={o.orderId} className={s.row}>
                   <span className="font-semibold">{o.label}</span>
@@ -144,7 +144,7 @@ export function ShiftClose({ variant, operatorName, workstationName, dateLabel, 
             )}
 
             <div className="mt-6 flex flex-wrap items-center gap-3">
-              <button type="button" onClick={() => void copy()} className={s.copy}>
+              <button type="button" data-tour-step="turno-copiar" onClick={() => void copy()} className={s.copy}>
                 Copiar resumen para el relevo
               </button>
               {copied === 'ok' && <span className={s.muted}>Copiado. Ya puedes pegarlo donde lo necesites.</span>}

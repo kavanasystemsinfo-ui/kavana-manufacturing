@@ -67,11 +67,12 @@ interface StepperProps {
   chips: number[];
   onChange: (v: string) => void;
   s: (typeof styles)[Variant];
+  tourStep?: string;
 }
 
-function Stepper({ label, value, step, chips, onChange, s }: StepperProps) {
+function Stepper({ label, value, step, chips, onChange, s, tourStep }: StepperProps) {
   return (
-    <div>
+    <div data-tour-step={tourStep}>
       <label className={s.label}>{label}</label>
       <div className="mt-1 grid grid-cols-[3.5rem_1fr_3.5rem] gap-2">
         <button type="button" aria-label={`Quitar ${step} a ${label}`} className={s.step} onClick={() => onChange(stepQuantity(value, -step))}>
@@ -123,7 +124,7 @@ export function QuickBlockForm(props: Props) {
   const startIsSuggested = !!suggestedStart && startTime === suggestedStart;
 
   return (
-    <div className={s.card}>
+    <div data-tour-step="orden-formulario" className={s.card}>
       <div className={s.head}>
         <h2 className={s.title}>Registrar bloque de producción</h2>
         {props.onRepeat && (
@@ -138,7 +139,7 @@ export function QuickBlockForm(props: Props) {
         )}
       </div>
       <form onSubmit={props.onSubmit} className={props.variant === 'classic' ? 'flex flex-col gap-5 p-4' : 'flex flex-col gap-5'}>
-        <div className="grid grid-cols-2 gap-4">
+        <div data-tour-step="orden-horas" className="grid grid-cols-2 gap-4">
           <div>
             <label className={s.label}>Desde</label>
             <input
@@ -174,8 +175,8 @@ export function QuickBlockForm(props: Props) {
           onAdd={(pieces) => props.onProduced(stepQuantity(props.producedQuantity, pieces))}
         />
 
-        <Stepper label="Producción buena" value={props.producedQuantity} step={1} chips={PRODUCED_CHIPS} onChange={props.onProduced} s={s} />
-        <Stepper label="Defectos" value={props.defectQuantity} step={1} chips={[]} onChange={props.onDefects} s={s} />
+        <Stepper label="Producción buena" value={props.producedQuantity} step={1} chips={PRODUCED_CHIPS} onChange={props.onProduced} s={s} tourStep="orden-produccion" />
+        <Stepper label="Defectos" value={props.defectQuantity} step={1} chips={[]} onChange={props.onDefects} s={s} tourStep="orden-defectos" />
 
         {showNotes ? (
           <div>
@@ -193,7 +194,7 @@ export function QuickBlockForm(props: Props) {
           </button>
         )}
 
-        <button type="submit" disabled={props.busy} className={s.submit}>
+        <button type="submit" data-tour-step="orden-registrar" disabled={props.busy} className={s.submit}>
           {props.busy ? 'Guardando...' : 'Registrar producción'}
         </button>
       </form>
