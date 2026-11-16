@@ -3,11 +3,12 @@ import { createPortal } from 'react-dom';
 
 export interface TourStep {
   id: string;
-  selector: string;
+  /** Valor del atributo data-tour-step del elemento que se resalta. Sin él, el paso sale centrado. */
+  anchor?: string;
   title: string;
   content: string;
-  position?: 'top' | 'bottom' | 'left' | 'right' | 'center';
-  action?: () => void; // Optional action before showing step (e.g., switch tab)
+  /** Se ejecuta al llegar al paso (por ejemplo, abrir la pestaña que se explica). */
+  action?: () => void;
 }
 
 interface TourProps {
@@ -17,350 +18,247 @@ interface TourProps {
   onComplete: () => void;
 }
 
+const ANCHO_TOOLTIP = 360;
+const ALTO_TOOLTIP = 300;
+const HUECO = 12;
+/** Cuánto se espera a que aparezca el elemento tras abrir una pestaña (carga de datos incluida). */
+const ESPERA_MAXIMA_MS = 2500;
+
+function buscarAncla(anchor: string | undefined): HTMLElement | null {
+  if (!anchor) return null;
+  const candidatos = document.querySelectorAll<HTMLElement>(`[data-tour-step="${anchor}"]`);
+  for (const el of Array.from(candidatos)) {
+    const r = el.getBoundingClientRect();
+    if (r.width > 0 && r.height > 0) return el;
+  }
+  return null;
+}
+
 export function Tour({ steps, isOpen, onClose, onComplete }: TourProps) {
   const [currentStep, setCurrentStep] = useState(0);
-  const [targetRect, setTargetRect] = useState<DOMRect | null>(null);
-  const tooltipRef = useRef<HTMLDivElement>(null);
-  const isMountedRef = useRef(true);
+  const [rect, setRect] = useState<DOMRect | null>(null);
+  // El panel puede repintarse en cualquier momento (refrescos de datos): los
+  // pasos se leen siempre de aquí para no reiniciar nada al cambiar de identidad.
+  const stepsRef = useRef(steps);
+  stepsRef.current = steps;
+  const objetivoRef = useRef<HTMLElement | null>(null);
 
-  // Calculate target rect synchronously for a given step index
-  const calculateRect = (stepIndex: number): DOMRect | null => {
-    if (stepIndex < 0 || stepIndex >= steps.length) return null;
-    const step = steps[stepIndex];
-    if (!step) return null;
-
-    try {
-      const target = document.querySelector(step.selector);
-      if (target) {
-        return target.getBoundingClientRect();
-      }
-    } catch (e) {
-      // Invalid selector (e.g., :has-text) - fall back to centered
-      console.warn(`Tour: invalid selector "${step.selector}" for step ${step.id}`, e);
-    }
-
-    // Fallback: center of viewport for steps without valid selector or element not found
-    if (step.position === 'center' || !step.selector) {
-      return {
-        top: window.innerHeight / 2,
-        left: window.innerWidth / 2,
-        bottom: window.innerHeight / 2,
-        right: window.innerWidth / 2,
-        width: 0,
-        height: 0,
-        x: window.innerWidth / 2,
-        y: window.innerHeight / 2,
-      } as DOMRect;
-    }
-    return null;
-  };
-
-  // Reset to first step when tour opens
   useEffect(() => {
-    if (isOpen) {
-      setCurrentStep(0);
-      // Calculate initial rect synchronously
-      const rect = calculateRect(0);
-      if (rect) setTargetRect(rect);
-    }
+    if (isOpen) setCurrentStep(0);
+  }, [isOpen]);
+
+  // Al llegar a un paso: ejecutar su acción, esperar al elemento, llevarlo a la
+  // vista y medirlo. Si no aparece, el paso se enseña centrado y sin recuadro.
+  useEffect(() => {
+    if (!isOpen) return;
+    const paso = stepsRef.current[currentStep];
+    if (!paso) return;
+
+    let cancelado = false;
+    let timer: ReturnType<typeof setTimeout> | undefined;
+    setRect(null);
+    objetivoRef.current = null;
+    paso.action?.();
+
+    const inicio = Date.now();
+    const sondear = () => {
+      if (cancelado) return;
+      const el = buscarAncla(paso.anchor);
+      if (el) {
+        el.scrollIntoView({ block: 'center', inline: 'nearest' });
+        objetivoRef.current = el;
+        requestAnimationFrame(() => {
+          if (!cancelado) setRect(el.getBoundingClientRect());
+        });
+        return;
+      }
+      if (!paso.anchor || Date.now() - inicio > ESPERA_MAXIMA_MS) return;
+      timer = setTimeout(sondear, 80);
+    };
+    timer = setTimeout(sondear, 80);
     return () => {
-      isMountedRef.current = false;
+      cancelado = true;
+      if (timer) clearTimeout(timer);
+    };
+  }, [currentStep, isOpen]);
+
+  // El recuadro sigue al elemento si se hace scroll o cambia el tamaño de la ventana.
+  useEffect(() => {
+    if (!isOpen) return;
+    const reajustar = () => {
+      const el = objetivoRef.current;
+      if (el && el.isConnected) setRect(el.getBoundingClientRect());
+    };
+    window.addEventListener('resize', reajustar);
+    window.addEventListener('scroll', reajustar, true);
+    return () => {
+      window.removeEventListener('resize', reajustar);
+      window.removeEventListener('scroll', reajustar, true);
     };
   }, [isOpen]);
 
-  // Execute action (e.g., switch tab) when step changes
-  useEffect(() => {
-    if (!isOpen) return;
-
-    const step = steps[currentStep];
-    if (!step) return;
-
-    // Execute any action (e.g., switch tab)
-    if (step.action) {
-      step.action();
-    }
-
-    // Recalculate rect after DOM updates from action
-    const timeout = setTimeout(() => {
-      if (!isMountedRef.current) return;
-      const rect = calculateRect(currentStep);
-      if (rect) setTargetRect(rect);
-    }, 50);
-
-    return () => clearTimeout(timeout);
-  }, [currentStep, isOpen, steps]);
-
-  // Handle keyboard navigation
-  useEffect(() => {
-    if (!isOpen) return;
-
-    const handleKeyDown = (e: KeyboardEvent) => {
-      switch (e.key) {
-        case 'ArrowRight':
-        case 'Enter':
-          e.preventDefault();
-          goNext();
-          break;
-        case 'ArrowLeft':
-          e.preventDefault();
-          goPrev();
-          break;
-        case 'Escape':
-          e.preventDefault();
-          skip();
-          break;
-      }
-    };
-
-    window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [isOpen, currentStep, steps.length]);
-
-  const goNext = () => {
-    if (currentStep < steps.length - 1) {
-      const nextStep = currentStep + 1;
-      // Calculate new rect BEFORE changing step to avoid flash
-      const nextRect = calculateRect(nextStep);
-      setCurrentStep(nextStep);
-      if (nextRect) setTargetRect(nextRect);
-    } else {
-      onComplete();
-      onClose();
-    }
-  };
-
-  const goPrev = () => {
-    if (currentStep > 0) {
-      const prevStep = currentStep - 1;
-      // Calculate new rect BEFORE changing step to avoid flash
-      const prevRect = calculateRect(prevStep);
-      setCurrentStep(prevStep);
-      if (prevRect) setTargetRect(prevRect);
-    }
-  };
-
-  const skip = () => {
+  const total = steps.length;
+  const salir = () => {
     onComplete();
     onClose();
   };
+  const siguiente = () => {
+    if (currentStep < total - 1) setCurrentStep(currentStep + 1);
+    else salir();
+  };
+  const anterior = () => {
+    if (currentStep > 0) setCurrentStep(currentStep - 1);
+  };
 
-  // Only return null if tour is closed - keep last valid rect during transitions
-  if (!isOpen || !steps[currentStep]) {
-    return null;
-  }
+  useEffect(() => {
+    if (!isOpen) return;
+    const alPulsar = (e: KeyboardEvent) => {
+      if (e.key === 'ArrowRight' || e.key === 'Enter') {
+        e.preventDefault();
+        siguiente();
+      } else if (e.key === 'ArrowLeft') {
+        e.preventDefault();
+        anterior();
+      } else if (e.key === 'Escape') {
+        e.preventDefault();
+        salir();
+      }
+    };
+    window.addEventListener('keydown', alPulsar);
+    return () => window.removeEventListener('keydown', alPulsar);
+  });
 
-  const step = steps[currentStep];
-  const isLast = currentStep === steps.length - 1;
-  const isFirst = currentStep === 0;
+  const paso = steps[currentStep];
+  if (!isOpen || !paso) return null;
 
-  // If we don't have a rect yet (e.g., selector not found), show centered
-  const rect = targetRect || {
-    top: window.innerHeight / 2,
-    left: window.innerWidth / 2,
-    bottom: window.innerHeight / 2,
-    right: window.innerWidth / 2,
-    width: 0,
-    height: 0,
-    x: window.innerWidth / 2,
-    y: window.innerHeight / 2,
-  } as DOMRect;
+  const esUltimo = currentStep === total - 1;
+  const esPrimero = currentStep === 0;
 
-  // Calculate tooltip position
-  const tooltipWidth = 360;
-  const gap = 12;
-  let top = 0;
-  let left = 0;
-
-  if (step.position === 'center' || !step.selector) {
-    top = window.innerHeight / 2 - 150;
-    left = window.innerWidth / 2 - tooltipWidth / 2;
+  // Posición del texto: debajo del elemento si cabe, si no encima; sin elemento, centrado.
+  let top: number;
+  let left: number;
+  if (rect) {
+    left = rect.left + rect.width / 2 - ANCHO_TOOLTIP / 2;
+    const cabeAbajo = rect.bottom + HUECO + ALTO_TOOLTIP <= window.innerHeight;
+    const cabeArriba = rect.top - HUECO - ALTO_TOOLTIP >= 0;
+    if (cabeAbajo) top = rect.bottom + HUECO;
+    else if (cabeArriba) top = rect.top - HUECO - ALTO_TOOLTIP;
+    else top = window.innerHeight - ALTO_TOOLTIP - 16;
   } else {
-    switch (step.position) {
-      case 'bottom':
-        top = rect.bottom + gap;
-        left = rect.left + rect.width / 2 - tooltipWidth / 2;
-        break;
-      case 'top':
-        top = rect.top - gap - 300;
-        left = rect.left + rect.width / 2 - tooltipWidth / 2;
-        break;
-      case 'right':
-        top = rect.top + rect.height / 2 - 150;
-        left = rect.right + gap;
-        break;
-      case 'left':
-        top = rect.top + rect.height / 2 - 150;
-        left = rect.left - gap - tooltipWidth;
-        break;
-      default:
-        top = rect.bottom + gap;
-        left = rect.left + rect.width / 2 - tooltipWidth / 2;
-    }
+    left = window.innerWidth / 2 - ANCHO_TOOLTIP / 2;
+    top = window.innerHeight / 2 - ALTO_TOOLTIP / 2;
   }
+  left = Math.max(16, Math.min(left, window.innerWidth - ANCHO_TOOLTIP - 16));
+  top = Math.max(16, Math.min(top, window.innerHeight - 16 - 120));
 
-  // Keep tooltip in viewport
-  left = Math.max(16, Math.min(left, window.innerWidth - tooltipWidth - 16));
-  top = Math.max(16, Math.min(top, window.innerHeight - 320));
+  const recuadro: React.CSSProperties | null = rect
+    ? {
+        position: 'fixed',
+        top: rect.top - 4,
+        left: rect.left - 4,
+        width: rect.width + 8,
+        height: rect.height + 8,
+        borderRadius: 8,
+        boxShadow: '0 0 0 9999px rgba(0, 0, 0, 0.55), 0 0 0 2px #f97316',
+        zIndex: 9999,
+        pointerEvents: 'none',
+        transition: 'all 0.25s ease',
+      }
+    : null;
 
-  const overlayStyle: React.CSSProperties = {
-    position: 'fixed',
-    top: 0,
-    left: 0,
-    width: '100vw',
-    height: '100vh',
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
-    zIndex: 9998,
-    pointerEvents: 'none' as const,
-  };
-
-  const highlightStyle: React.CSSProperties = step.selector ? {
-    position: 'fixed',
-    top: rect.top - 4,
-    left: rect.left - 4,
-    width: rect.width + 8,
-    height: rect.height + 8,
-    borderRadius: 8,
-    boxShadow: '0 0 0 9999px rgba(0, 0, 0, 0.5), 0 0 0 2px #f97316',
-    zIndex: 9999,
-    pointerEvents: 'none' as const,
-    transition: 'all 0.3s ease',
-  } : {};
-
-  const tooltipStyle: React.CSSProperties = {
-    position: 'fixed',
-    top,
-    left,
-    width: tooltipWidth,
-    maxHeight: 'calc(100vh - 32px)',
-    overflow: 'auto',
-    backgroundColor: 'white',
-    borderRadius: 12,
-    boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)',
-    zIndex: 10000,
-    padding: 24,
-    fontFamily: 'inherit',
-    animation: 'slideIn 0.2s ease-out',
-  };
-
-  const tooltipContent = (
-    <div ref={tooltipRef} style={tooltipStyle} className="tour-tooltip">
-      <style>{`
-        @keyframes slideIn {
-          from { opacity: 0; transform: translateY(-10px); }
-          to { opacity: 1; transform: translateY(0); }
-        }
-      `}</style>
-      <div className="flex items-start justify-between gap-4 mb-4">
-        <div className="flex-1">
-          <h3 className="text-lg font-semibold text-slate-900">{step.title}</h3>
-          <p className="text-sm text-slate-500 mt-1">Paso {currentStep + 1} de {steps.length}</p>
-        </div>
-        <button
-          onClick={skip}
-          className="text-slate-400 hover:text-slate-600 p-1"
-          aria-label="Saltar tour"
-        >
-          ✕
-        </button>
-      </div>
-
-      <div className="prose prose-sm max-w-none text-slate-700 mb-6">
-        {step.content.split('\n').map((line, i) => (
-          <p key={i} className="mb-2">{line}</p>
-        ))}
-      </div>
-
-      <div className="flex items-center justify-between mt-4">
-        <div className="flex-1 text-center">
-          <div className="flex items-center justify-center gap-2">
-            {!isFirst && (
-              <button
-                onClick={goPrev}
-                className="px-3 py-1 text-sm font-medium text-slate-600 hover:text-slate-700 transition-colors"
-              >
-                ←
-              </button>
-            )}
-            <span className="px-2 py-1 bg-slate-200 rounded text-xs font-medium">
-              {currentStep + 1} / {steps.length}
-            </span>
-            {!isLast && (
-              <button
-                onClick={goNext}
-                className="px-3 py-1 text-sm font-medium text-slate-600 hover:text-slate-700 transition-colors"
-              >
-                →
-              </button>
-            )}
+  return createPortal(
+    <>
+      {/* Con elemento, el propio recuadro oscurece el resto; sin él, un velo simple. */}
+      {!recuadro && (
+        <div
+          style={{ position: 'fixed', inset: 0, backgroundColor: 'rgba(0, 0, 0, 0.55)', zIndex: 9998 }}
+          onClick={salir}
+          aria-hidden="true"
+        />
+      )}
+      {recuadro && <div style={recuadro} aria-hidden="true" />}
+      <div
+        role="dialog"
+        aria-label={paso.title}
+        className="tour-tooltip"
+        style={{
+          position: 'fixed',
+          top,
+          left,
+          width: ANCHO_TOOLTIP,
+          maxWidth: 'calc(100vw - 32px)',
+          maxHeight: 'calc(100vh - 32px)',
+          overflow: 'auto',
+          backgroundColor: 'white',
+          borderRadius: 12,
+          boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.25), 0 10px 10px -5px rgba(0, 0, 0, 0.1)',
+          zIndex: 10000,
+          padding: 20,
+        }}
+      >
+        <div className="mb-3 flex items-start justify-between gap-4">
+          <div>
+            <h3 className="text-lg font-semibold text-slate-900">{paso.title}</h3>
+            <p className="mt-0.5 text-xs text-slate-500">Paso {currentStep + 1} de {total}</p>
           </div>
+          <button onClick={salir} className="p-1 text-slate-400 hover:text-slate-600" aria-label="Saltar tour">
+            ✕
+          </button>
         </div>
-        <div className="flex gap-3">
-          {!isFirst && (
+        <div className="mb-5 text-sm text-slate-700">
+          {paso.content.split('\n').map((linea, i) => (
+            <p key={i} className="mb-2">{linea}</p>
+          ))}
+        </div>
+        <div className="flex justify-end gap-3">
+          {!esPrimero && (
             <button
-              onClick={goPrev}
-              className="px-4 py-2 text-sm font-medium text-slate-700 border border-slate-300 rounded-lg hover:bg-slate-50 transition-colors"
+              onClick={anterior}
+              className="rounded-lg border border-slate-300 px-4 py-2 text-sm font-medium text-slate-700 transition-colors hover:bg-slate-50"
             >
               ← Atrás
             </button>
           )}
           <button
-            onClick={goNext}
-            className="px-4 py-2 text-sm font-medium text-white bg-kavana-orange rounded-lg hover:bg-kavana-orange-dark transition-colors"
+            onClick={siguiente}
+            className="rounded-lg bg-kavana-orange px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-kavana-orange-dark"
           >
-            {isLast ? 'Finalizar' : 'Siguiente →'}
+            {esUltimo ? 'Finalizar' : 'Siguiente →'}
           </button>
         </div>
       </div>
-    </div>
-  );
-
-  return createPortal(
-    <>
-      <div style={overlayStyle} onClick={skip} aria-hidden="true" />
-      {step.selector && <div style={highlightStyle} aria-hidden="true" />}
-      {tooltipContent}
     </>,
-    document.body
+    document.body,
   );
 }
 
-// Hook para usar el tour en cualquier componente
+/**
+ * Hook del tour. El componente que devuelve tiene identidad estable: si cambiara
+ * en cada repintado del panel, React lo desmontaría y el tour volvería al paso 1.
+ */
 export function useTour(steps: TourStep[]) {
   const [isOpen, setIsOpen] = useState(false);
-  // NO ocultamos el botón tras completar: siempre visible
-  // const [completed, setCompleted] = useState(false);
+  const stepsRef = useRef(steps);
+  stepsRef.current = steps;
 
   const start = () => setIsOpen(true);
   const close = () => setIsOpen(false);
   const complete = () => {
-    // Marcamos como completado en localStorage pero NO ocultamos el botón
-    localStorage.setItem('kavana-tour-completed', 'true');
+    try {
+      localStorage.setItem('kavana-tour-completed', 'true');
+    } catch {
+      /* sin almacenamiento: da igual */
+    }
     setIsOpen(false);
   };
 
-  // Memoize TourComponent to prevent remount on parent re-renders.
-  // El componente devuelto recibe onClose/onComplete como props en cada
-  // render, así que la única dependencia real del useMemo es steps.
-  // [steps, onClose, onComplete] referencian nombres que NO existen en este
-  // ámbito → ReferenceError: onClose is not defined en producción.
   const TourComponent = useMemo(
-    () => ({ isOpen: propIsOpen, onClose, onComplete }: { isOpen: boolean; onClose: () => void; onComplete: () => void }) => (
-      <Tour
-        steps={steps}
-        isOpen={propIsOpen}
-        onClose={onClose}
-        onComplete={onComplete}
-      />
-    ),
-    [steps]
+    () =>
+      function TourDelPanel(props: { isOpen: boolean; onClose: () => void; onComplete: () => void }) {
+        return <Tour steps={stepsRef.current} {...props} />;
+      },
+    [],
   );
 
-  return {
-    isOpen,
-    completed: false, // Siempre false para que el botón nunca se oculte
-    start,
-    close,
-    complete,
-    TourComponent,
-  };
+  return { isOpen, completed: false, start, close, complete, TourComponent };
 }

@@ -161,7 +161,7 @@ export function LiveLineTab() {
   else insignia = { texto: 'TURNO TERMINADO', clase: 'bg-slate-100 text-slate-700' };
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-4" data-tour-step="linea-en-vivo">
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
         <div>
           <h3 className="text-lg font-semibold text-slate-900">Línea en Vivo</h3>
