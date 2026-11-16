@@ -62,6 +62,7 @@ export function OrderFiltersBar({
   return (
     <section
       aria-label="Filtros de órdenes"
+      data-tour-step="ordenes-filtros"
       className={`mb-4 flex flex-col gap-3 p-3 sm:flex-row sm:flex-wrap sm:items-end ${themed(SURFACE, isClassic)}`}
     >
       <div className="flex min-w-0 flex-1 flex-col gap-1">
@@ -122,6 +123,7 @@ export function OrderFiltersBar({
         <div
           role="group"
           aria-label="Vista de órdenes"
+          data-tour-step="ordenes-vista"
           className={`inline-flex rounded-lg p-0.5 ${isClassic ? 'bg-slate-100' : 'bg-kavana-dark ring-1 ring-kavana-steel/30'}`}
         >
           {(['tablero', 'lista'] as OrdersView[]).map((opcion) => (

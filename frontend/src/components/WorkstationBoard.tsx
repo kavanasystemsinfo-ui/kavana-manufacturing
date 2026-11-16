@@ -38,12 +38,12 @@ export function WorkstationBoard({ workstations, isClassic }: Props) {
   }
 
   return (
-    <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-      {workstations.map((ws) => {
+    <div data-tour-step="puestos-tablero" className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+      {workstations.map((ws, indice) => {
         const badge = workstationBadge(ws.state);
         const ultima = ws.last_block_end ?? ws.last_block_start;
         return (
-          <div key={ws.id} className={`border rounded-xl shadow p-4 flex flex-col gap-2 ${isClassic ? 'bg-white border-slate-200 text-slate-900' : 'bg-white dark:bg-gray-800'}`}>
+          <div key={ws.id} data-tour-step={indice === 0 ? 'puestos-tarjeta' : undefined} className={`border rounded-xl shadow p-4 flex flex-col gap-2 ${isClassic ? 'bg-white border-slate-200 text-slate-900' : 'bg-white dark:bg-gray-800'}`}>
             {/* Header with name and status badge */}
             <div className="flex items-start justify-between gap-3">
               <h3 className={`min-w-0 text-lg font-bold ${isClassic ? 'text-slate-900' : 'text-gray-900 dark:text-gray-100'}`}>{ws.name}</h3>

@@ -32,6 +32,8 @@ interface KanbanColumnsProps<T extends KanbanItem> {
   emptyLabel?: string;
   /** Tema en uso: el tablero se pinta igual en los dos, con su par de clases. */
   isClassic?: boolean;
+  /** Ancla del tour guiado (data-tour-step) para el tablero entero. */
+  tourStep?: string;
 }
 
 /**
@@ -49,6 +51,7 @@ export function KanbanColumns<T extends KanbanItem>({
   ariaLabel = 'Tablero',
   emptyLabel = 'Soltar aquí',
   isClassic,
+  tourStep,
 }: KanbanColumnsProps<T>) {
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 8 } }),
@@ -66,7 +69,7 @@ export function KanbanColumns<T extends KanbanItem>({
   };
 
   return (
-    <div>
+    <div data-tour-step={tourStep}>
       {/* En móvil solo cabe una columna: sin esta pista, el resto del tablero
           parece no existir. */}
       <p className={`mb-2 text-xs sm:hidden ${isClassic ? 'text-slate-500' : 'text-slate-400'}`} aria-hidden="true">

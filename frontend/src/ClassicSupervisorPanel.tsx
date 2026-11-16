@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useSupervisorPanel } from './hooks/useSupervisorPanel.js';
 import { ThemeToggle } from './components/ThemeToggle.js';
 import { LogoutButton } from './components/LogoutButton.js';
@@ -17,7 +17,8 @@ import { OrderFiltersBar, type OrdersView } from './components/supervisor/OrderF
 import { OrdersTable } from './components/supervisor/OrdersTable.js';
 import { BUTTON_SECONDARY, NOTICE_INFO, themed } from './utils/ui-tokens.js';
 import { useTour } from './components/Tour.js';
-import { pasosTourSupervisor } from './utils/tour-supervisor.js';
+import { toursSupervisor, debeAbrirTourAlEntrar } from './utils/tour-supervisor.js';
+import { TourButton } from './components/TourButton.js';
 
 /**
  * El tablero de incidencias con su carga y su error, como lo pintaba la lista que
@@ -77,9 +78,16 @@ export function ClassicSupervisorPanel() {
   // El clásico abre en lista: es su forma de siempre, ahora con columnas.
   const [view, setView] = useState<OrdersView>('tablero');
 
-  const tourSteps = pasosTourSupervisor(setActiveTab);
+  const tours = toursSupervisor(setActiveTab);
+  const { start: startTour, TourComponent, tourProps } = useTour(tours);
 
-  const { isOpen: tourOpen, completed: tourCompleted, start: startTour, close: closeTour, complete: completeTour, TourComponent } = useTour(tourSteps);
+  // El tour se abre solo al entrar al panel (una vez por sesión) y se puede omitir.
+  useEffect(() => {
+    if (!debeAbrirTourAlEntrar()) return;
+    const t = setTimeout(() => startTour('resumen'), 1200);
+    return () => clearTimeout(t);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   return (
     <>
@@ -97,15 +105,7 @@ export function ClassicSupervisorPanel() {
               </div>
               <div className="flex flex-wrap items-center gap-2">
                 <HelpModal {...SUPERVISOR_HELP} theme="classic" dataTourStep="header-help" />
-                {/* Botón Tour SIEMPRE visible */}
-                <button
-                  data-tour-step="header-tour"
-                  onClick={startTour}
-                  className="inline-flex min-h-[64px] items-center gap-2 rounded-md bg-kavana-orange/20 px-4 py-2 text-sm font-medium text-kavana-orange border border-kavana-orange/30 shadow-sm transition hover:bg-kavana-orange/30 active:scale-95"
-                  title="Tour guiado del panel"
-                >
-                  🎯 Tour
-                </button>
+                <TourButton onClick={() => startTour(activeTab)} />
                 <button
                   data-tour-step="header-new-order"
                   onClick={() => setShowForm(!showForm)}
@@ -295,11 +295,7 @@ export function ClassicSupervisorPanel() {
           )}
         </main>
       </div>
-      <TourComponent
-        isOpen={tourOpen}
-        onClose={closeTour}
-        onComplete={completeTour}
-      />
+      <TourComponent {...tourProps} />
     </>
   );
 }
