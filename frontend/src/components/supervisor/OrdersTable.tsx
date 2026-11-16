@@ -44,7 +44,7 @@ export function OrdersTable({ isClassic, orders, onStatusChange, onDelete, onAct
     : 'border-b border-kavana-steel/15 hover:bg-kavana-dark/40';
 
   return (
-    <div className={`overflow-x-auto ${isClassic ? 'rounded-lg border border-slate-200 bg-white' : 'rounded-2xl border border-kavana-steel/25 bg-kavana-surface'}`}>
+    <div data-tour-step="ordenes-contenido" className={`overflow-x-auto ${isClassic ? 'rounded-lg border border-slate-200 bg-white' : 'rounded-2xl border border-kavana-steel/25 bg-kavana-surface'}`}>
       <table className="w-full min-w-[860px] border-collapse text-sm">
         <thead>
           <tr className={cabecera}>

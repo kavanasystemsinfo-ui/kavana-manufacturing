@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useSupervisorPanel } from './hooks/useSupervisorPanel.js';
 import { ThemeToggle } from './components/ThemeToggle.js';
 import { LogoutButton } from './components/LogoutButton.js';
@@ -19,7 +19,8 @@ import { OrdersTable } from './components/supervisor/OrdersTable.js';
 import { OrderFiltersBar, type OrdersView } from './components/supervisor/OrderFiltersBar.js';
 import { BUTTON_SECONDARY, NOTICE_INFO, themed } from './utils/ui-tokens.js';
 import { useTour } from './components/Tour.js';
-import { pasosTourSupervisor } from './utils/tour-supervisor.js';
+import { toursSupervisor, debeAbrirTourAlEntrar } from './utils/tour-supervisor.js';
+import { TourButton } from './components/TourButton.js';
 
 type Tab = 'resumen' | 'live' | 'oee' | 'orders' | 'workstations' | 'incidencias';
 
@@ -46,9 +47,16 @@ export function SupervisorPanel() {
   // El tablero es la vista natural de este tema.
   const [view, setView] = useState<OrdersView>('tablero');
 
-  const tourSteps = pasosTourSupervisor(setActiveTab);
+  const tours = toursSupervisor(setActiveTab);
+  const { start: startTour, TourComponent, tourProps } = useTour(tours);
 
-  const { isOpen: tourOpen, completed: tourCompleted, start: startTour, close: closeTour, complete: completeTour, TourComponent } = useTour(tourSteps);
+  // El tour se abre solo al entrar al panel (una vez por sesión) y se puede omitir.
+  useEffect(() => {
+    if (!debeAbrirTourAlEntrar()) return;
+    const t = setTimeout(() => startTour('resumen'), 1200);
+    return () => clearTimeout(t);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   return (
     <>
@@ -64,15 +72,7 @@ export function SupervisorPanel() {
                 {...SUPERVISOR_HELP}
                 dataTourStep="header-help"
               />
-              {/* Botón Tour SIEMPRE visible */}
-              <button
-                data-tour-step="header-tour"
-                onClick={startTour}
-                className="min-h-[64px] rounded-2xl bg-kavana-orange/20 px-5 py-3 text-base font-bold text-kavana-orange-light border border-kavana-orange/30 shadow-lg transition hover:bg-kavana-orange/30 active:scale-95"
-                title="Tour guiado del panel"
-              >
-                🎯 Tour
-              </button>
+              <TourButton onClick={() => startTour(activeTab)} />
               <button
                 data-tour-step="header-new-order"
                 onClick={() => setShowForm(!showForm)}
@@ -295,11 +295,7 @@ export function SupervisorPanel() {
         </section>
       </main>
       <AiAdvisorFab />
-      <TourComponent
-        isOpen={tourOpen}
-        onClose={closeTour}
-        onComplete={completeTour}
-      />
+      <TourComponent {...tourProps} />
     </>
   );
 }
