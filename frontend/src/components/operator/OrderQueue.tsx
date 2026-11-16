@@ -90,7 +90,7 @@ export function OrderQueue<T extends QueueOrder>({ orders, searching, variant, o
   };
 
   return (
-    <div>
+    <div data-tour-step="cola-lista">
       {queue.inProgress.length > 0 && (
         <section>
           <h2 className={s.heading.replace('mt-6', 'mt-0')}>En curso</h2>
