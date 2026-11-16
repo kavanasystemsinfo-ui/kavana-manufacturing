@@ -41,6 +41,7 @@ import { IncidenciaModal } from './components/operator/IncidenciaModal.js'; // N
 import { ShiftKpiCard } from './components/operator/ShiftKpiCard.js';
 import { useMyShiftKPI } from './hooks/useMyShiftKPI.js';
 import { ThemeToggle } from './components/ThemeToggle.js';
+import { LogoutButton } from './components/LogoutButton.js';
 import { HelpModal } from './components/HelpModal.js';
 import { AiAdvisorFab } from './components/AiAdvisorFab.js';
 import { PauseModal } from './components/operator/PauseModal.js';
@@ -194,6 +195,7 @@ export function OperatorPanel() {
               </div>
             </div>
             <ThemeToggle />
+            <LogoutButton />
           </header>
 
           <div className="mb-6 flex items-center gap-3">
@@ -274,6 +276,7 @@ export function OperatorPanel() {
               </button>
               <HelpModal {...OPERATOR_HELP} />
               <ThemeToggle />
+              <LogoutButton />
             </div>
           </header>
 
