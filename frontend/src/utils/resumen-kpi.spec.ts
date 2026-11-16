@@ -108,3 +108,34 @@ describe('rendimientoDelDia', () => {
     expect(nivel(799)).toBe('rojo');
   });
 });
+
+describe('rendimientoDelDia con la jornada de planta', () => {
+  // Las ordenes del lunes nacen el domingo a las 22:00 (inicio de su jornada).
+  const ventana = { inicio: new Date(2026, 10, 15, 22, 0, 0), fin: new Date(2026, 10, 16, 22, 0, 0) };
+  const ahora = new Date(2026, 10, 16, 14, 51, 0);
+
+  it('cuenta las ordenes creadas el domingo por la noche como de la jornada del lunes', () => {
+    const domingoNoche = new Date(2026, 10, 15, 22, 0, 0);
+    const r = rendimientoDelDia([orden(domingoNoche, { quantity: 100, produced_quantity: '40.0000' })], ahora, ventana);
+    expect(r.objetivo).toBe(100);
+    expect(r.real).toBe(40);
+  });
+
+  it('el dia natural, en cambio, las dejaba fuera (el fallo de origen)', () => {
+    const domingoNoche = new Date(2026, 10, 15, 22, 0, 0);
+    const r = rendimientoDelDia([orden(domingoNoche, { quantity: 100, produced_quantity: '40.0000' })], ahora);
+    expect(r.objetivo).toBe(0);
+  });
+
+  it('deja fuera lo anterior a la jornada y lo posterior a su fin', () => {
+    const r = rendimientoDelDia(
+      [
+        orden(new Date(2026, 10, 15, 21, 59, 0), { quantity: 7, produced_quantity: 7 }),
+        orden(new Date(2026, 10, 16, 22, 0, 0), { quantity: 9, produced_quantity: 9 }),
+      ],
+      ahora,
+      ventana,
+    );
+    expect(r.objetivo).toBe(0);
+  });
+});
