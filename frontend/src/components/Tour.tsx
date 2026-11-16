@@ -3,12 +3,20 @@ import { createPortal } from 'react-dom';
 
 export interface TourStep {
   id: string;
-  /** Valor del atributo data-tour-step del elemento que se resalta. Sin él, el paso sale centrado. */
-  anchor?: string;
+  /**
+   * Valor(es) del atributo data-tour-step del elemento que se resalta. Con varios,
+   * se resalta el rectángulo que los abarca. Sin ancla, el paso sale centrado.
+   */
+  anchor?: string | string[];
   title: string;
   content: string;
   /** Se ejecuta al llegar al paso (por ejemplo, abrir la pestaña que se explica). */
   action?: () => void;
+  /**
+   * Paso final que ofrece seguir con otro tour (clave del tour siguiente): en vez
+   * de «Siguiente» enseña «No, omitir Tour» y «Sí, llévame».
+   */
+  siguiente?: string;
 }
 
 interface TourProps {
@@ -16,32 +24,51 @@ interface TourProps {
   isOpen: boolean;
   onClose: () => void;
   onComplete: () => void;
+  /** Pasa al tour de otra pestaña (lo pide el paso final con `siguiente`). */
+  onIr: (clave: string) => void;
 }
 
-const ANCHO_TOOLTIP = 360;
+const ANCHO_TOOLTIP = 380;
 const ALTO_TOOLTIP = 300;
 const HUECO = 12;
 /** Cuánto se espera a que aparezca el elemento tras abrir una pestaña (carga de datos incluida). */
 const ESPERA_MAXIMA_MS = 2500;
 
-function buscarAncla(anchor: string | undefined): HTMLElement | null {
-  if (!anchor) return null;
-  const candidatos = document.querySelectorAll<HTMLElement>(`[data-tour-step="${anchor}"]`);
-  for (const el of Array.from(candidatos)) {
-    const r = el.getBoundingClientRect();
-    if (r.width > 0 && r.height > 0) return el;
+function buscarAncla(anchor: string | string[] | undefined): HTMLElement[] {
+  if (!anchor) return [];
+  const anclas = Array.isArray(anchor) ? anchor : [anchor];
+  const encontrados: HTMLElement[] = [];
+  for (const nombre of anclas) {
+    const candidatos = document.querySelectorAll<HTMLElement>(`[data-tour-step="${nombre}"]`);
+    for (const el of Array.from(candidatos)) {
+      const r = el.getBoundingClientRect();
+      if (r.width > 0 && r.height > 0) {
+        encontrados.push(el);
+        break;
+      }
+    }
   }
-  return null;
+  return encontrados;
 }
 
-export function Tour({ steps, isOpen, onClose, onComplete }: TourProps) {
+/** Rectángulo que abarca a todos los elementos. */
+function abarcar(elementos: HTMLElement[]): DOMRect {
+  const rects = elementos.map((e) => e.getBoundingClientRect());
+  const left = Math.min(...rects.map((r) => r.left));
+  const top = Math.min(...rects.map((r) => r.top));
+  const right = Math.max(...rects.map((r) => r.right));
+  const bottom = Math.max(...rects.map((r) => r.bottom));
+  return new DOMRect(left, top, right - left, bottom - top);
+}
+
+export function Tour({ steps, isOpen, onClose, onComplete, onIr }: TourProps) {
   const [currentStep, setCurrentStep] = useState(0);
   const [rect, setRect] = useState<DOMRect | null>(null);
   // El panel puede repintarse en cualquier momento (refrescos de datos): los
   // pasos se leen siempre de aquí para no reiniciar nada al cambiar de identidad.
   const stepsRef = useRef(steps);
   stepsRef.current = steps;
-  const objetivoRef = useRef<HTMLElement | null>(null);
+  const objetivosRef = useRef<HTMLElement[]>([]);
 
   useEffect(() => {
     if (isOpen) setCurrentStep(0);
@@ -57,21 +84,24 @@ export function Tour({ steps, isOpen, onClose, onComplete }: TourProps) {
     let cancelado = false;
     let timer: ReturnType<typeof setTimeout> | undefined;
     setRect(null);
-    objetivoRef.current = null;
+    objetivosRef.current = [];
     paso.action?.();
 
     const inicio = Date.now();
     const sondear = () => {
       if (cancelado) return;
-      const el = buscarAncla(paso.anchor);
-      if (el) {
-        el.scrollIntoView({ block: 'center', inline: 'nearest' });
-        objetivoRef.current = el;
+      const elementos = buscarAncla(paso.anchor);
+      const esperados = Array.isArray(paso.anchor) ? paso.anchor.length : paso.anchor ? 1 : 0;
+      const completo = elementos.length > 0 && elementos.length >= esperados;
+      const agotado = Date.now() - inicio > ESPERA_MAXIMA_MS;
+      if (elementos.length > 0 && (completo || agotado)) {
+        elementos[0].scrollIntoView({ block: 'center', inline: 'nearest' });
+        objetivosRef.current = elementos;
         // scrollIntoView es síncrono: se mide ya, sin esperar a un fotograma.
-        setRect(el.getBoundingClientRect());
+        setRect(abarcar(elementos));
         return;
       }
-      if (!paso.anchor || Date.now() - inicio > ESPERA_MAXIMA_MS) return;
+      if (!paso.anchor || agotado) return;
       timer = setTimeout(sondear, 80);
     };
     timer = setTimeout(sondear, 80);
@@ -85,8 +115,8 @@ export function Tour({ steps, isOpen, onClose, onComplete }: TourProps) {
   useEffect(() => {
     if (!isOpen) return;
     const reajustar = () => {
-      const el = objetivoRef.current;
-      if (el && el.isConnected) setRect(el.getBoundingClientRect());
+      const vivos = objetivosRef.current.filter((e) => e.isConnected);
+      if (vivos.length > 0) setRect(abarcar(vivos));
     };
     window.addEventListener('resize', reajustar);
     window.addEventListener('scroll', reajustar, true);
@@ -97,6 +127,7 @@ export function Tour({ steps, isOpen, onClose, onComplete }: TourProps) {
   }, [isOpen]);
 
   const total = steps.length;
+  const paso = steps[currentStep];
   const salir = () => {
     onComplete();
     onClose();
@@ -108,13 +139,17 @@ export function Tour({ steps, isOpen, onClose, onComplete }: TourProps) {
   const anterior = () => {
     if (currentStep > 0) setCurrentStep(currentStep - 1);
   };
+  const llevarme = () => {
+    if (paso?.siguiente) onIr(paso.siguiente);
+  };
 
   useEffect(() => {
     if (!isOpen) return;
     const alPulsar = (e: KeyboardEvent) => {
       if (e.key === 'ArrowRight' || e.key === 'Enter') {
         e.preventDefault();
-        siguiente();
+        if (paso?.siguiente) llevarme();
+        else siguiente();
       } else if (e.key === 'ArrowLeft') {
         e.preventDefault();
         anterior();
@@ -127,7 +162,6 @@ export function Tour({ steps, isOpen, onClose, onComplete }: TourProps) {
     return () => window.removeEventListener('keydown', alPulsar);
   });
 
-  const paso = steps[currentStep];
   if (!isOpen || !paso) return null;
 
   const esUltimo = currentStep === total - 1;
@@ -165,6 +199,11 @@ export function Tour({ steps, isOpen, onClose, onComplete }: TourProps) {
       }
     : null;
 
+  const botonSecundario =
+    'rounded-lg border border-slate-300 px-4 py-2 text-sm font-medium text-slate-700 transition-colors hover:bg-slate-50';
+  const botonPrimario =
+    'rounded-lg bg-kavana-orange px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-kavana-orange-dark';
+
   return createPortal(
     <>
       {/* Con elemento, el propio recuadro oscurece el resto; sin él, un velo simple. */}
@@ -200,7 +239,7 @@ export function Tour({ steps, isOpen, onClose, onComplete }: TourProps) {
             <h3 className="text-lg font-semibold text-slate-900">{paso.title}</h3>
             <p className="mt-0.5 text-xs text-slate-500">Paso {currentStep + 1} de {total}</p>
           </div>
-          <button onClick={salir} className="p-1 text-slate-400 hover:text-slate-600" aria-label="Saltar tour">
+          <button onClick={salir} className="p-1 text-slate-400 hover:text-slate-600" aria-label="Cerrar tour">
             ✕
           </button>
         </div>
@@ -209,22 +248,33 @@ export function Tour({ steps, isOpen, onClose, onComplete }: TourProps) {
             <p key={i} className="mb-2">{linea}</p>
           ))}
         </div>
-        <div className="flex justify-end gap-3">
-          {!esPrimero && (
-            <button
-              onClick={anterior}
-              className="rounded-lg border border-slate-300 px-4 py-2 text-sm font-medium text-slate-700 transition-colors hover:bg-slate-50"
-            >
-              ← Atrás
-            </button>
-          )}
-          <button
-            onClick={siguiente}
-            className="rounded-lg bg-kavana-orange px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-kavana-orange-dark"
-          >
-            {esUltimo ? 'Finalizar' : 'Siguiente →'}
-          </button>
-        </div>
+        {paso.siguiente ? (
+          <div className="flex flex-wrap justify-end gap-3">
+            {!esPrimero && (
+              <button onClick={anterior} className={botonSecundario}>← Atrás</button>
+            )}
+            <button onClick={salir} className={botonSecundario}>No, omitir Tour</button>
+            <button onClick={llevarme} className={botonPrimario}>Sí, llévame</button>
+          </div>
+        ) : (
+          <div className="flex items-center justify-between gap-3">
+            {!esUltimo ? (
+              <button onClick={salir} className="text-sm font-medium text-slate-500 underline-offset-2 hover:text-slate-700 hover:underline">
+                Omitir tour
+              </button>
+            ) : (
+              <span />
+            )}
+            <div className="flex gap-3">
+              {!esPrimero && (
+                <button onClick={anterior} className={botonSecundario}>← Atrás</button>
+              )}
+              <button onClick={siguiente} className={botonPrimario}>
+                {esUltimo ? 'Finalizar' : 'Siguiente →'}
+              </button>
+            </div>
+          </div>
+        )}
       </div>
     </>,
     document.body,
@@ -232,15 +282,20 @@ export function Tour({ steps, isOpen, onClose, onComplete }: TourProps) {
 }
 
 /**
- * Hook del tour. El componente que devuelve tiene identidad estable: si cambiara
- * en cada repintado del panel, React lo desmontaría y el tour volvería al paso 1.
+ * Hook del tour: varios recorridos (uno por pestaña) y un único componente.
+ * El componente que devuelve tiene identidad estable: si cambiara en cada
+ * repintado del panel, React lo desmontaría y el tour volvería al paso 1.
  */
-export function useTour(steps: TourStep[]) {
+export function useTour(tours: Record<string, TourStep[]>) {
   const [isOpen, setIsOpen] = useState(false);
-  const stepsRef = useRef(steps);
-  stepsRef.current = steps;
+  const [clave, setClave] = useState<string>('resumen');
+  const toursRef = useRef(tours);
+  toursRef.current = tours;
 
-  const start = () => setIsOpen(true);
+  const start = (nueva?: string) => {
+    if (nueva) setClave(nueva);
+    setIsOpen(true);
+  };
   const close = () => setIsOpen(false);
   const complete = () => {
     try {
@@ -253,11 +308,21 @@ export function useTour(steps: TourStep[]) {
 
   const TourComponent = useMemo(
     () =>
-      function TourDelPanel(props: { isOpen: boolean; onClose: () => void; onComplete: () => void }) {
-        return <Tour steps={stepsRef.current} {...props} />;
+      function TourDelPanel(props: {
+        isOpen: boolean;
+        clave: string;
+        onClose: () => void;
+        onComplete: () => void;
+        onIr: (clave: string) => void;
+      }) {
+        const { clave: claveTour, ...resto } = props;
+        // key: cada tour empieza limpio en su paso 1.
+        return <Tour key={claveTour} steps={toursRef.current[claveTour] ?? []} {...resto} />;
       },
     [],
   );
 
-  return { isOpen, completed: false, start, close, complete, TourComponent };
+  const tourProps = { isOpen, clave, onClose: close, onComplete: complete, onIr: (siguiente: string) => setClave(siguiente) };
+
+  return { isOpen, start, close, complete, TourComponent, tourProps };
 }

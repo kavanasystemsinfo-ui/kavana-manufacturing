@@ -148,7 +148,7 @@ export function OeeAdvancedTab() {
           </p>
         </div>
         
-        <div className="flex sm:flex-row flex-col gap-2 w-full sm:w-auto">
+        <div data-tour-step="oee-periodo" className="flex sm:flex-row flex-col gap-2 w-full sm:w-auto">
           <div className="flex-1 sm:flex-none">
             <label className="block text-sm font-medium text-slate-700 mb-1">
               Período:
@@ -188,7 +188,7 @@ export function OeeAdvancedTab() {
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
         {/* Availability Gauge */}
         <div className="col-span-1 sm:col-span-1 lg:col-span-1">
-          <div className="rounded-lg border border-slate-200 bg-white p-4 shadow-sm">
+          <div data-tour-step="oee-disponibilidad" className="rounded-lg border border-slate-200 bg-white p-4 shadow-sm">
             <div className="flex justify-between items-start mb-2">
               <h4 className="text-sm font-medium text-slate-700">Disponibilidad</h4>
               <div className="text-xs text-slate-500">
@@ -211,7 +211,7 @@ export function OeeAdvancedTab() {
         
         {/* Performance Gauge */}
         <div className="col-span-1 sm:col-span-1 lg:col-span-1">
-          <div className="rounded-lg border border-slate-200 bg-white p-4 shadow-sm">
+          <div data-tour-step="oee-rendimiento" className="rounded-lg border border-slate-200 bg-white p-4 shadow-sm">
             <div className="flex justify-between items-start mb-2">
               <h4 className="text-sm font-medium text-slate-700">Rendimiento</h4>
               <div className="text-xs text-slate-500">
@@ -234,7 +234,7 @@ export function OeeAdvancedTab() {
         
         {/* Quality Gauge */}
         <div className="col-span-1 sm:col-span-1 lg:col-span-1">
-          <div className="rounded-lg border border-slate-200 bg-white p-4 shadow-sm">
+          <div data-tour-step="oee-calidad" className="rounded-lg border border-slate-200 bg-white p-4 shadow-sm">
             <div className="flex justify-between items-start mb-2">
               <h4 className="text-sm font-medium text-slate-700">Calidad</h4>
               <div className="text-xs text-slate-500">
@@ -257,7 +257,7 @@ export function OeeAdvancedTab() {
         
         {/* OEE Trend Chart */}
         <div className="col-span-2 sm:col-span-2 lg:col-span-2">
-          <div className="rounded-lg border border-slate-200 bg-white p-4 shadow-sm">
+          <div data-tour-step="oee-tendencia" className="rounded-lg border border-slate-200 bg-white p-4 shadow-sm">
             <div className="flex justify-between items-start mb-3">
               <h4 className="text-sm font-medium text-slate-700">
                 Tendencia OEE y Componentes ({timeRange === 'day' ? 'Horas' : 'Días'})
@@ -397,7 +397,7 @@ export function OeeAdvancedTab() {
         
         {/* Workstation Ranking */}
         <div className="col-span-1 sm:col-span-1 lg:col-span-1">
-          <div className="rounded-lg border border-slate-200 bg-white p-4 shadow-sm">
+          <div data-tour-step="oee-ranking" className="rounded-lg border border-slate-200 bg-white p-4 shadow-sm">
             <div className="flex justify-between items-start mb-3">
               <h4 className="text-sm font-medium text-slate-700">
                 Ranking de puestos
@@ -445,7 +445,7 @@ export function OeeAdvancedTab() {
         
         {/* Detailed Workstation Table */}
         <div className="col-span-3">
-          <div className="rounded-lg border border-slate-200 bg-white shadow-sm overflow-hidden">
+          <div data-tour-step="oee-detalle" className="rounded-lg border border-slate-200 bg-white shadow-sm overflow-hidden">
             <div className="border-b border-slate-200 bg-slate-50 px-4 py-3">
               <h4 className="text-sm font-semibold text-slate-900">Detalle por Workstation</h4>
             </div>
