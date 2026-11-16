@@ -61,6 +61,17 @@ function abarcar(elementos: HTMLElement[]): DOMRect {
   return new DOMRect(left, top, right - left, bottom - top);
 }
 
+/**
+ * Si el elemento es más alto que la pantalla (un tablero con cientos de órdenes),
+ * el recuadro se limita a la parte visible para que siga a la vista.
+ */
+function recortarAPantalla(r: DOMRect): DOMRect {
+  const margen = 8;
+  const top = Math.max(r.top, margen);
+  const bottom = Math.min(r.bottom, window.innerHeight - margen);
+  return new DOMRect(r.left, top, r.width, Math.max(bottom - top, 40));
+}
+
 export function Tour({ steps, isOpen, onClose, onComplete, onIr }: TourProps) {
   const [currentStep, setCurrentStep] = useState(0);
   const [rect, setRect] = useState<DOMRect | null>(null);
@@ -95,10 +106,12 @@ export function Tour({ steps, isOpen, onClose, onComplete, onIr }: TourProps) {
       const completo = elementos.length > 0 && elementos.length >= esperados;
       const agotado = Date.now() - inicio > ESPERA_MAXIMA_MS;
       if (elementos.length > 0 && (completo || agotado)) {
-        elementos[0].scrollIntoView({ block: 'center', inline: 'nearest' });
+        // Un elemento muy alto se alinea arriba; uno normal, al centro.
+        const alto = abarcar(elementos).height;
+        elementos[0].scrollIntoView({ block: alto > window.innerHeight * 0.75 ? 'start' : 'center', inline: 'nearest' });
         objetivosRef.current = elementos;
         // scrollIntoView es síncrono: se mide ya, sin esperar a un fotograma.
-        setRect(abarcar(elementos));
+        setRect(recortarAPantalla(abarcar(elementos)));
         return;
       }
       if (!paso.anchor || agotado) return;
@@ -116,7 +129,7 @@ export function Tour({ steps, isOpen, onClose, onComplete, onIr }: TourProps) {
     if (!isOpen) return;
     const reajustar = () => {
       const vivos = objetivosRef.current.filter((e) => e.isConnected);
-      if (vivos.length > 0) setRect(abarcar(vivos));
+      if (vivos.length > 0) setRect(recortarAPantalla(abarcar(vivos)));
     };
     window.addEventListener('resize', reajustar);
     window.addEventListener('scroll', reajustar, true);
