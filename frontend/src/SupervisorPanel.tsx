@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useSupervisorPanel } from './hooks/useSupervisorPanel.js';
 import { ThemeToggle } from './components/ThemeToggle.js';
+import { LogoutButton } from './components/LogoutButton.js';
 import { ActivityFeed } from './components/ActivityFeed.js';
 import { WorkstationBoard } from './components/WorkstationBoard.js';
 import { HelpModal } from './components/HelpModal.js';
@@ -249,9 +250,8 @@ export function SupervisorPanel() {
               >
                 {showForm ? 'Cancelar' : '+ Nueva Orden'}
               </button>
-              <ThemeToggle
-                data-tour-step="header-theme"
-              />
+              <ThemeToggle data-tour-step="header-theme" />
+              <LogoutButton />
             </div>
           </header>
 
