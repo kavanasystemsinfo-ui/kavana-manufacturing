@@ -198,3 +198,19 @@ export function proximaApertura(ahora: Date): Date | null {
   const futuros = turnosAlrededor(ahora, 0, 10).filter((x) => x.inicio.getTime() > t);
   return futuros.length > 0 ? futuros[0].inicio : null;
 }
+
+/**
+ * Jornada que cuenta como "hoy" para los resúmenes: la del turno en marcha o,
+ * con la planta cerrada, la del último turno terminado. Empieza con su primer
+ * turno (el lunes, el domingo a las 22:00), no a las 00:00 del día natural.
+ */
+export function ventanaDeHoy(ahora: Date): { inicio: Date; fin: Date } {
+  const referencia = turnoActual(ahora) ?? ultimoTurno(ahora);
+  if (!referencia) {
+    const inicio = new Date(ahora);
+    inicio.setHours(0, 0, 0, 0);
+    return { inicio, fin: ahora };
+  }
+  const turnos = turnosDeJornada(referencia.jornada);
+  return { inicio: turnos[0].inicio, fin: turnos[turnos.length - 1].fin };
+}

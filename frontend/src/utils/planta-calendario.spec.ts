@@ -1,6 +1,7 @@
 import { createRequire } from 'node:module';
 import { describe, expect, it } from 'vitest';
 import {
+  ventanaDeHoy,
   instanteMadrid,
   isoDeInstante,
   plantaAbierta,
@@ -159,5 +160,19 @@ describe('copia del simulador (scripts/planta-calendario.cjs)', () => {
     // 22:05 del viernes: aún se deja completa la jornada; a las 23:45 ya no
     expect(cjs.jornadaASimular(instanteMadrid(2026, 11, 13, 22, 5))?.jornada).toBe('2026-11-13');
     expect(cjs.jornadaASimular(instanteMadrid(2026, 11, 13, 23, 45))).toBeNull();
+  });
+});
+
+describe('ventanaDeHoy', () => {
+  it('un lunes a media tarde la jornada empieza el domingo a las 22:00', () => {
+    const v = ventanaDeHoy(instanteMadrid(2026, 11, 16, 14, 51));
+    expect(v.inicio.getTime()).toBe(instanteMadrid(2026, 11, 15, 22, 0).getTime());
+    expect(v.fin.getTime()).toBe(instanteMadrid(2026, 11, 16, 22, 0).getTime());
+  });
+
+  it('el domingo a las 23:00 ya cuenta como la jornada del lunes', () => {
+    const v = ventanaDeHoy(instanteMadrid(2026, 11, 22, 23, 0));
+    expect(v.inicio.getTime()).toBe(instanteMadrid(2026, 11, 22, 22, 0).getTime());
+    expect(v.fin.getTime()).toBe(instanteMadrid(2026, 11, 23, 22, 0).getTime());
   });
 });

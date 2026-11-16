@@ -48,13 +48,19 @@ function esMismoDia(fecha: Date, referencia: Date): boolean {
 export function rendimientoDelDia(
   ordenes: readonly OrdenRendimiento[],
   ahora: Date = new Date(),
+  /** Jornada de planta que cuenta como "hoy"; sin ella, el día natural. */
+  ventana?: { inicio: Date; fin: Date },
 ): RendimientoDia {
   let objetivo = 0;
   let real = 0;
 
   for (const orden of ordenes) {
     const creada = new Date(orden.created_at);
-    if (Number.isNaN(creada.getTime()) || !esMismoDia(creada, ahora)) continue;
+    if (Number.isNaN(creada.getTime())) continue;
+    const dentro = ventana
+      ? creada.getTime() >= ventana.inicio.getTime() && creada.getTime() < ventana.fin.getTime()
+      : esMismoDia(creada, ahora);
+    if (!dentro) continue;
     objetivo += unidades(orden.quantity);
     real += unidades(orden.produced_quantity);
   }

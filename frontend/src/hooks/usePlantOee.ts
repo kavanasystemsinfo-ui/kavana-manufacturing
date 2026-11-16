@@ -1,8 +1,9 @@
 import { useEffect, useState } from 'react';
 import { fetchOeeWorkstations } from '../api/analytics.js';
+import { ventanaDeHoy } from '../utils/planta-calendario.js';
 
 /**
- * OEE de planta hoy: media de los puestos que sí tienen partes en el día. Sin
+ * OEE de planta de la jornada de hoy (desde que empieza su primer turno): media de los puestos que sí tienen partes en el día. Sin
  * datos devuelve null (se muestra un guion, nunca un número inventado).
  */
 export function usePlantOee(): number | null {
@@ -10,8 +11,7 @@ export function usePlantOee(): number | null {
 
   useEffect(() => {
     const ahora = new Date();
-    const inicioDelDia = new Date(ahora);
-    inicioDelDia.setHours(0, 0, 0, 0);
+    const inicioDelDia = ventanaDeHoy(ahora).inicio;
 
     let cancelado = false;
     fetchOeeWorkstations(inicioDelDia.toISOString(), ahora.toISOString())
