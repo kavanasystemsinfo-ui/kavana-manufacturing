@@ -13,6 +13,7 @@ import {
 import { useHmiStore } from './store/hmi-store.js';
 import { HelpModal } from './components/HelpModal.js';
 import { ThemeToggle } from './components/ThemeToggle.js';
+import { LogoutButton } from './components/LogoutButton.js';
 import { OeeDashboard } from './components/OeeDashboard.js';
 import { QualityDashboard } from './components/QualityDashboard.js';
 import { CostDashboard } from './components/CostDashboard.js';
@@ -213,6 +214,7 @@ export function AdminPanel() {
               </div>
             </nav>
             <ThemeToggle />
+            <LogoutButton />
           </div>
         </div>
       </header>

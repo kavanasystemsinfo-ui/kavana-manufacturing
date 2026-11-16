@@ -4,6 +4,7 @@ import { useOperatorPanel } from './hooks/useOperatorPanel.js';
 import { useHmiStore } from './store/hmi-store.js';
 import { FailedEventsModal } from './components/operator/FailedEventsModal.js';
 import { ThemeToggle } from './components/ThemeToggle.js';
+import { LogoutButton } from './components/LogoutButton.js';
 import { HelpModal } from './components/HelpModal.js';
 import { IncidenciaModal } from './components/operator/IncidenciaModal.js';
 import { PauseModal } from './components/operator/PauseModal.js';
@@ -98,6 +99,7 @@ export function ClassicOperatorPanel() {
               </div>
             </div>
             <ThemeToggle />
+            <LogoutButton />
           </div>
         </header>
 
@@ -174,6 +176,7 @@ export function ClassicOperatorPanel() {
               </button>
               <HelpModal {...OPERATOR_HELP} theme="classic" />
               <ThemeToggle />
+              <LogoutButton />
             </div>
           </div>
         </div>
