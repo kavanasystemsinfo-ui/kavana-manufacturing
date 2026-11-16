@@ -16,6 +16,7 @@ export function HelpButton({ onClick, theme = 'modern', dataTourStep }: HelpButt
   if (theme === 'classic') {
     return (
       <button
+        data-tour-step={dataTourStep}
         onClick={onClick}
         className="inline-flex min-h-[64px] items-center gap-1.5 text-xs font-medium text-blue-600 hover:text-blue-800 border border-blue-200 rounded-md px-3 py-1 hover:bg-blue-50 transition-colors"
       >
@@ -29,6 +30,7 @@ export function HelpButton({ onClick, theme = 'modern', dataTourStep }: HelpButt
 
   return (
     <button
+      data-tour-step={dataTourStep}
       onClick={onClick}
       className="inline-flex items-center gap-1.5 text-xs font-medium text-kavana-orange hover:text-orange-300 border border-kavana-orange/40 rounded-lg px-2.5 py-1.5 hover:bg-kavana-orange/20 transition-colors"
     >
