@@ -40,7 +40,7 @@ export function KpiCardsRow() {
   const plantOee = usePlantOee();
 
   return (
-    <div className="mb-4 flex gap-1 overflow-x-auto rounded-lg border border-slate-200 bg-white p-1 shadow-sm">
+    <div data-tour-step="resumen-kpis" className="mb-4 flex gap-1 overflow-x-auto rounded-lg border border-slate-200 bg-white p-1 shadow-sm">
       <button
         title="Todas las órdenes de producción registradas: pendientes, en marcha, completadas y canceladas."
         onClick={() => {

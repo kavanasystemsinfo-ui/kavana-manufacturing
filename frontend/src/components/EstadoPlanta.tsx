@@ -13,6 +13,7 @@ export function EstadoPlanta({ estado }: { estado: Estado }) {
   return (
     <section
       aria-label="Estado de la planta"
+      data-tour-step="resumen-estado"
       className={`rounded-lg border p-4 shadow-sm ${estilo.caja}`}
     >
       <div className="flex items-center gap-3">
