@@ -43,7 +43,7 @@ export function ShiftKpiCard({ kpi, isLoading, error, onRetry }: ShiftKpiCardPro
   }
 
   return (
-    <div className="rounded-2xl border border-kavana-steel/20 bg-kavana-dark/70 p-4">
+    <div data-tour-step="orden-mi-turno" className="rounded-2xl border border-kavana-steel/20 bg-kavana-dark/70 p-4">
       <div className="mb-3 flex items-baseline justify-between">
         <p className="text-sm font-bold uppercase tracking-[0.24em] text-slate-400">Mi turno hoy</p>
         <p className="text-xs text-slate-400">Eficiencia {kpi.oeePersonal}%</p>

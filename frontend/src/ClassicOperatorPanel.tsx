@@ -1,9 +1,14 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import logo from '../../logo.png';
 import { useOperatorPanel } from './hooks/useOperatorPanel.js';
 import { useHmiStore } from './store/hmi-store.js';
 import { FailedEventsModal } from './components/operator/FailedEventsModal.js';
 import { ThemeToggle } from './components/ThemeToggle.js';
+import { useTour } from './components/Tour.js';
+import { TourButton } from './components/TourButton.js';
+import { toursOperario, type PantallaOperario } from './utils/tour-operario.js';
+import { debeAbrirTourAlEntrar } from './utils/tour-supervisor.js';
+
 import { LogoutButton } from './components/LogoutButton.js';
 import { HelpModal } from './components/HelpModal.js';
 import { IncidenciaModal } from './components/operator/IncidenciaModal.js';
@@ -72,8 +77,34 @@ export function ClassicOperatorPanel() {
   const handleOpenIncidenciaModal = () => setIsIncidenciaModalOpen(true);
   const handleCloseIncidenciaModal = () => setIsIncidenciaModalOpen(false);
 
+  // Tour guiado: uno por pantalla (cola, orden y cierre de turno), encadenados.
+  const pantallaTour: PantallaOperario = showShift ? 'turno' : orderId ? 'orden' : 'cola';
+  const tours = toursOperario({
+    moderno: false,
+    hayOrdenes: filteredOrders.length > 0,
+    irACola: () => {
+      setShowShift(false);
+      useHmiStore.getState().leaveOrder();
+    },
+    abrirOrden: () => {
+      setShowShift(false);
+      if (!orderId && filteredOrders[0]) selectOrder(filteredOrders[0]);
+    },
+    abrirCierre: () => setShowShift(true),
+  });
+  const { start: startTour, TourComponent, tourProps } = useTour(tours);
+
+  // El tour se abre solo al entrar al panel (una vez por sesión) y se puede omitir.
+  useEffect(() => {
+    if (!debeAbrirTourAlEntrar('operario')) return;
+    const t = setTimeout(() => startTour(pantallaTour), 1200);
+    return () => clearTimeout(t);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   if (showShift) {
     return (
+      <>
       <ShiftClose
         variant="classic"
         operatorName={operatorName ?? null}
@@ -82,6 +113,8 @@ export function ClassicOperatorPanel() {
         labelOf={labelOf}
         onBack={() => setShowShift(false)}
       />
+      <TourComponent {...tourProps} />
+      </>
     );
   }
 
@@ -94,17 +127,18 @@ export function ClassicOperatorPanel() {
               <img src={logo} alt="Logo" className="h-10 w-10 rounded-lg bg-white p-1" />
               <div>
                 <p className="text-xs font-bold uppercase tracking-wider text-kavana-orange-light">Manufacturing</p>
-                <h1 className="text-lg font-semibold text-white">Seleccionar Orden</h1>
+                <h1 data-tour-step="header-title" className="text-lg font-semibold text-white">Seleccionar Orden</h1>
                 <p className="text-xs text-gray-400">{operatorName} {workstationName ? `· ${workstationName}` : ''}</p>
               </div>
             </div>
-            <ThemeToggle />
+            <TourButton onClick={() => startTour(pantallaTour)} />
+            <ThemeToggle dataTourStep="header-theme" />
             <LogoutButton />
           </div>
         </header>
 
         <main className="mx-auto w-[90%] px-4 py-6 sm:px-6 lg:px-8">
-          <div className="relative mb-6">
+          <div data-tour-step="cola-buscar" className="relative mb-6">
             <input
               type="text"
               value={orderSearch}
@@ -132,11 +166,12 @@ export function ClassicOperatorPanel() {
           )}
 
           <div className="mt-6 flex items-center justify-between gap-3">
-            <button type="button" onClick={() => setShowShift(true)} className="rounded-lg border border-slate-300 bg-white px-5 py-3 text-sm font-semibold text-slate-700 hover:bg-slate-100">
+            <button type="button" data-tour-step="cola-cerrar-turno" onClick={() => setShowShift(true)} className="rounded-lg border border-slate-300 bg-white px-5 py-3 text-sm font-semibold text-slate-700 hover:bg-slate-100">
               Cerrar turno
             </button>
           </div>
         </main>
+        <TourComponent {...tourProps} />
       </div>
     );
   }
@@ -151,12 +186,12 @@ export function ClassicOperatorPanel() {
               <img src={logo} alt="Logo" className="h-10 w-10 rounded-lg bg-white p-1" />
               <div>
                 <p className="text-xs font-bold uppercase tracking-wider text-kavana-orange-light">Manufacturing</p>
-                <h1 className="text-lg font-semibold text-white">Panel de Operario</h1>
+                <h1 data-tour-step="header-title" className="text-lg font-semibold text-white">Panel de Operario</h1>
                 <p className="text-xs text-gray-400">{dateLabel}</p>
               </div>
             </div>
             <div className="flex flex-wrap items-center gap-3">
-              <span className={`inline-flex items-center rounded-full px-2 py-1 text-xs font-medium ${
+              <span data-tour-step="orden-conexion" className={`inline-flex items-center rounded-full px-2 py-1 text-xs font-medium ${
                 isOnline ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'
               }`}>
                 {isOnline ? 'Online' : 'Offline'}
@@ -169,13 +204,15 @@ export function ClassicOperatorPanel() {
                 Con error: {failedCount}
               </button>
               <button
+                data-tour-step="orden-incidencia"
                 onClick={handleOpenIncidenciaModal}
                 className="px-4 py-2 text-sm font-medium text-gray-400 bg-kavana-surface/10 rounded hover:bg-kavana-surface/20"
               >
                 ⚠ Incidencia
               </button>
-              <HelpModal {...OPERATOR_HELP} theme="classic" />
-              <ThemeToggle />
+              <TourButton onClick={() => startTour(pantallaTour)} />
+              <HelpModal {...OPERATOR_HELP} theme="classic" dataTourStep="header-help" />
+              <ThemeToggle dataTourStep="header-theme" />
               <LogoutButton />
             </div>
           </div>
@@ -244,6 +281,7 @@ export function ClassicOperatorPanel() {
           }}
         />
       )}
+      <TourComponent {...tourProps} />
       <PauseModal
         isOpen={isPauseModalOpen}
         onClose={() => setIsPauseModalOpen(false)}
