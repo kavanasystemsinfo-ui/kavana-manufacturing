@@ -10,6 +10,7 @@ import { formatThousands } from '../utils/quick-block.js';
 import {
   datosHasta,
   duracionLegible,
+  jornadaVecina,
   horaMadrid,
   marcasDeHora,
   milisegundosDeTipo,
@@ -63,6 +64,7 @@ function fechaLarga(d: Date): string {
 export function LiveLineTab() {
   const [ahora, setAhora] = useState(() => new Date());
   const [elegido, setElegido] = useState<number | null>(null);
+  const [jornadaElegida, setJornadaElegida] = useState<string | null>(null);
   const [puestos, setPuestos] = useState<LiveTimelineWorkstation[]>([]);
   const [oee, setOee] = useState<Map<string, OeeWorkstation>>(new Map());
   const [cargando, setCargando] = useState(true);
@@ -78,8 +80,20 @@ export function LiveLineTab() {
   const actual = useMemo(() => turnoActual(ahora), [ahora]);
   const referencia: Turno | null = actual ?? ultimoTurno(ahora);
   const jornadaRef = referencia?.jornada ?? null;
-  const opciones = useMemo(() => (jornadaRef ? turnosDeJornada(jornadaRef) : []), [jornadaRef]);
-  const turno: Turno | null = opciones.find((t) => t.inicio.getTime() === elegido) ?? referencia;
+  // Jornada que se está mirando: la de referencia (en curso o la última) o una anterior elegida con las flechas.
+  const jornadaVista = jornadaElegida ?? jornadaRef;
+  const viendoHistorico = jornadaVista !== null && jornadaVista !== jornadaRef;
+  const opciones = useMemo(() => (jornadaVista ? turnosDeJornada(jornadaVista) : []), [jornadaVista]);
+  const turno: Turno | null =
+    opciones.find((t) => t.inicio.getTime() === elegido) ??
+    (viendoHistorico ? (opciones[opciones.length - 1] ?? null) : referencia);
+  const anterior = jornadaVista && jornadaRef ? jornadaVecina(jornadaVista, -1, jornadaRef) : null;
+  const siguiente = jornadaVista && jornadaRef ? jornadaVecina(jornadaVista, 1, jornadaRef) : null;
+  const irAJornada = (iso: string | null) => {
+    if (iso === null) return;
+    setJornadaElegida(iso === jornadaRef ? null : iso);
+    setElegido(null);
+  };
   const turnoEnCurso = turno !== null && actual !== null && turno.inicio.getTime() === actual.inicio.getTime();
 
   const inicioMs = turno?.inicio.getTime() ?? null;
@@ -152,10 +166,10 @@ export function LiveLineTab() {
   }, [filas, oee]);
 
   const datosAntiguos = turnoEnCurso && ultimoDato !== null && ahora.getTime() - ultimoDato.getTime() > DATOS_ANTIGUOS_MS;
-  const reabre = !actual ? proximaApertura(ahora) : null;
+  const reabre = !actual && !viendoHistorico ? proximaApertura(ahora) : null;
 
   let insignia: { texto: string; clase: string };
-  if (!actual) insignia = { texto: 'PLANTA CERRADA', clase: 'bg-slate-100 text-slate-700' };
+  if (!actual && !viendoHistorico) insignia = { texto: 'PLANTA CERRADA', clase: 'bg-slate-100 text-slate-700' };
   else if (datosAntiguos) insignia = { texto: 'DATOS ANTIGUOS', clase: 'bg-amber-100 text-amber-800' };
   else if (turnoEnCurso) insignia = { texto: 'TURNO EN CURSO', clase: 'bg-green-100 text-green-700' };
   else insignia = { texto: 'TURNO TERMINADO', clase: 'bg-slate-100 text-slate-700' };
@@ -180,7 +194,7 @@ export function LiveLineTab() {
         </div>
       </div>
 
-      {!actual && (
+      {!actual && !viendoHistorico && (
         <div className="rounded-lg border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-700">
           <strong>Planta cerrada.</strong>{' '}
           {reabre ? `Reabre el ${fechaLarga(reabre)} a las ${horaMadrid(reabre)}. ` : ''}
@@ -195,6 +209,36 @@ export function LiveLineTab() {
       )}
 
       {error && <div className="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800">{error}</div>}
+
+      {jornadaVista && (
+        <div data-tour-step="live-jornadas" className="flex flex-wrap items-center gap-2" aria-label="Jornada">
+          <button
+            type="button"
+            disabled={anterior === null}
+            onClick={() => irAJornada(anterior)}
+            className="px-3 py-1.5 rounded-md text-sm font-medium border bg-white text-slate-700 border-slate-300 hover:bg-slate-50 disabled:opacity-40 disabled:cursor-not-allowed"
+          >
+            ← Día anterior
+          </button>
+          <button
+            type="button"
+            disabled={siguiente === null}
+            onClick={() => irAJornada(siguiente)}
+            className="px-3 py-1.5 rounded-md text-sm font-medium border bg-white text-slate-700 border-slate-300 hover:bg-slate-50 disabled:opacity-40 disabled:cursor-not-allowed"
+          >
+            Día siguiente →
+          </button>
+          {viendoHistorico && (
+            <button
+              type="button"
+              onClick={() => irAJornada(jornadaRef)}
+              className="px-3 py-1.5 rounded-md text-sm font-medium border bg-slate-900 text-white border-slate-900"
+            >
+              Volver a hoy
+            </button>
+          )}
+        </div>
+      )}
 
       {turno && (
         <div data-tour-step="live-turnos" className="flex flex-wrap items-center gap-2" role="tablist" aria-label="Turno">
