@@ -1,18 +1,16 @@
 import { UnauthorizedException } from '@nestjs/common';
+import { generateKeyPairSync } from 'node:crypto';
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { JwtServiceWrapper } from './jwt.service.js';
 
-const PRIVATE_KEY = `***QUITADO-PEM-T030***`;
+const { privateKey, publicKey } = generateKeyPairSync('rsa', {
+  modulusLength: 2048,
+  publicKeyEncoding: { type: 'spki', format: 'pem' },
+  privateKeyEncoding: { type: 'pkcs8', format: 'pem' },
+});
+const PRIVATE_KEY = privateKey;
+const PUBLIC_KEY = publicKey;
 
-const PUBLIC_KEY = `-----BEGIN PUBLIC KEY-----
-MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAwBz7lh7nLn0JfMYgAzAR
-CFQSGhGgZO6npmd2pOhIXVwJ0mF4Y8VL7AsLcfxK45bvy5i1BXRI5QPIhNP6Rpy6
-KFjlP3KnY8Pk//0jhz/LwQcmPvN3nr+xensrLkfuo3mLpt7nt9nCgJm9+3HzFDov
-Lgb70fefbxsF/uVNTo5jDBQ3kK+T0S8FF2t7BSxOAFERPs0RrH7Kya4qxTFrLaCg
-rYV59ibZABnpB92tySiPdARpWeINiHSNhJvw9fI6N7twTssC+x+uLKpo0yWEqoHi
-80TYnRPUIQivcf+4gC4NiFAAxn4eqwA0LPmlsVgSWhF4qsINSeJw2A32iVoCPF1b
-IwIDAQAB
------END PUBLIC KEY-----`;
 
 const WRONG_PUBLIC_KEY = `-----BEGIN PUBLIC KEY-----
 MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAmQmiFwwIesvCzaWKo5fn
