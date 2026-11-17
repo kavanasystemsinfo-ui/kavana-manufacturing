@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 import {
   datosHasta,
   duracionLegible,
+  jornadaVecina,
   marcasDeHora,
   posicionAhora,
   segmentosDeTurno,
@@ -133,5 +134,25 @@ describe('utilidades', () => {
     expect(duracionLegible(45 * 60000)).toBe('45 min');
     expect(duracionLegible(120 * 60000)).toBe('2 h');
     expect(duracionLegible(125 * 60000)).toBe('2 h 05 min');
+  });
+});
+
+describe('jornadaVecina', () => {
+  it('devuelve siempre una jornada con turnos, anterior o posterior según la dirección', () => {
+    const atras = jornadaVecina('2026-11-16', -1, '2026-11-20');
+    const delante = jornadaVecina('2026-11-13', 1, '2026-11-20');
+    expect(atras).not.toBeNull();
+    expect(delante).not.toBeNull();
+    expect(atras! < '2026-11-16').toBe(true);
+    expect(delante! > '2026-11-13').toBe(true);
+    expect(turnosDeJornada(atras!).length).toBeGreaterThan(0);
+    expect(turnosDeJornada(delante!).length).toBeGreaterThan(0);
+  });
+  it('desde el lunes retrocede por encima del domingo cerrado', () => {
+    expect(jornadaVecina('2026-11-16', -1, '2026-11-20')).not.toBe('2026-11-15');
+  });
+  it('no pasa de la jornada en curso ni de 14 días atrás', () => {
+    expect(jornadaVecina('2026-11-17', 1, '2026-11-17')).toBeNull();
+    expect(jornadaVecina('2026-11-03', -1, '2026-11-17')).toBeNull();
   });
 });
