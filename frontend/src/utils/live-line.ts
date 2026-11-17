@@ -1,4 +1,4 @@
-import { partesEnMadrid } from './planta-calendario.js';
+import { partesEnMadrid, sumarDias, turnosDeJornada } from './planta-calendario.js';
 
 /**
  * Traduce los partes reales de un puesto (endpoint /oee/live-timeline) a lo
@@ -147,4 +147,22 @@ export function milisegundosDeTipo(segmentos: SegmentoLinea[], tipo: TipoSegment
   return segmentos
     .filter((s) => s.tipo === tipo)
     .reduce((suma, s) => suma + (s.fin.getTime() - s.inicio.getTime()), 0);
+}
+
+/** Cuántos días hacia atrás se puede navegar en Línea en Vivo. */
+export const DIAS_HISTORICO = 14;
+
+/**
+ * Jornada laborable anterior (-1) o siguiente (+1) a `iso`, sin pasar de `tope`
+ * (la jornada en curso) ni retroceder más de DIAS_HISTORICO días desde ella.
+ * Devuelve null si no hay ninguna: así los botones se desactivan en los extremos.
+ */
+export function jornadaVecina(iso: string, direccion: -1 | 1, tope: string): string | null {
+  const minimo = sumarDias(tope, -DIAS_HISTORICO);
+  for (let n = 1; n <= DIAS_HISTORICO; n++) {
+    const candidata = sumarDias(iso, direccion * n);
+    if (candidata > tope || candidata < minimo) return null;
+    if (turnosDeJornada(candidata).length > 0) return candidata;
+  }
+  return null;
 }
