@@ -4,7 +4,7 @@ import { ProductionChart } from './ProductionChart.js';
 import { DowntimePareto } from './DowntimePareto.js';
 import { useSupervisorPanel } from '../hooks/useSupervisorPanel.js';
 import { rendimientoDelDia } from '../utils/resumen-kpi.js';
-import { ventanaDeHoy } from '../utils/planta-calendario.js';
+import { ventanaFabrilHoy } from '../utils/planta-calendario.js';
 import { conteosDeOrdenes } from '../utils/resumen-conteos.js';
 import { estadoPlanta, contarIncidencias } from '../utils/estado-planta.js';
 import { usePlantOee } from '../hooks/usePlantOee.js';
@@ -42,7 +42,7 @@ export function ResumenTab() {
   // Objetivo real frente a lo producido hoy, con los NUMERIC de pg ya
   // convertidos a número (antes salían concatenados: "01827.00001328.0000...").
   const today = new Date();
-  const rendimiento = rendimientoDelDia(orders, today, ventanaDeHoy(today));
+  const rendimiento = rendimientoDelDia(orders, today, ventanaFabrilHoy(today));
   const plantOee = usePlantOee();
   const estado = estadoPlanta({
     oee: plantOee,
