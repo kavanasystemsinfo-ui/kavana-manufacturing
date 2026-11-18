@@ -21,6 +21,9 @@ const DEMO_LOGIN_USERS: Record<string, string> = {
 };
 const DEMO_TENANT_ID = 100;
 
+/** TTL del token emitido por /auth/demo-login: 2 h (la demo es para probar, no para usar). */
+const DEMO_TOKEN_TTL_SECONDS = 2 * 60 * 60;
+
 /** Lo que devuelve el login. El puesto va en la respuesta para que el panel del
  * operario pueda distinguir «no tengo puesto» de «no tengo órdenes». */
 interface LoginResult {
@@ -208,7 +211,9 @@ export class AuthLoginService {
     if (!user || Number(user.tenant_id) !== DEMO_TENANT_ID) {
       throw new HttpException('Usuario demo no encontrado para ese rol', 400);
     }
-    const token = this.generateToken(Number(user.tenant_id), user.id, user.role);
+    // Sesión corta de demo: 2 h para probar la plataforma sin que el token quede
+    // vivo toda la jornada en un navegador de planta.
+    const token = this.generateToken(Number(user.tenant_id), user.id, user.role, false, DEMO_TOKEN_TTL_SECONDS);
 
     return {
       token,
@@ -251,7 +256,7 @@ export class AuthLoginService {
     return timingSafeEqual(Buffer.from(hash, 'hex'), Buffer.from(computed, 'hex'));
   }
 
-  private generateToken(tenantId: number, userId: string, role: string, owner = false): string {
+  private generateToken(tenantId: number, userId: string, role: string, owner = false, ttlSeconds = 86400): string {
     const header = Buffer.from(JSON.stringify({ alg: 'HS256', typ: 'JWT' })).toString('base64url');
     const payload = Buffer.from(JSON.stringify({
       sub: userId,
@@ -259,7 +264,7 @@ export class AuthLoginService {
       role,
       ...(owner ? { owner: true } : {}),
       iat: Math.floor(Date.now() / 1000),
-      exp: Math.floor(Date.now() / 1000) + 86400,
+      exp: Math.floor(Date.now() / 1000) + ttlSeconds,
     })).toString('base64url');
     const signature = createHmac('sha256', JWT_SECRET).update(`${header}.${payload}`).digest('base64url');
     return `${header}.${payload}.${signature}`;
