@@ -214,3 +214,23 @@ export function ventanaDeHoy(ahora: Date): { inicio: Date; fin: Date } {
   const turnos = turnosDeJornada(referencia.jornada);
   return { inicio: turnos[0].inicio, fin: turnos[turnos.length - 1].fin };
 }
+
+/**
+ * DÍA FABRIL en curso: de las 22:00 de un día a las 22:00 del siguiente, en hora
+ * de Madrid, igual que la planta lo cuenta en realidad. A las 21:59 el día
+ * fabril es el de hoy (empezó ayer a las 22:00); a las 22:00 en punto ya es
+ * el de mañana. A diferencia de ventanaDeHoy, no depende de que la planta esté
+ * abierta: vale también los fines de semana.
+ */
+export function ventanaFabrilHoy(ahora: Date): { inicio: Date; fin: Date } {
+  const p = partesEnMadrid(ahora);
+  const hoy = isoDe(p.y, p.m, p.d);
+  const diaFin = p.h >= 22 ? sumarDias(hoy, 1) : hoy;
+  const diaInicio = sumarDias(diaFin, -1);
+  const [iy, im, id] = diaInicio.split('-').map(Number);
+  const [fy, fm, fd] = diaFin.split('-').map(Number);
+  return {
+    inicio: instanteMadrid(iy, im, id, 22, 0),
+    fin: instanteMadrid(fy, fm, fd, 22, 0),
+  };
+}

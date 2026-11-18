@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { fetchOeeWorkstations } from '../api/analytics.js';
-import { ventanaDeHoy } from '../utils/planta-calendario.js';
+import { ventanaFabrilHoy } from '../utils/planta-calendario.js';
 
 /**
  * OEE de planta de la jornada de hoy (desde que empieza su primer turno): media de los puestos que sí tienen partes en el día. Sin
@@ -11,7 +11,7 @@ export function usePlantOee(): number | null {
 
   useEffect(() => {
     const ahora = new Date();
-    const inicioDelDia = ventanaDeHoy(ahora).inicio;
+    const inicioDelDia = ventanaFabrilHoy(ahora).inicio;
 
     let cancelado = false;
     fetchOeeWorkstations(inicioDelDia.toISOString(), ahora.toISOString())
