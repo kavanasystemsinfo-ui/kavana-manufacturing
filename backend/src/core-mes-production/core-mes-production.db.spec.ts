@@ -94,10 +94,11 @@ async function createOrderRow(options: {
   status?: string;
   createdBy?: string;
   customFields?: Record<string, unknown>;
+  quantityUnit?: 'piezas' | 'm';
 }): Promise<string> {
   const inserted = await rows<{ id: string }>(
-    `INSERT INTO orders (tenant_id, code, quantity, workstation_id, status, created_by, custom_fields)
-     VALUES ($1::bigint, $2, $3::int, $4::uuid, $5, $6, $7::jsonb)
+    `INSERT INTO orders (tenant_id, code, quantity, workstation_id, status, created_by, custom_fields, quantity_unit)
+     VALUES ($1::bigint, $2, $3::int, $4::uuid, $5, $6, $7::jsonb, $8)
      RETURNING id`,
     [
       String(options.tenantId),
@@ -107,6 +108,7 @@ async function createOrderRow(options: {
       options.status ?? 'pending',
       options.createdBy ?? 'spec-db',
       JSON.stringify(options.customFields ?? {}),
+      options.quantityUnit ?? 'piezas',
     ],
   );
   return inserted[0].id;
@@ -254,6 +256,48 @@ describe.skipIf(!HAS_DATABASE)('CoreMesProductionService contra base de datos re
 
       expect(result.order.status).toBe('completed');
       expect(Number(result.order.produced_quantity)).toBe(25);
+    });
+
+    it('acepta decimales en una orden de metros (quantity_unit = m)', async () => {
+      const orderM = await createOrderRow({
+        tenantId: TENANT_A,
+        code: 'SPEC-A-METROS',
+        workstationId: ids.workstationA1,
+        quantity: 500,
+        quantityUnit: 'm',
+      });
+      const dto = workBlock({ order_id: orderM, produced_quantity: 12.5, defect_quantity: 0.25 });
+
+      const result = await asTenant(TENANT_A, ids.operatorA1, 'operario', () => service().syncWorkBlock(dto));
+
+      expect(Number(result.order.produced_quantity)).toBe(12.5);
+      expect(Number(result.order.defect_quantity)).toBe(0.25);
+    });
+
+    it('rechaza decimales con mensaje claro en una orden de piezas', async () => {
+      const dto = workBlock({ order_id: orderA, produced_quantity: 12.5 });
+
+      await expect(
+        asTenant(TENANT_A, ids.operatorA1, 'operario', () => service().syncWorkBlock(dto)),
+      ).rejects.toThrow(BadRequestException);
+      await expect(
+        asTenant(TENANT_A, ids.operatorA1, 'operario', () => service().syncWorkBlock(workBlock({ order_id: orderA, produced_quantity: 12.5 }))),
+      ).rejects.toThrow(/piezas enteras/);
+    });
+
+    it('acepta sobreproducción: la orden pasa a completed y el exceso queda registrado', async () => {
+      const small = await createOrderRow({
+        tenantId: TENANT_A,
+        code: 'SPEC-A-SMALL',
+        workstationId: ids.workstationA1,
+        quantity: 10,
+      });
+      const dto = workBlock({ order_id: small, produced_quantity: 14, defect_quantity: 0 });
+
+      const result = await asTenant(TENANT_A, ids.operatorA1, 'operario', () => service().syncWorkBlock(dto));
+
+      expect(result.order.status).toBe('completed');
+      expect(Number(result.order.produced_quantity)).toBe(14);
     });
 
     it('trata como ya sincronizado el MISMO hecho con otro uuid (sin duplicar producción)', async () => {
