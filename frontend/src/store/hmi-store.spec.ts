@@ -34,6 +34,117 @@ vi.mock('../api/client.js', () => ({
   callApiWithTimeout: vi.fn(),
 }));
 
+function bloqueOffline(id: string, start: string): Record<string, unknown> {
+  return {
+    id,
+    tenant_id: '1',
+    order_id: 'ord-1',
+    workstation_id: 'ws-1',
+    operator_id: 'op-1',
+    type: 'produccion',
+    start_time: start,
+    end_time: start,
+    produced_quantity: 10,
+    defect_quantity: 0,
+    is_offline_event: true,
+    version: 1,
+    device_id: 'dev-1',
+  };
+}
+
+/** Cola infinita controlada: devuelve los bloques en orden y luego undefined. */
+function colaDeBloques(bloques: Record<string, unknown>[]) {
+  const copia = [...bloques];
+  const first = vi.fn().mockImplementation(() => Promise.resolve(copia.shift()));
+  vi.mocked(localDb.offlineBlocks.orderBy).mockReturnValue({ first } as never);
+  return first;
+}
+
+describe('Motor de sync: la cola no se detiene en el primer fallo', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    useHmiStore.setState({ isOnline: true, isMutating: false, isSyncing: false, pendingCount: 0, failedCount: 0 });
+  });
+
+  afterEach(() => {
+    vi.restoreAllMocks();
+  });
+
+  it('un fallo transitorio (timeout/5xx) manda el bloque a fallos pero los siguientes se sincronizan', async () => {
+    const b1 = bloqueOffline('b1', '2026-06-14T08:00:00.000Z');
+    const b2 = bloqueOffline('b2', '2026-06-14T09:00:00.000Z');
+    const b3 = bloqueOffline('b3', '2026-06-14T10:00:00.000Z');
+    colaDeBloques([b1, b2, b3]);
+
+    vi.mocked(callApiWithTimeout)
+      .mockRejectedValueOnce(new Error('El servidor tarda en responder. Inténtalo de nuevo en unos segundos.'))
+      .mockResolvedValueOnce({ synced: true } as never)
+      .mockResolvedValueOnce({ synced: true } as never);
+
+    const { triggerSyncEngine } = await import('./hmi-store.js');
+    await triggerSyncEngine();
+
+    // b1 a fallos, b2 y b3 sincronizados y fuera de la cola
+    expect(localDb.failedBlocks.put).toHaveBeenCalledTimes(1);
+    expect(vi.mocked(localDb.failedBlocks.put).mock.calls[0][0].id).toBe('b1');
+    expect(callApiWithTimeout).toHaveBeenCalledTimes(3);
+    expect(localDb.offlineBlocks.delete).toHaveBeenCalledWith('b1');
+    expect(localDb.offlineBlocks.delete).toHaveBeenCalledWith('b2');
+    expect(localDb.offlineBlocks.delete).toHaveBeenCalledWith('b3');
+  });
+
+  it('un 400 de validación también aparta el bloque, pero la cola sigue con los demás', async () => {
+    const b1 = bloqueOffline('b1', '2026-06-14T08:00:00.000Z');
+    const b2 = bloqueOffline('b2', '2026-06-14T09:00:00.000Z');
+    colaDeBloques([b1, b2]);
+
+    vi.mocked(callApiWithTimeout)
+      .mockRejectedValueOnce(new Error('HTTP 400: En esta orden se cuentan piezas enteras'))
+      .mockResolvedValueOnce({ synced: true } as never);
+
+    const { triggerSyncEngine } = await import('./hmi-store.js');
+    await triggerSyncEngine();
+
+    expect(localDb.failedBlocks.put).toHaveBeenCalledTimes(1);
+    expect(callApiWithTimeout).toHaveBeenCalledTimes(2);
+    expect(localDb.offlineBlocks.delete).toHaveBeenCalledWith('b2');
+  });
+});
+
+describe('reintentarFallidos', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    useHmiStore.setState({ isOnline: true, isMutating: false, isSyncing: false });
+  });
+
+  it('mueve el evento de failedBlocks a offlineBlocks y dispara el motor de sync', async () => {
+    const fallido = { ...bloqueOffline('b1', '2026-06-14T08:00:00.000Z'), error: 'HTTP 500' };
+    vi.mocked(localDb.failedBlocks.toArray).mockResolvedValue([fallido] as never);
+    vi.mocked(localDb.failedBlocks.delete).mockResolvedValue(undefined as never);
+    vi.mocked(localDb.offlineBlocks.add).mockResolvedValue(undefined as never);
+    // La cola devuelve el bloque reenganchado y luego undefined: el motor lo sync
+    const reenganchado = { ...bloqueOffline('b1', '2026-06-14T08:00:00.000Z') };
+    colaDeBloques([reenganchado]);
+    vi.mocked(callApiWithTimeout).mockResolvedValue({ synced: true } as never);
+
+    const { reintentarFallidos } = await import('./hmi-store.js');
+    await reintentarFallidos(['b1']);
+    for (let i = 0; i < 10 && !vi.mocked(callApiWithTimeout).mock.calls.length; i++) {
+      await new Promise((r) => setTimeout(r, 0));
+    }
+
+    expect(localDb.offlineBlocks.add).toHaveBeenCalledTimes(1);
+    const copia = vi.mocked(localDb.offlineBlocks.add).mock.calls[0][0] as unknown as Record<string, unknown>;
+    expect(copia.id).toBe('b1');
+    expect(copia.error).toBeUndefined();
+    expect(localDb.failedBlocks.delete).toHaveBeenCalledWith('b1');
+    expect(callApiWithTimeout).toHaveBeenCalledWith(
+      '/api/v1/production/time-logs/sync',
+      expect.objectContaining({ method: 'POST' }),
+    );
+  });
+});
+
 describe('HmiStore (Zustand) - Work Blocks', () => {
   beforeEach(() => {
     vi.clearAllMocks();

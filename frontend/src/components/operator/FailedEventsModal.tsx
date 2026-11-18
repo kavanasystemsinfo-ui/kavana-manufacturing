@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { localDb, type FailedOfflineWorkBlock } from '../../db/local-db.js';
+import { reintentarFallidos } from '../../store/hmi-store.js';
 import { Modal } from '../ui/Modal.js';
 
 interface FailedEventsModalProps {
@@ -32,6 +33,18 @@ export function FailedEventsModal({ isOpen, onClose, onClearAll }: FailedEventsM
   const handleDeleteOne = async (id: string) => {
     await localDb.failedBlocks.delete(id);
     setFailedBlocks((prev) => prev.filter((block) => block.id !== id));
+    onClearAll();
+  };
+
+  const handleRetryOne = async (id: string) => {
+    await reintentarFallidos([id]);
+    setFailedBlocks((prev) => prev.filter((block) => block.id !== id));
+    onClearAll();
+  };
+
+  const handleRetryAll = async () => {
+    await reintentarFallidos();
+    setFailedBlocks([]);
     onClearAll();
   };
 
@@ -69,14 +82,24 @@ export function FailedEventsModal({ isOpen, onClose, onClearAll }: FailedEventsM
                 <span>Operario: <code className="text-slate-300">{block.operator_id.slice(0, 8)}...</code></span>
               </div>
             </div>
-            <button
-              type="button"
-              onClick={() => void handleDeleteOne(block.id)}
-              className="shrink-0 rounded-xl bg-kavana-dark px-3 py-2 text-sm font-bold text-slate-400 ring-1 ring-kavana-steel/30 transition hover:bg-rose-500/20 hover:text-rose-300"
-              title="Eliminar este evento"
-            >
-              🗑
-            </button>
+            <div className="flex shrink-0 gap-2">
+              <button
+                type="button"
+                onClick={() => void handleRetryOne(block.id)}
+                className="rounded-xl bg-kavana-orange px-3 py-2 text-sm font-bold text-white transition hover:bg-kavana-orange-light"
+                title="Reintentar este evento"
+              >
+                🔁 Reintentar
+              </button>
+              <button
+                type="button"
+                onClick={() => void handleDeleteOne(block.id)}
+                className="rounded-xl bg-kavana-dark px-3 py-2 text-sm font-bold text-slate-400 ring-1 ring-kavana-steel/30 transition hover:bg-rose-500/20 hover:text-rose-300"
+                title="Eliminar este evento"
+              >
+                🗑
+              </button>
+            </div>
           </div>
         </div>
       ))}
@@ -93,13 +116,22 @@ export function FailedEventsModal({ isOpen, onClose, onClearAll }: FailedEventsM
         Cerrar
       </button>
       {failedBlocks.length > 0 && (
-        <button
-          type="button"
-          onClick={() => void handleClearAll()}
-          className="flex-1 rounded-2xl bg-rose-600 py-5 text-xl font-black uppercase text-white shadow-lg transition hover:bg-rose-500 min-h-[64px]"
-        >
-          Limpiar Todos
-        </button>
+        <>
+          <button
+            type="button"
+            onClick={() => void handleRetryAll()}
+            className="flex-1 rounded-2xl bg-kavana-orange py-5 text-xl font-black uppercase text-white shadow-lg transition hover:bg-kavana-orange-light min-h-[64px]"
+          >
+            🔁 Reintentar todos
+          </button>
+          <button
+            type="button"
+            onClick={() => void handleClearAll()}
+            className="flex-1 rounded-2xl bg-rose-600 py-5 text-xl font-black uppercase text-white shadow-lg transition hover:bg-rose-500 min-h-[64px]"
+          >
+            Limpiar Todos
+          </button>
+        </>
       )}
     </div>
   );
