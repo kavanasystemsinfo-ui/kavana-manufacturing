@@ -181,7 +181,7 @@ WHERE tenant_id = $1::bigint AND id = $2::uuid
       if (isNewBlock) {
         // Obtener la orden actual para validar límites
         const orderResult = await client.query(
-          `SELECT quantity, produced_quantity, defect_quantity, status
+          `SELECT quantity, produced_quantity, defect_quantity, status, quantity_unit
            FROM orders WHERE tenant_id = $1::bigint AND id = $2::uuid`,
           [tenantId, dto.order_id],
         );
@@ -197,11 +197,19 @@ WHERE tenant_id = $1::bigint AND id = $2::uuid
         const newProduced = currentProduced + Number(dto.produced_quantity ?? 0);
         const newDefects = currentDefects + Number(dto.defect_quantity ?? 0);
         
-        // Validar que no se exceda la cantidad objetivo
-        if (newProduced > targetQuantity) {
-          throw new BadRequestException(
-            `No se pueden producir ${newProduced} unidades. La orden solo tiene ${targetQuantity} unidades.`
-          );
+        // Si la orden cuenta piezas, la cantidad debe ser entera; en metros
+        // (quantity_unit = 'm') se admiten decimales.
+        if (order.quantity_unit !== 'm') {
+          if (!Number.isInteger(newProduced)) {
+            throw new BadRequestException(
+              `En esta orden se cuentan piezas enteras: ${newProduced} no es válido.`
+            );
+          }
+          if (!Number.isInteger(newDefects)) {
+            throw new BadRequestException(
+              `En esta orden se cuentan piezas enteras: ${newDefects} defectos no es válido.`
+            );
+          }
         }
         
         // Validar que los defectos no excedan la producción

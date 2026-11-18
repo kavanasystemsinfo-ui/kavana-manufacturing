@@ -22,6 +22,40 @@ describe('offline work block DTO (retrospective)', () => {
     expect(dto.produced_quantity).toBe(150);
   });
 
+  it('acepta cantidades con decimales (metros)', () => {
+    const dto = syncWorkBlockSchema.parse({
+      id: '00000000-0000-0000-0000-000000000101',
+      tenant_id: '10',
+      order_id: '00000000-0000-0000-0000-000000000001',
+      workstation_id: '00000000-0000-0000-0000-000000000011',
+      operator_id: '00000000-0000-0000-0000-000000000021',
+      type: 'produccion',
+      start_time: '2026-06-14T08:00:00.000Z',
+      end_time: '2026-06-14T10:00:00.000Z',
+      produced_quantity: 12.5,
+      defect_quantity: 0.25,
+    });
+
+    expect(dto.produced_quantity).toBe(12.5);
+    expect(dto.defect_quantity).toBe(0.25);
+  });
+
+  it('rechaza cantidades negativas', () => {
+    const result = syncWorkBlockSchema.safeParse({
+      id: '00000000-0000-0000-0000-000000000101',
+      tenant_id: '10',
+      order_id: '00000000-0000-0000-0000-000000000001',
+      workstation_id: '00000000-0000-0000-0000-000000000011',
+      operator_id: '00000000-0000-0000-0000-000000000021',
+      type: 'produccion',
+      start_time: '2026-06-14T08:00:00.000Z',
+      end_time: '2026-06-14T10:00:00.000Z',
+      produced_quantity: -1,
+    });
+
+    expect(result.success).toBe(false);
+  });
+
   it('rejects production blocks without produced_quantity', () => {
     const result = syncWorkBlockSchema.safeParse({
       id: '00000000-0000-0000-0000-000000000101',
