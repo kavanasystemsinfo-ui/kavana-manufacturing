@@ -1,4 +1,5 @@
 import { callApiWithTimeout } from './client.js';
+import { partesEnMadrid, instanteMadrid, sumarDias, isoDe } from '../utils/planta-calendario.js';
 
 /** Estas cargas son de pantalla y el servidor puede estar despertando: se espera más que en una acción. */
 const LOGS_TIMEOUT_MS = 45000;
@@ -19,16 +20,27 @@ export interface MyTimeLog {
 }
 
 /**
- * Rango [inicio, fin) del día local del operario, no del día UTC: el turno
- * de noche empieza y acaba según el reloj de la planta, y la API filtra por
- * instantes ISO con offset.
+ * Rango [inicio, fin) del DÍA FABRIL del operario: de las 22:00 de un día a
+ * las 22:00 del siguiente, en hora de la planta (Europe/Madrid). Si son las
+ * 21:59 el día fabril es el de hoy (empezó ayer a las 22:00); a las 22:00 en
+ * punto ya empieza el día fabril de mañana. La API filtra por instantes ISO,
+ * así que el cambio de hora se resuelve solo al pasar los instantes correctos.
  */
 export function localDayRange(now: Date = new Date()): { from: string; to: string } {
-  const start = new Date(now);
-  start.setHours(0, 0, 0, 0);
-  const end = new Date(start);
-  end.setDate(end.getDate() + 1);
-  return { from: start.toISOString(), to: end.toISOString() };
+  const p = partesEnMadrid(now);
+  // Día fabril en curso: si ya son las 22:00 o más, termina mañana a las 22:00;
+  // si no, termina hoy a las 22:00. El inicio es siempre 24 h antes (mismo día
+  // de calendario menos uno a las 22:00).
+  const jornadaFin = p.h >= 22 ? sumarDias(isoDe(p.y, p.m, p.d), 1) : isoDe(p.y, p.m, p.d);
+  const jornadaInicio = sumarDias(jornadaFin, -1);
+  const from = instanteMadrid(...diaDeIso(jornadaInicio), 22, 0);
+  const to = instanteMadrid(...diaDeIso(jornadaFin), 22, 0);
+  return { from: from.toISOString(), to: to.toISOString() };
+}
+
+function diaDeIso(iso: string): [number, number, number] {
+  const [y, m, d] = iso.split('-').map(Number);
+  return [y, m, d];
 }
 
 export async function fetchMyTimeLogs(range: { from: string; to: string }): Promise<MyTimeLog[]> {

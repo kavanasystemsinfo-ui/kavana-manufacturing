@@ -1,4 +1,4 @@
-import { ventanaDeHoy } from '../utils/planta-calendario.js';
+import { ventanaFabrilHoy } from '../utils/planta-calendario.js';
 import { useSupervisorPanel } from '../hooks/useSupervisorPanel.js';
 import { useEffect, useMemo, useState } from 'react';
 import {
@@ -38,7 +38,7 @@ export function OeeAdvancedTab() {
 
   useEffect(() => {
     const ahora = new Date();
-    const inicioDelDia = ventanaDeHoy(ahora).inicio;
+    const inicioDelDia = ventanaFabrilHoy(ahora).inicio;
 
     let cancelado = false;
     fetchOeeWorkstations(inicioDelDia.toISOString(), ahora.toISOString())
