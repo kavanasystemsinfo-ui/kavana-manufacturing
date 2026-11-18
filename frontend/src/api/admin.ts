@@ -15,14 +15,13 @@ import { callApiWithTimeout } from './client.js';
 
 const API_BASE = '/api/v1';
 
-// Para simplificar, en modo desarrollo el backend de Kavana podría tener un dev-token.
-// Vamos a usar un JWT simulado que se verificará contra el backend. (Esto asume que
-// configuraste el backend con un JWT_PUBLIC_KEY de pruebas).
-const DEV_TOKEN = typeof localStorage !== 'undefined' ? (localStorage.getItem('kavana_dev_token') || 'mock-token') : 'mock-token';
+// Sin sesión guardada no se envía cabecera de autorización (antes se enviaba
+// literalmente "mock-token", que el servidor rechazaba igual pero ensuciaba los logs).
+const DEV_TOKEN: string | null = typeof localStorage !== 'undefined' ? localStorage.getItem('kavana_dev_token') : null;
 
-const HEADERS = {
+const HEADERS: Record<string, string> = {
   'Content-Type': 'application/json',
-  Authorization: `Bearer ${DEV_TOKEN}`,
+  ...(DEV_TOKEN ? { Authorization: 'Bearer ' + DEV_TOKEN } : {}),
 };
 
 export interface TenantCapabilities {

@@ -55,6 +55,16 @@ describe('AuthLoginService.demoLogin', () => {
     expect(r.token).toBeTruthy();
   });
 
+  it('el token de demo caduca a las 2 horas, no a las 24', async () => {
+    query.mockResolvedValue({ rows: [fila(100, 'operario')], rowCount: 1 });
+    const antes = Math.floor(Date.now() / 1000);
+    const r = await service.demoLogin('operario');
+    const payload = JSON.parse(Buffer.from(r.token.split('.')[1], 'base64url').toString());
+    expect(payload.exp - payload.iat).toBe(2 * 60 * 60);
+    expect(payload.exp).toBeGreaterThanOrEqual(antes + 2 * 60 * 60);
+    expect(payload.exp).toBeLessThanOrEqual(Math.floor(Date.now() / 1000) + 2 * 60 * 60);
+  });
+
   it('nunca emite sesión de un tenant que no sea el demo', async () => {
     query.mockResolvedValue({ rows: [fila(7, 'tenant_admin')], rowCount: 1 });
     await expect(service.demoLogin('administrador')).rejects.toMatchObject({ status: 400 });
