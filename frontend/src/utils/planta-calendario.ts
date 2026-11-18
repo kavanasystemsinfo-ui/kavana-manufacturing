@@ -214,3 +214,19 @@ export function ventanaDeHoy(ahora: Date): { inicio: Date; fin: Date } {
   const turnos = turnosDeJornada(referencia.jornada);
   return { inicio: turnos[0].inicio, fin: turnos[turnos.length - 1].fin };
 }
+
+/**
+ * Ventana del TURNO en curso (no de la jornada): la que usan el cierre de
+ * turno y los indicadores del operario, para que un turno de noche
+ * (22:00-06:00) se vea entero aunque cruce la medianoche. Con la planta
+ * cerrada devuelve el último turno terminado.
+ */
+export function ventanaDeTurno(ahora: Date): { inicio: Date; fin: Date; clave: TurnoClave } {
+  const t = turnoActual(ahora) ?? ultimoTurno(ahora);
+  if (!t) {
+    const inicio = new Date(ahora);
+    inicio.setHours(0, 0, 0, 0);
+    return { inicio, fin: ahora, clave: 'tarde' };
+  }
+  return { inicio: t.inicio, fin: t.fin, clave: t.clave };
+}
