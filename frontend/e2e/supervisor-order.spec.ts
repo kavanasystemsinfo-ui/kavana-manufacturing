@@ -24,6 +24,8 @@ const CODIGO = `E2E-${Date.now()}`;
 
 async function login(page: Page, usuario: string, password: string) {
   await page.goto('/');
+  // El formulario de credenciales está plegado bajo "Tengo cuenta propia"
+  await page.getByRole('button', { name: 'Tengo cuenta propia' }).click();
   await page.getByPlaceholder('ej. megalux').fill(TENANT);
   await page.getByPlaceholder('admin').fill(usuario);
   await page.getByPlaceholder('••••••••').fill(password);
