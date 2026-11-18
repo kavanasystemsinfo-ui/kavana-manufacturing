@@ -32,8 +32,11 @@ export const syncWorkBlockSchema = z.object({
   start_time: z.string().datetime({ offset: true }),
   end_time: z.string().datetime({ offset: true }),
   downtime_reason: z.string().min(1).max(255).nullable().optional(),
-  produced_quantity: z.number().int().nonnegative().optional(),
-  defect_quantity: z.number().int().nonnegative().optional(),
+  // La cantidad puede llevar decimales (p. ej. metros en una perfiladora):
+  // el requisito de entero se exige en el servicio, donde se conoce la
+  // unidad de la orden (quantity_unit = 'piezas' | 'm').
+  produced_quantity: z.number().nonnegative().optional(),
+  defect_quantity: z.number().nonnegative().optional(),
   observations: z.string().max(1000).nullable().optional(),
   is_offline_event: z.boolean().optional().default(false),
   client_device_id: z.string().max(500).nullable().optional(),
