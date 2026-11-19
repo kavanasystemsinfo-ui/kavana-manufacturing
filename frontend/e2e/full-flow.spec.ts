@@ -18,6 +18,8 @@ const DEFECTOS = '2';
 
 async function login(page: Page, usuario: string, password: string) {
   await page.goto('/');
+  // El formulario de credenciales está plegado bajo "Tengo cuenta propia"
+  await page.getByRole('button', { name: 'Tengo cuenta propia' }).click();
   await page.getByPlaceholder('ej. megalux').fill(TENANT);
   await page.getByPlaceholder('admin').fill(usuario);
   await page.getByPlaceholder('••••••••').fill(password);
@@ -50,7 +52,7 @@ test.describe('Flujo completo: operario produce y supervisor lo ve', () => {
     const orden = page
       .getByRole('button')
       .filter({ hasText: PUESTO_E2E })
-      .filter({ hasText: 'Cant: 100' })
+      .filter({ hasText: 'Previsto: 100' })
       .first();
     await expect(orden).toBeVisible();
     await orden.click();
@@ -83,6 +85,9 @@ test.describe('Flujo completo: operario produce y supervisor lo ve', () => {
     // En una base de pruebas puede haber más de una orden en el mismo puesto:
     // la de este flujo se ancla por su N.º de orden, que es único, y se
     // comprueban dentro de su fila el puesto, el progreso y los defectos.
+    // El panel arranca en Resumen y el tablero: la fila vive en Órdenes > Lista.
+    await page.getByRole('button', { name: /ÓRDENES/ }).click();
+    await page.getByRole('button', { name: 'Lista' }).click();
     const fila = page.getByRole('row').filter({ hasText: 'E2E-ORD-1' });
     await expect(fila).toBeVisible({ timeout: 15000 });
     await expect(fila).toContainText(PUESTO_E2E);
