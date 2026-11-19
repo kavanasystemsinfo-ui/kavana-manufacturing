@@ -52,6 +52,7 @@ test.describe('Panel de órdenes del supervisor', () => {
     await expect(page.getByRole('heading', { name: 'Panel de Supervisión' })).toBeVisible();
 
     // Vista de lista: la orden del seed está activa, así que aparece sola.
+    await page.getByRole('button', { name: /ÓRDENES/ }).click();
     await page.getByRole('button', { name: 'Lista' }).click();
     await expect(page.getByRole('row').filter({ hasText: ORDEN_SEED })).toBeVisible({ timeout: 15000 });
 
@@ -80,6 +81,7 @@ test.describe('Panel de órdenes del supervisor', () => {
 
   test('arrastrar una tarjeta cambia el estado de verdad (persiste) y sin error rojo', async ({ page }) => {
     await login(page, SUPERVISOR.usuario, SUPERVISOR.password);
+    await page.getByRole('button', { name: /ÓRDENES/ }).click();
     await page.getByRole('button', { name: 'Tablero' }).click();
 
     // La orden del seed puede estar pendiente o en progreso según qué specs hayan
@@ -104,6 +106,7 @@ test.describe('Panel de órdenes del supervisor', () => {
 
     // Y persiste: al recargar, la tarjeta sigue en la columna de destino.
     await page.reload();
+    await page.getByRole('button', { name: /ÓRDENES/ }).click();
     await page.getByRole('button', { name: 'Tablero' }).click();
     await expect(page.getByLabel(destino).getByText(ORDEN_SEED)).toBeVisible({ timeout: 20000 });
     await expect(page.locator('[role="alert"]')).toHaveCount(0);
@@ -111,6 +114,7 @@ test.describe('Panel de órdenes del supervisor', () => {
 
   test('borrar en la demo se explica en neutro y no borra la orden', async ({ page }) => {
     await login(page, SUPERVISOR.usuario, SUPERVISOR.password);
+    await page.getByRole('button', { name: /ÓRDENES/ }).click();
     await page.getByRole('button', { name: 'Tablero' }).click();
 
     const tarjeta = page.locator('[role="listitem"]').filter({ hasText: ORDEN_SEED });

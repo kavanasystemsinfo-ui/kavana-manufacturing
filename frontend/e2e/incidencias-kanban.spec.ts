@@ -73,7 +73,7 @@ test.describe('Tablero de incidencias', () => {
     // es el que ve el supervisor de planta sin tocar nada, asi que este test se
     // queda en el, sin cambiar de tema.
     await login(page, '047', 'kavana');
-    await page.getByRole('button', { name: /Incidencias/ }).first().click();
+    await page.getByRole('button', { name: /INCIDENCIAS/ }).click();
 
     await expect(page.getByLabel('Incidencias por estado')).toBeVisible({ timeout: 15000 });
     // El test del admin (que corre primero en serie) la dejó en «En progreso»:
