@@ -109,6 +109,10 @@ Los eventos offline que violan reglas de negocio van a dead-letter en el fronten
 
 La demo pública mantiene `DEMO_LOGIN_ENABLED` activo a propósito: los botones Operario, Supervisor y Administrador entran sin credenciales para que quien la prueba tenga acceso inmediato. Es una decisión de producto (Jorge, 2026-11-19), no un descuido. Condición: solo en la demo, con datos ficticios y sin clientes reales. Un despliegue con datos reales debe arrancar con la variable en `false`.
 
+## 14. Usuarios creados por visitantes de la demo no caducaban: ✅ CORREGIDO (2026-11-19)
+
+El administrador público de la demo puede dar de alta usuarios y la limpieza de visitantes solo borraba órdenes, incidencias y fotos: esos usuarios se quedaban para siempre y el simulador diario podía asignarles producción. `limpiarUsuariosVisitantes` borra ahora los usuarios de los tenants demo creados en los últimos 14 días (menos 1094, 047 y admin); si ya tienen actividad se desactivan, y el simulador solo escoge operarios activos. Test en `backend/src/demo-cleanup-users.spec.ts`. Nota operativa: el script que corre en el VPS es una copia, hay que desplegarla a mano.
+
 ---
 
 ## Ronda 2: Hallazgos adversariales (2026-08-21, tarde)

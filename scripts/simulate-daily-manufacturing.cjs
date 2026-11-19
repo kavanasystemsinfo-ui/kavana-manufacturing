@@ -109,7 +109,7 @@ async function main() {
   );
   const models = modRes.rows;
   const opRes = await c.query(
-    "SELECT id FROM users WHERE tenant_id=$1 AND role='operario' ORDER BY username",
+    "SELECT id FROM users WHERE tenant_id=$1 AND role='operario' AND is_active ORDER BY username",
     [TENANT]
   );
   const operarios = opRes.rows.map((r) => r.id);
