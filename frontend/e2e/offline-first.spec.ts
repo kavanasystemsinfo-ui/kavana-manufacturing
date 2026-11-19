@@ -34,7 +34,7 @@ function tarjetaOrden(page: Page) {
   return page
     .getByRole('button')
     .filter({ hasText: PUESTO_E2E })
-    .filter({ hasText: 'Cant: 100' })
+    .filter({ hasText: 'Previsto: 100' })
     .first();
 }
 
