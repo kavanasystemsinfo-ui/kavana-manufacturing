@@ -82,14 +82,14 @@ export function AiAdvisorChat({ mode = 'mes' }: AiAdvisorChatProps) {
     try {
       const controller = new AbortController();
       const timeout = setTimeout(() => controller.abort(), 30000);
-      const token = localStorage.getItem('kavana_dev_token') || 'mock-token';
+      const token = localStorage.getItem('kavana_dev_token');
       let endpoint = '/api/v1/ai-advisor/ask';
       if (isTech) endpoint = '/api/v1/ai-advisor/ask-tech';
       else if (isUser) endpoint = '/api/v1/ai-advisor/ask-user';
       
       const res = await fetch(endpoint, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + token },
+        headers: { 'Content-Type': 'application/json', ...(token ? { Authorization: 'Bearer ' + token } : {}) },
         body: JSON.stringify({ question: q }),
         signal: controller.signal,
       });

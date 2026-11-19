@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { callApiWithTimeout } from './client.js';
+import { callApiWithTimeout, SesionCaducadaError } from './client.js';
 
 describe('API Client (callApiWithTimeout)', () => {
   beforeEach(() => {
@@ -65,5 +65,27 @@ describe('API Client (callApiWithTimeout)', () => {
     vi.stubGlobal('fetch', fetchMock);
 
     await expect(callApiWithTimeout('/api/test')).rejects.toThrow('Not found');
+  });
+
+  it('un 401 lanza SesionCaducadaError (no un HTTP 401 genérico)', async () => {
+    const fetchMock = vi.fn().mockResolvedValue({
+      ok: false,
+      status: 401,
+      json: () => Promise.resolve({ message: 'Unauthorized' }),
+    });
+    vi.stubGlobal('fetch', fetchMock);
+
+    await expect(callApiWithTimeout('/api/test')).rejects.toBeInstanceOf(SesionCaducadaError);
+    await expect(callApiWithTimeout('/api/test')).rejects.toThrow('La sesión ha caducado');
+  });
+
+  it('sin token guardado no envía cabecera Authorization (antes enviaba "mock-token")', async () => {
+    vi.stubGlobal('localStorage', { getItem: () => null });
+    const fetchMock = vi.fn().mockResolvedValue({ ok: true, status: 200, json: () => Promise.resolve({}) });
+    vi.stubGlobal('fetch', fetchMock);
+
+    await callApiWithTimeout('/api/test');
+    const headers = fetchMock.mock.calls[0][1].headers as Record<string, string>;
+    expect(headers.Authorization).toBeUndefined();
   });
 });
