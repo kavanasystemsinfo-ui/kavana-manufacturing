@@ -5,6 +5,8 @@ test.describe('Smoke E2E: App carga y login visible', () => {
     await page.goto('http://localhost:5173');
     // Verificar que la página carga
     await expect(page.locator('body')).toBeVisible();
+    // El formulario de credenciales está plegado bajo "Tengo cuenta propia"
+    await page.getByRole('button', { name: 'Tengo cuenta propia' }).click();
     // El login tiene: input para "Empresa (Slug)", "Usuario", "Contraseña"
     await expect(page.locator('input[placeholder="ej. megalux"]')).toBeVisible({ timeout: 10000 });
     await expect(page.locator('input[placeholder="admin"]')).toBeVisible();
