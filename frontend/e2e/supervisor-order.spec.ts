@@ -63,6 +63,9 @@ test.describe('Supervisor: alta de orden desde la interfaz', () => {
 
     // La orden aparece en la tabla con su N.º de orden, el modelo, el puesto y la
     // cantidad en la MISMA fila: es el dato que identifica la orden en el panel.
+    // El panel arranca en Resumen y el tablero: la fila vive en Órdenes > Lista.
+    await page.getByRole('button', { name: /ÓRDENES/ }).click();
+    await page.getByRole('button', { name: 'Lista' }).click();
     const fila = page.getByRole('row').filter({ hasText: CODIGO });
     await expect(fila).toBeVisible({ timeout: 15000 });
     await expect(fila).toContainText(MODELO);
