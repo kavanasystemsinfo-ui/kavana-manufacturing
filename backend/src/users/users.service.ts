@@ -1,8 +1,8 @@
 import { Injectable, InternalServerErrorException, ForbiddenException } from '@nestjs/common';
-import { randomBytes, createHash } from 'node:crypto';
 import { postgresPool } from '../db/postgres.provider.js';
 import { tenantQuery } from '../db/tenant-query.js';
 import { getTenantContext } from '../auth/tenant-context.storage.js';
+import { hashPassword } from '../auth/password-hash.js';
 import type { CreateUserDto, UpdateUserDto } from './dto.js';
 
 const USER_SELECT = `id, username, role, first_name, last_name, employee_number, is_active, operator_category, default_workstation_id, last_login, created_at, updated_at`;
@@ -10,7 +10,7 @@ const USER_SELECT = `id, username, role, first_name, last_name, employee_number,
 @Injectable()
 export class UsersService {
   async createUser(dto: CreateUserDto) {
-    const passwordHash = this.hashPassword(dto.password);
+    const passwordHash = hashPassword(dto.password);
     try {
       const result = await tenantQuery(
         postgresPool,
@@ -81,7 +81,7 @@ export class UsersService {
     }
     if (dto.password !== undefined) {
       setClauses.push(`password_hash = $${paramIndex}`);
-      values.push(this.hashPassword(dto.password));
+      values.push(hashPassword(dto.password));
       paramIndex++;
     }
     if (dto.role !== undefined) {
@@ -144,11 +144,5 @@ export class UsersService {
       [userId],
     );
     return (result.rowCount ?? 0) > 0;
-  }
-
-  private hashPassword(password: string): string {
-    const salt = randomBytes(16).toString('hex');
-    const hash = createHash('sha256').update(salt + password).digest('hex');
-    return `${salt}:${hash}`;
   }
 }
