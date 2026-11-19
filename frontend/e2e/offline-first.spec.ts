@@ -20,6 +20,8 @@ const PRODUCIDAS_SIN_RED = '7';
 
 async function login(page: Page, usuario: string, password: string) {
   await page.goto('/');
+  // El formulario de credenciales está plegado bajo "Tengo cuenta propia"
+  await page.getByRole('button', { name: 'Tengo cuenta propia' }).click();
   await page.getByPlaceholder('ej. megalux').fill(TENANT);
   await page.getByPlaceholder('admin').fill(usuario);
   await page.getByPlaceholder('••••••••').fill(password);
@@ -32,7 +34,7 @@ function tarjetaOrden(page: Page) {
   return page
     .getByRole('button')
     .filter({ hasText: PUESTO_E2E })
-    .filter({ hasText: 'Cant: 100' })
+    .filter({ hasText: 'Previsto: 100' })
     .first();
 }
 

@@ -2,6 +2,7 @@ import { createRequire } from 'node:module';
 import { describe, expect, it } from 'vitest';
 import {
   ventanaDeHoy,
+  ventanaDeTurno,
   instanteMadrid,
   isoDeInstante,
   plantaAbierta,
@@ -174,5 +175,46 @@ describe('ventanaDeHoy', () => {
     const v = ventanaDeHoy(instanteMadrid(2026, 11, 22, 23, 0));
     expect(v.inicio.getTime()).toBe(instanteMadrid(2026, 11, 22, 22, 0).getTime());
     expect(v.fin.getTime()).toBe(instanteMadrid(2026, 11, 23, 22, 0).getTime());
+  });
+});
+
+describe('ventanaDeTurno (cierre e indicadores del operario)', () => {
+  it('en plena noche (03:00) la ventana es 22:00 de ayer a 06:00 de hoy', () => {
+    // 2026-11-17 es martes: la noche del martes empezó el lunes a las 22:00
+    const v = ventanaDeTurno(instanteMadrid(2026, 11, 17, 3, 0));
+    expect(v.inicio.getTime()).toBe(instanteMadrid(2026, 11, 16, 22, 0).getTime());
+    expect(v.fin.getTime()).toBe(instanteMadrid(2026, 11, 17, 6, 0).getTime());
+    expect(v.clave).toBe('noche');
+  });
+
+  it('a las 23:00 la ventana es la noche que acaba a las 06:00', () => {
+    // 2026-11-16 es lunes: su noche empezó el domingo 15 a las 22:00
+    const v = ventanaDeTurno(instanteMadrid(2026, 11, 16, 23, 0)); // lunes 23:00
+    expect(v.inicio.getTime()).toBe(instanteMadrid(2026, 11, 16, 22, 0).getTime());
+    expect(v.fin.getTime()).toBe(instanteMadrid(2026, 11, 17, 6, 0).getTime());
+    expect(v.clave).toBe('noche');
+  });
+
+  it('en el turno de mañana la ventana es 06:00-14:00 del mismo día', () => {
+    const v = ventanaDeTurno(instanteMadrid(2026, 11, 16, 9, 30));
+    expect(v.inicio.getTime()).toBe(instanteMadrid(2026, 11, 16, 6, 0).getTime());
+    expect(v.fin.getTime()).toBe(instanteMadrid(2026, 11, 16, 14, 0).getTime());
+    expect(v.clave).toBe('manana');
+  });
+
+  it('en el turno de tarde la ventana es 14:00-22:00 del mismo día', () => {
+    const v = ventanaDeTurno(instanteMadrid(2026, 11, 16, 18, 0));
+    expect(v.inicio.getTime()).toBe(instanteMadrid(2026, 11, 16, 14, 0).getTime());
+    expect(v.fin.getTime()).toBe(instanteMadrid(2026, 11, 16, 22, 0).getTime());
+    expect(v.clave).toBe('tarde');
+  });
+
+  it('con la planta cerrada usa el último turno terminado', () => {
+    // 2026-11-14 es sábado de refuerzo (solo mañana); el domingo 15 la planta está
+    // cerrada, así que el último turno terminado es la mañana del sábado 14
+    const v = ventanaDeTurno(instanteMadrid(2026, 11, 15, 20, 0)); // domingo 20:00, planta cerrada
+    expect(v.inicio.getTime()).toBe(instanteMadrid(2026, 11, 14, 6, 0).getTime());
+    expect(v.fin.getTime()).toBe(instanteMadrid(2026, 11, 14, 14, 0).getTime());
+    expect(v.clave).toBe('manana');
   });
 });
