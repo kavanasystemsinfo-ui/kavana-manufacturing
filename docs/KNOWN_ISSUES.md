@@ -2,7 +2,7 @@
 
 > **Para reclutadores técnicos**: este documento enumera limitaciones conocidas del proyecto que un ingeniero senior detectaría al revisar el código. Cada una tiene su explicación de trade-off y el camino de resolución previsto. No están ocultas: son decisiones de fase MVP documentadas.
 
-**Última actualización**: 2026-08-21 (segunda ronda: auditoría adversarial multi-agente: 4 atacantes en paralelo sobre tenancy, auth, frontend y cola/offline; P0 corregidos en el día).
+**Última actualización**: 2026-11-19 (alta de usuarios con scrypt; acceso rápido de la demo documentado). Anterior: 2026-08-21 (segunda ronda: auditoría adversarial multi-agente: 4 atacantes en paralelo sobre tenancy, auth, frontend y cola/offline; P0 corregidos en el día).
 
 ## Ronda 2: Auditoría adversarial (2026-08-21, tarde)
 
@@ -98,6 +98,16 @@ El offline-first del HMI depende de Dexie pero no hay Service Worker: recargar s
 ## 11. Sin DLQ administrativa para eventos offline rechazados (abierto)
 
 Los eventos offline que violan reglas de negocio van a dead-letter en el frontend sin flujo administrativo de revisión. Requiere decisión de UX: quién revisa los rechazos y desde qué panel.
+
+---
+
+## 12. Alta de usuarios con hash legacy sha256: ✅ CORREGIDO (2026-11-19)
+
+`UsersService.createUser`/`updateUser` y `GlobalAdminService.createTenant` (admin inicial) guardaban la contraseña como `salt:sha256(salt+password)`. El login ya aceptaba scrypt y re-hasheaba el legacy al primer acceso (A7), pero los usuarios nuevos seguían naciendo en el formato débil. Ahora los tres puntos usan `hashPassword` (`backend/src/auth/password-hash.ts`, formato `scrypt:salt:hash`) con test de formato, sal distinta y verificación por el login. El formato legacy solo se acepta al verificar.
+
+## 13. Acceso rápido de la demo (`DEMO_LOGIN_ENABLED`): decisión consciente, abierta
+
+La demo pública mantiene `DEMO_LOGIN_ENABLED` activo a propósito: los botones Operario, Supervisor y Administrador entran sin credenciales para que quien la prueba tenga acceso inmediato. Es una decisión de producto (Jorge, 2026-11-19), no un descuido. Condición: solo en la demo, con datos ficticios y sin clientes reales. Un despliegue con datos reales debe arrancar con la variable en `false`.
 
 ---
 
