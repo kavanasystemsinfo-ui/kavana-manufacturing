@@ -1,18 +1,55 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { localDayRange, fetchMyTimeLogs } from './my-time-logs.js';
+import { instanteMadrid } from '../utils/planta-calendario.js';
 
-describe('localDayRange', () => {
-  it('devuelve el día local completo, no el día UTC', () => {
-    const now = new Date('2026-09-22T15:30:00.000Z');
+describe('localDayRange (día fabril 22:00-22:00)', () => {
+  it('antes de las 22:00 el día fabril es hoy: de ayer 22:00 a hoy 22:00', () => {
+    // Martes 18 nov 2026, 15:30 de Madrid (14:30 UTC en horario de invierno)
+    const now = instanteMadrid(2026, 11, 18, 15, 30);
     const { from, to } = localDayRange(now);
-    const start = new Date(from);
-    const end = new Date(to);
-    expect(start.getHours()).toBe(0);
-    expect(start.getMinutes()).toBe(0);
-    expect(start.getSeconds()).toBe(0);
-    expect(start.getMilliseconds()).toBe(0);
-    expect(start.getDate()).toBe(now.getDate());
-    expect(end.getTime() - start.getTime()).toBe(24 * 60 * 60 * 1000);
+    expect(from).toBe(instanteMadrid(2026, 11, 17, 22, 0).toISOString());
+    expect(to).toBe(instanteMadrid(2026, 11, 18, 22, 0).toISOString());
+  });
+
+  it('a las 22:00 en punto ya empieza el día fabril de mañana', () => {
+    // Martes 18 nov 2026, 22:00 de Madrid: el "miércoles 19" de fábrica
+    const now = instanteMadrid(2026, 11, 18, 22, 0);
+    const { from, to } = localDayRange(now);
+    expect(from).toBe(instanteMadrid(2026, 11, 18, 22, 0).toISOString());
+    expect(to).toBe(instanteMadrid(2026, 11, 19, 22, 0).toISOString());
+  });
+
+  it('a la 01:00 del miércoles el día fabril sigue siendo el miércoles (empezó anoche a las 22:00)', () => {
+    const now = instanteMadrid(2026, 11, 19, 1, 0);
+    const { from, to } = localDayRange(now);
+    expect(from).toBe(instanteMadrid(2026, 11, 18, 22, 0).toISOString());
+    expect(to).toBe(instanteMadrid(2026, 11, 19, 22, 0).toISOString());
+  });
+
+  it('21:59:59 todavía es el día fabril anterior', () => {
+    const now = new Date(instanteMadrid(2026, 11, 18, 22, 0).getTime() - 1000);
+    const { from, to } = localDayRange(now);
+    expect(from).toBe(instanteMadrid(2026, 11, 17, 22, 0).toISOString());
+    expect(to).toBe(instanteMadrid(2026, 11, 18, 22, 0).toISOString());
+  });
+
+  it('en el cambio de hora de octubre (25 oct 2026) empieza a las 22:00 local del día anterior', () => {
+    // 25 oct 2026 a las 03:00 de Madrid (ya con hora de invierno, UTC+1)
+    const now = instanteMadrid(2026, 10, 25, 3, 0);
+    const { from, to } = localDayRange(now);
+    expect(from).toBe(instanteMadrid(2026, 10, 24, 22, 0).toISOString());
+    expect(to).toBe(instanteMadrid(2026, 10, 25, 22, 0).toISOString());
+    // Ese día dura 25 h en hora local: el rango fabril también (22:00 a 22:00)
+    expect(new Date(to).getTime() - new Date(from).getTime()).toBe(25 * 60 * 60 * 1000);
+  });
+
+  it('en el cambio de hora de marzo (28 mar 2027) empieza a las 22:00 local del día anterior', () => {
+    const now = instanteMadrid(2027, 3, 28, 12, 0);
+    const { from, to } = localDayRange(now);
+    expect(from).toBe(instanteMadrid(2027, 3, 27, 22, 0).toISOString());
+    expect(to).toBe(instanteMadrid(2027, 3, 28, 22, 0).toISOString());
+    // Ese día dura 23 h en hora local: el rango fabril también
+    expect(new Date(to).getTime() - new Date(from).getTime()).toBe(23 * 60 * 60 * 1000);
   });
 });
 
