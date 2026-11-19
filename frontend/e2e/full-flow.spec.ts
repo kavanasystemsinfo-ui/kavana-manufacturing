@@ -52,7 +52,7 @@ test.describe('Flujo completo: operario produce y supervisor lo ve', () => {
     const orden = page
       .getByRole('button')
       .filter({ hasText: PUESTO_E2E })
-      .filter({ hasText: 'Cant: 100' })
+      .filter({ hasText: 'Previsto: 100' })
       .first();
     await expect(orden).toBeVisible();
     await orden.click();
