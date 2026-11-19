@@ -484,12 +484,38 @@ export async function triggerSyncEngine() {
           error: error instanceof Error ? error.message : String(error),
         });
         await localDb.offlineBlocks.delete(failedBlock.id);
-        break;
+        // La cola SIGUE con el siguiente bloque: un fallo (timeout, 5xx, cold
+        // start de Render o un 400) no puede dejar pendientes los partes
+        // correctos que vienen detrás.
+        oldestBlock = await localDb.offlineBlocks.orderBy('start_time').first();
       }
     }
   } finally {
     useHmiStore.setState({ isSyncing: false });
     await loadQueueCounters();
+  }
+}
+
+/**
+ * Reintenta los partes que quedaron en la bandeja de fallos: los devuelve a la
+ * cola offline (sin el campo `error`) y dispara el motor de sync. El
+ * fingerprint del servidor (migración 039) impede que un reenvío duplicado
+ * cree un parte doble.
+ */
+export async function reintentarFallidos(ids?: string[]): Promise<void> {
+  const fallidos = await localDb.failedBlocks.toArray();
+  const objetivo = ids?.length ? fallidos.filter((f) => ids.includes(f.id)) : fallidos;
+
+  for (const fallido of objetivo) {
+    const { error, ...resto } = fallido;
+    void error; // el motivo del fallo queda en el log del navegador; no viaja al servidor
+    await localDb.offlineBlocks.add(resto as never);
+    await localDb.failedBlocks.delete(fallido.id);
+  }
+
+  if (objetivo.length > 0) {
+    await loadQueueCounters();
+    void triggerSyncEngine();
   }
 }
 
