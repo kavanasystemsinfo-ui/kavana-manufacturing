@@ -1,6 +1,7 @@
 import { Injectable, NotFoundException, ConflictException } from '@nestjs/common';
 import { postgresPool } from '../db/postgres.provider.js';
-import { createHash, randomBytes, timingSafeEqual } from 'node:crypto';
+import { timingSafeEqual } from 'node:crypto';
+import { hashPassword } from '../auth/password-hash.js';
 
 export interface Tenant {
   id: string;
@@ -138,9 +139,7 @@ export class GlobalAdminService {
       );
 
       if (input.admin_username && input.admin_password) {
-        const salt = randomBytes(16).toString('hex');
-        const hash = createHash('sha256').update(salt + input.admin_password).digest('hex');
-        const passwordHash = `${salt}:${hash}`;
+        const passwordHash = hashPassword(input.admin_password);
 
         await client.query(
           `INSERT INTO users (tenant_id, username, password_hash, role)
