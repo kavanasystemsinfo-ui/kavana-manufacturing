@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from 'react';
-import { fetchMyTimeLogs, localDayRange, type MyTimeLog } from '../api/my-time-logs.js';
+import { fetchMyTimeLogs, type MyTimeLog } from '../api/my-time-logs.js';
 import { calculateShiftKPI, type ShiftKPI } from '../utils/shift-kpi.js';
+import { ventanaDeTurno } from '../utils/planta-calendario.js';
 import { useHmiStore } from '../store/hmi-store.js';
 
 export interface MyShiftKPIState {
@@ -27,7 +28,10 @@ export function useMyShiftKPI(): MyShiftKPIState {
 
   const refresh = useCallback(async () => {
     try {
-      const logs = await fetchMyTimeLogs(localDayRange());
+      // Ventana del turno en curso según el calendario de planta (noche
+      // 22:00-06:00 incluida), no el día natural: un turno de noche se ve entero.
+      const ventana = ventanaDeTurno(new Date());
+      const logs = await fetchMyTimeLogs({ from: ventana.inicio.toISOString(), to: ventana.fin.toISOString() });
       setBlocks(logs);
       setError(null);
     } catch (e) {
