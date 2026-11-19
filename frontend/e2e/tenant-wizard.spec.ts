@@ -24,6 +24,8 @@ async function loginGlobalAdmin(page: import('@playwright/test').Page) {
   // El usuario de plataforma vive en el tenant demo: se entra por el login de
   // subdomain y luego se navega a /global-admin con el token ya en el almacén.
   await page.goto('/');
+  // El formulario de credenciales está plegado bajo "Tengo cuenta propia"
+  await page.getByRole('button', { name: 'Tengo cuenta propia' }).click();
   await page.getByPlaceholder('ej. megalux').fill('demo');
   await page.getByPlaceholder('admin').fill(WIZARD.platformUsername);
   await page.getByPlaceholder('••••••••').fill(WIZARD.platformPassword);
