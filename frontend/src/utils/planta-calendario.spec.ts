@@ -3,6 +3,7 @@ import { describe, expect, it } from 'vitest';
 import {
   ventanaDeHoy,
   ventanaDeTurno,
+  ventanaFabrilHoy,
   instanteMadrid,
   isoDeInstante,
   plantaAbierta,
@@ -216,5 +217,37 @@ describe('ventanaDeTurno (cierre e indicadores del operario)', () => {
     expect(v.inicio.getTime()).toBe(instanteMadrid(2026, 11, 14, 6, 0).getTime());
     expect(v.fin.getTime()).toBe(instanteMadrid(2026, 11, 14, 14, 0).getTime());
     expect(v.clave).toBe('manana');
+  });
+});
+
+describe('ventanaFabrilHoy (día fabril 22:00-22:00 para todo, también planta parada)', () => {
+  it('martes 18 nov a las 15:30: de lunes 17 22:00 a martes 18 22:00', () => {
+    const v = ventanaFabrilHoy(instanteMadrid(2026, 11, 18, 15, 30));
+    expect(v.inicio.getTime()).toBe(instanteMadrid(2026, 11, 17, 22, 0).getTime());
+    expect(v.fin.getTime()).toBe(instanteMadrid(2026, 11, 18, 22, 0).getTime());
+  });
+
+  it('martes 18 nov a las 22:00 en punto: ya es el día fabril del miércoles 19', () => {
+    const v = ventanaFabrilHoy(instanteMadrid(2026, 11, 18, 22, 0));
+    expect(v.inicio.getTime()).toBe(instanteMadrid(2026, 11, 18, 22, 0).getTime());
+    expect(v.fin.getTime()).toBe(instanteMadrid(2026, 11, 19, 22, 0).getTime());
+  });
+
+  it('miércoles 19 nov a la 01:00: sigue siendo el día fabril del miércoles (empezó anoche)', () => {
+    const v = ventanaFabrilHoy(instanteMadrid(2026, 11, 19, 1, 0));
+    expect(v.inicio.getTime()).toBe(instanteMadrid(2026, 11, 18, 22, 0).getTime());
+    expect(v.fin.getTime()).toBe(instanteMadrid(2026, 11, 19, 22, 0).getTime());
+  });
+
+  it('sábado 21 nov a las 12:00 (planta parada): igualmente de viernes 22:00 a sábado 22:00', () => {
+    const v = ventanaFabrilHoy(instanteMadrid(2026, 11, 21, 12, 0));
+    expect(v.inicio.getTime()).toBe(instanteMadrid(2026, 11, 20, 22, 0).getTime());
+    expect(v.fin.getTime()).toBe(instanteMadrid(2026, 11, 21, 22, 0).getTime());
+  });
+
+  it('domingo 22 nov a las 23:00: día fabril del lunes 23 (de domingo 22:00 a lunes 22:00)', () => {
+    const v = ventanaFabrilHoy(instanteMadrid(2026, 11, 22, 23, 0));
+    expect(v.inicio.getTime()).toBe(instanteMadrid(2026, 11, 22, 22, 0).getTime());
+    expect(v.fin.getTime()).toBe(instanteMadrid(2026, 11, 23, 22, 0).getTime());
   });
 });
