@@ -1,0 +1,119 @@
+{
+  "title": "Kavana Manufacturing - MES SaaS para Manufactura Industrial",
+  "duration": 90,
+  "resolution": "1920x1080",
+  "fps": 30,
+  "scenes": [
+    {
+      "id": "intro",
+      "start": 0,
+      "end": 10,
+      "duration": 10,
+      "label": "KAVANA Manufacturing — Inteligencia Industrial",
+      "description": "Intro con logo y propuesta de valor",
+      "action": "wait",
+      "target": "login",
+      "zoomArea": { "x": 960, "y": 400, "width": 600, "height": 400 }
+    },
+    {
+      "id": "demo-login-operario",
+      "start": 10,
+      "end": 18,
+      "duration": 8,
+      "label": "Acceso demo: Operario en planta",
+      "description": "Login como operario vía demo-login",
+      "action": "click",
+      "target": "button:has-text('Operario')",
+      "url": "https://www.manufacturing.kavanasystems.com/demo?demo=operario",
+      "waitAfter": 3000,
+      "zoomArea": { "x": 960, "y": 500, "width": 400, "height": 300 }
+    },
+    {
+      "id": "operator-panel-orders",
+      "start": 18,
+      "end": 28,
+      "duration": 10,
+      "label": "Panel Operario: selección de orden",
+      "description": "Lista de órdenes asignadas, búsqueda y selección",
+      "action": "navigate",
+      "target": "input[placeholder*='Buscar']",
+      "waitAfter": 2000,
+      "zoomArea": { "x": 600, "y": 400, "width": 800, "height": 500 }
+    },
+    {
+      "id": "operator-block-registration",
+      "start": 28,
+      "end": 40,
+      "duration": 12,
+      "label": "Registro de bloque de producción",
+      "description": "Formulario rápido: inicio/fin, cantidad, defectos, observaciones",
+      "action": "fill",
+      "target": "input[name='producedQuantity']",
+      "value": "50",
+      "waitAfter": 1000,
+      "zoomArea": { "x": 1200, "y": 600, "width": 600, "height": 400 }
+    },
+    {
+      "id": "supervisor-panel-resumen",
+      "start": 40,
+      "end": 52,
+      "duration": 12,
+      "label": "Panel Supervisor: KPIs y alertas",
+      "description": "Resumen de planta: KPIs, producción, Pareto paradas, tendencias OEE",
+      "action": "navigate",
+      "target": "https://www.manufacturing.kavanasystems.com/demo?demo=supervisor",
+      "waitAfter": 3000,
+      "zoomArea": { "x": 960, "y": 350, "width": 1000, "height": 500 }
+    },
+    {
+      "id": "supervisor-live-line",
+      "start": 52,
+      "end": 62,
+      "duration": 10,
+      "label": "Línea en vivo: timeline 8h por puesto",
+      "description": "Timeline turno completo con estados running/stopped/idle",
+      "action": "click",
+      "target": "button:has-text('LÍNEA EN VIVO')",
+      "waitAfter": 2000,
+      "zoomArea": { "x": 960, "y": 500, "width": 1200, "height": 600 }
+    },
+    {
+      "id": "admin-panel-capabilities",
+      "start": 62,
+      "end": 75,
+      "duration": 13,
+      "label": "Panel Admin: feature flags y multi-tenant",
+      "description": "Gestión de capacidades por módulo, usuarios, puestos, modelos",
+      "action": "navigate",
+      "target": "https://www.manufacturing.kavanasystems.com/demo?demo=administrador",
+      "waitAfter": 3000,
+      "zoomArea": { "x": 960, "y": 400, "width": 1000, "height": 500 }
+    },
+    {
+      "id": "outro-cta",
+      "start": 75,
+      "end": 90,
+      "duration": 15,
+      "label": "KAVANA MES — Pruébalo en manufacturing.kavanasystems.com",
+      "description": "Cierre con llamada a la acción y URL",
+      "action": "wait",
+      "target": "landing",
+      "zoomArea": { "x": 960, "y": 540, "width": 800, "height": 400 }
+    }
+  ],
+  "demo": {
+    "baseUrl": "https://www.manufacturing.kavanasystems.com",
+    "tenant": "demo",
+    "roles": {
+      "operario": "demo=operario",
+      "supervisor": "demo=supervisor",
+      "administrador": "demo=administrador"
+    }
+  },
+  "branding": {
+    "logo": "logo.png",
+    "primaryColor": "#FF6B00",
+    "secondaryColor": "#1A1A2E",
+    "accentColor": "#00D4AA"
+  }
+}
